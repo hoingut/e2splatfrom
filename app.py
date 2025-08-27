@@ -51,6 +51,33 @@ def not_found_error(error):
     return response
 
 # app.py
+# app.py
+
+# ... (আপনার পুরনো রুটগুলো যেমন আছে থাকবে) ...
+
+# --- New Admin Routes for Affiliate System ---
+@app.route('/admin/affiliates')
+def admin_affiliates():
+    return render_template('admin-affiliates.html', title="Affiliate Management")
+
+@app.route('/admin/withdrawals')
+def admin_withdrawals():
+    return render_template('admin-withdrawals.html', title="Withdrawal Requests")
+
+# --- New Affiliate-Specific Routes ---
+@app.route('/affiliate/dashboard')
+def affiliate_dashboard():
+    return render_template('affiliate-dashboard.html', title="Affiliate Dashboard")
+
+@app.route('/affiliate/withdraw')
+def affiliate_withdraw():
+    return render_template('affiliate-withdraw.html', title="Withdraw Funds")
+
+@app.route('/affiliate/orders')
+def affiliate_orders():
+    return render_template('affiliate-orders.html', title="My Affiliate Orders")
+
+# ... (আপনার বাকি কোড) ...
 
 # ... (আপনার অন্যান্য রুটগুলো আগের মতোই থাকবে) ...
 
