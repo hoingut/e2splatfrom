@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnyShop - Your One-Stop Online Store</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom CSS (optional) -->
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-50">
+        <!-- Left: Toggle Menu -->
+        <button id="menu-toggle-btn" class="text-xl lg:hidden">
+            <i class="fas fa-bars"></i>
+        </button>
+        <a href="/" class="hidden lg:block text-2xl font-bold text-indigo-600">AnyShop</a>
+
+        <!-- Center: Navigation Links (for larger screens) -->
+        <div class="hidden lg:flex space-x-6 items-center">
+            <a href="/" class="hover:text-indigo-600">Home</a>
+            <a href="/products" class="hover:text-indigo-600">Products</a>
+            <a href="/menu" class="hover:text-indigo-600">Menu</a>
+        </div>
+        
+        <!-- Center Title (for smaller screens) -->
+         <a href="/" class="lg:hidden text-2xl font-bold text-indigo-600">AnyShop</a>
+
+        <!-- Right: Account & Cart -->
+        <div class="flex items-center space-x-4">
+            <button id="notification-btn" class="text-xl"><i class="fas fa-bell"></i></button>
+            <a href="/account" class="text-xl"><i class="fas fa-user"></i></a>
+            <a href="/checkout" class="text-xl"><i class="fas fa-shopping-cart"></i></a>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg absolute top-16 left-0 w-full z-40">
+        <a href="/" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+        <a href="/products" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Products</a>
+        <a href="/menu" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Menu</a>
+    </div>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- Welcome Banner -->
+        <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-16 rounded-lg shadow-xl mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold">Welcome to AnyShop!</h1>
+            <p class="mt-4 text-lg opacity-90">Find the best products at unbeatable prices.</p>
+        </header>
+
+
+<style>
+    /* static/style.css (নতুন স্টাইল যোগ করুন) */
+
+/* =============== SLIDESHOW STYLES =============== */
+.slide-item {
+    transition: opacity 1s ease-in-out;
+}
+
+/* =============== ANIMATED REVIEW STYLES =============== */
+/* static/style.css -> ANIMATED REVIEW STYLES */
+
+.review-ticker-wrapper {
+    display: block; /* Ensure the wrapper is a block element */
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+#review-ticker {
+    display: inline-flex; /* Use inline-flex for the scrolling container */
+    align-items: stretch; /* Ensure all cards have the same height */
+    animation: scroll-left 60s linear infinite; /* Increased duration for smoother scroll */
+}
+
+/* Add this to prevent pausing animation on hover (optional) */
+/*
+#review-ticker:hover {
+    animation-play-state: paused;
+}
+*/
+
+.review-card {
+    flex-shrink: 0;
+    width: 320px;
+    height: auto; /* Allow card height to be determined by content */
+    display: flex; /* Use flexbox for internal alignment */
+    flex-direction: column; /* Stack content vertically */
+    justify-content: space-between; /* Push content to top and bottom */
+    background-color: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    text-align: left;
+    margin-right: 2rem; /* Replaces space-x for better consistency */
+}
+
+/* ... (বাকি রিভিউ স্টাইল আগের মতোই থাকবে) ... */
+
+.review-stars {
+    color: #FBBF24; /* amber-400 */
+}
+
+@keyframes scroll-left {
+    from {
+        transform: translateX(0%);
+    }
+    to {
+        transform: translateX(-50%); /* Halfway, because the content is duplicated */
+    }
+}
+
+/* =============== ADVANCED FOOTER STYLES =============== */
+.footer-link {
+    position: relative;
+    transition: color 0.3s;
+}
+.footer-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: #6366F1; /* indigo-500 */
+    transition: width 0.3s;
+}
+.footer-link:hover {
+    color: #a5b4fc; /* indigo-300 */
+}
+.footer-link:hover::after {
+    width: 100%;
+}
+
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #4B5563; /* gray-600 */
+    border-radius: 50%;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.social-icon:hover {
+    background-color: #4F46E5; /* indigo-600 */
+    border-color: #4F46E5;
+                                        }
+</style>
+    <script>
+        // static/home.js (নতুন কোড যোগ করুন)
+
+
+        
+    </script>
+        
+
+<!-- =============== 1. ADVANCED SLIDESHOW SECTION =============== -->
+<section class="my-8 relative group" id="hero-slider-container">
+    <div class="overflow-hidden relative rounded-lg shadow-2xl h-56 sm:h-64 md:h-80 lg:h-96">
+        <!-- Slides will be injected here by JavaScript -->
+        <div id="slider-wrapper" class="h-full w-full flex transition-transform duration-500 ease-in-out">
+            <!-- Slide 1 (Example, will be replaced by JS) -->
+            <a href="#" class="slide-item flex-shrink-0 w-full h-full">
+                <img src="https://via.placeholder.com/1200x400/818cf8/ffffff?text=Loading+Slide+1" class="w-full h-full object-cover">
+            </a>
+        </div>
+    </div>
+    
+    <!-- Slider Controls -->
+    <button id="prev-slide" class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button id="next-slide" class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    
+    <!-- Slider Indicators -->
+    <div id="slider-indicators" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <!-- Indicators will be injected here by JS -->
+    </div>
+                </section>
+        <!-- Hot Products Section -->
+        <section class="my-10">
+            <h2 class="text-3xl font-bold mb-6 text-center">🔥 Hot Products</h2>
+            <div id="hot-products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <!-- Loading Skeleton -->
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+            </div>
+        </section>
+
+        <!-- Top 100 New Products Section -->
+        <section class="my-10">
+            <h2 class="text-3xl font-bold mb-6 text-center">✨ Top 100 New Arrivals</h2>
+            <div id="new-products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                <!-- Loading Skeleton -->
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+                <div class="animate-pulse bg-white rounded-lg shadow-md h-72"></div>
+            </div>
+        </section>
+        
+        <!-- Notice Section -->
+        <section class="my-10 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow">
+            <h3 class="font-bold">Notice</h3>
+            <p>Special discounts available this weekend! Use code <span class="font-semibold">WEEKEND15</span> for 15% off.</p>
+        </section>
+
+        <!-- Flash Sell Section (Add if needed) -->
+        <!-- CTA for All Products -->
+        <section class="text-center my-10">
+            <a href="/products" class="bg-indigo-600 text-white text-lg font-semibold py-3 px-10 rounded-full hover:bg-indigo-700 transition-transform transform hover:scale-105">
+                View All Products
+            </a>
+        </section>
+        
+
+<!-- ... (আপনার হট প্রোডাক্টস, নিউ প্রোডাক্টস ইত্যাদি সেকশন আগের মতোই থাকবে) ... -->
+
+
+<!-- =============== 2. ANIMATED REVIEW SECTION =============== -->
+<section class="py-16 bg-gray-50 my-10 overflow-hidden">
+    <div class="container mx-auto text-center px-4">
+        <h2 class="text-3xl font-bold mb-2">Loved by Our Customers</h2>
+        <p class="text-gray-600 mb-12">Here's what they are saying about us.</p>
+        
+        <!-- Scrolling Review Ticker -->
+        <div class="review-ticker-wrapper">
+            <div id="review-ticker" class="flex space-x-8">
+                <!-- Reviews will be duplicated and injected here by JS -->
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- =============== 3. ADVANCED FOOTER SECTION =============== -->
+<footer class="bg-gray-800 text-gray-300 pt-16 pb-8" style="width: 100%;">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Column 1: About AnyShop -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">AnyShop</h3>
+                <p class="text-sm">Your one-stop destination for quality products. We aim to provide the best shopping experience from the comfort of your home.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="social-icon hover:text-white"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon hover:text-white"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon hover:text-white"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            
+            <!-- Column 2: Quick Links -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/products" class="footer-link">All Products</a></li>
+                    <li><a href="/account" class="footer-link">My Account</a></li>
+                    <li><a href="#" class="footer-link">Track Order</a></li>
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 3: Customer Service -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Customer Service</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="footer-link">FAQ</a></li>
+                    <li><a href="#" class="footer-link">Contact Us</a></li>
+                    <li><a href="#" class="footer-link">Return Policy</a></li>
+                    <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 4: Newsletter Subscription -->
+            <div>
+                <h3 class="text-lg font-semibold text-white mb-4">Subscribe to our Newsletter</h3>
+                <p class="text-sm mb-4">Get the latest updates on new products and upcoming sales.</p>
+                <form id="newsletter-form" class="flex">
+                    <input type="email" id="newsletter-email" placeholder="Your email address" class="w-full bg-gray-700 text-white px-4 py-2 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-md hover:bg-indigo-700">Go</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-12 border-t border-gray-700 pt-6 text-center text-sm">
+            <p>&copy; {{ current_year }} AnyShopBD. All Rights Reserved. Developed with ❤️.</p>
+        </div>
+    </div>
+    </footer>
+    <!-- Widgets -->
+    <div id="support-widget" class="fixed bottom-5 left-5 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer">
+        <i class="fas fa-question text-2xl"></i>
+    </div>
+    <div id="cart-checkout-widget" class="fixed bottom-5 right-5 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer">
+        <i class="fas fa-shopping-cart text-2xl"></i>
+    </div>
+<!-- ... body content ... -->
+<script type="module" src="/static/firebaseConfig.js"></script>
+<script type="module" src="/static/home.js"></script> <!-- এখানে auth.js থাকবে না -->
+</body>
+  </html>

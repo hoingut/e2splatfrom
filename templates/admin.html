@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AnyShop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-4xl font-bold mb-6 text-gray-800">Admin Dashboard</h1>
+
+        <!-- Tab Navigation -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="flex space-x-4" aria-label="Tabs">
+                <button id="products-tab-btn" class="tab-btn active-tab" data-target="products-content">
+                    <i class="fas fa-box-open mr-2"></i> Product Management
+                </button>
+                <button id="orders-tab-btn" class="tab-btn" data-target="orders-content">
+                    <i class="fas fa-receipt mr-2"></i> Order Management
+                </button>
+            </nav>
+        </div>
+
+        <!-- Product Management Tab Content -->
+        <div id="products-content" class="tab-content">
+            <!-- Add/Edit Product Form -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-2xl font-semibold mb-4" id="form-title">Add New Product</h2>
+                <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" id="productIdToEdit"> <!-- For editing existing products -->
+                    
+                    <div class="md:col-span-2">
+                        <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
+                        <input type="text" id="productName" placeholder="প্রোডাক্টের নাম" class="mt-1 w-full p-2 border rounded-md" required>
+                    </div>
+
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-700">Price (দাম)</label>
+                        <input type="number" id="price" placeholder="999" class="mt-1 w-full p-2 border rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="offerPrice" class="block text-sm font-medium text-gray-700">Offer Price (অফার প্রাইজ)</label>
+                        <input type="number" id="offerPrice" placeholder="799" class="mt-1 w-full p-2 border rounded-md">
+                    </div>
+
+                    <div>
+                        <label for="productCode" class="block text-sm font-medium text-gray-700">Product Code</label>
+                        <input type="text" id="productCode" placeholder="ANY-SHIRT-001" class="mt-1 w-full p-2 border rounded-md" required>
+                    </div>
+                     <div>
+                        <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
+                        <input type="number" id="stock" placeholder="50" class="mt-1 w-full p-2 border rounded-md" required>
+                    </div>
+<!-- admin.html ফাইলের form এর ভেতরে যোগ করুন -->
+
+<!-- Delivery Fee Type -->
+<div>
+    <label for="deliveryType" class="block text-sm font-medium text-gray-700">Delivery Payment Type</label>
+    <select id="deliveryType" class="mt-1 w-full p-2 border rounded-md">
+        <option value="regular">Regular (Pay with product)</option>
+        <option value="prepaid">Prepaid Delivery Fee</option>
+    </select>
+</div>
+
+<!-- Special District for Discount -->
+<div>
+    <label for="specialDistrict" class="block text-sm font-medium text-gray-700">Special District (for lower fee)</label>
+    <input type="text" id="specialDistrict" placeholder="e.g., Dhaka" class="mt-1 w-full p-2 border rounded-md">
+</div>
+
+<!-- Delivery Fee for Special District -->
+<div>
+    <label for="feeSpecial" class="block text-sm font-medium text-gray-700">Fee for Special District</label>
+    <input type="number" id="feeSpecial" placeholder="60" class="mt-1 w-full p-2 border rounded-md">
+</div>
+
+<!-- Delivery Fee for Other Districts -->
+<div>
+    <label for="feeRegular" class="block text-sm font-medium text-gray-700">Fee for Other Districts</label>
+    <input type="number" id="feeRegular" placeholder="120" class="mt-1 w-full p-2 border rounded-md">
+</div>
+
+                    <div class="md:col-span-2">
+                        <label for="ogPic" class="block text-sm font-medium text-gray-700">Product Image URL (OG Pic)</label>
+                        <input type="text" id="ogPic" placeholder="https://example.com/image.jpg" class="mt-1 w-full p-2 border rounded-md">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="productDescription" class="block text-sm font-medium text-gray-700">Product Description</label>
+                        <textarea id="productDescription" placeholder="Product Description" rows="4" class="mt-1 w-full p-2 border rounded-md"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+                        <select id="type" class="mt-1 w-full p-2 border rounded-md">
+                            <option value="Normal">Normal</option>
+                            <option value="Flash">Flash Sale</option>
+                            <option value="Popular">Popular</option>
+                            <option value="New">New Arrival</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                        <input type="text" id="category" placeholder="e.g., Men's Fashion" class="mt-1 w-full p-2 border rounded-md">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <h3 class="text-lg font-medium text-gray-900 mt-4 border-t pt-4">SEO Details</h3>
+                    </div>
+                    
+                    <div>
+                        <label for="metaTitle" class="block text-sm font-medium text-gray-700">Meta Title</label>
+                        <input type="text" id="metaTitle" placeholder="Meta Title" class="mt-1 w-full p-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label for="keywords" class="block text-sm font-medium text-gray-700">Keywords (comma separated)</label>
+                        <input type="text" id="keywords" placeholder="shirt, t-shirt, men" class="mt-1 w-full p-2 border rounded-md">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="metaDescription" class="block text-sm font-medium text-gray-700">Meta Description</label>
+                        <textarea id="metaDescription" placeholder="Meta Description" rows="2" class="mt-1 w-full p-2 border rounded-md"></textarea>
+                    </div>
+                    
+                    <div class="md:col-span-2 flex space-x-4 mt-4">
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-md font-semibold hover:bg-indigo-700">Save Product</button>
+                        <button type="button" id="clear-form-btn" class="w-full bg-gray-200 text-gray-800 p-3 rounded-md font-semibold hover:bg-gray-300">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- All Products List -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">All Products</h2>
+                <input type="text" id="searchInput" placeholder="Search by name or product code..." class="w-full p-3 border rounded-md mb-4">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productList" class="divide-y divide-gray-200">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Management Tab Content -->
+        <div id="orders-content" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">Manage Orders</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderList" class="divide-y divide-gray-200">
+                           <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom CSS for Tabs -->
+    <style>
+        .tab-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #4B5563; /* text-gray-600 */
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn.active-tab {
+            color: #4F46E5; /* text-indigo-600 */
+            border-bottom-color: #4F46E5;
+        }
+    </style>
+    <!-- ... body content ... -->
+<script type="module" src="/static/firebaseConfig.js"></script>
+<script type="module" src="/static/admin.js"></script> <!-- এখানে auth.js থাকবে না -->
+</body>
+      </html>
