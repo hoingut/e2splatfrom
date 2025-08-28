@@ -29,84 +29,116 @@
             <!-- Add/Edit Product Form -->
             <div class="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 class="text-2xl font-semibold mb-4" id="form-title">Add New Product</h2>
-                <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="hidden" id="productIdToEdit"> <!-- For editing existing products -->
-                    
-                    <div class="md:col-span-2">
-                        <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
-                        <input type="text" id="productName" placeholder="প্রোডাক্টের নাম" class="mt-1 w-full p-2 border rounded-md" required>
-                    </div>
+<!-- templates/admin.html (শুধুমাত্র <form> অংশটি আপডেট করুন) -->
 
-                    <div>
-                        <label for="price" class="block text-sm font-medium text-gray-700">Price (দাম)</label>
-                        <input type="number" id="price" placeholder="999" class="mt-1 w-full p-2 border rounded-md" required>
-                    </div>
-                    <div>
-                        <label for="offerPrice" class="block text-sm font-medium text-gray-700">Offer Price (অফার প্রাইজ)</label>
-                        <input type="number" id="offerPrice" placeholder="799" class="mt-1 w-full p-2 border rounded-md">
-                    </div>
+<form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+    <input type="hidden" id="productIdToEdit"> <!-- For editing existing products -->
 
-                    <div>
-                        <label for="productCode" class="block text-sm font-medium text-gray-700">Product Code</label>
-                        <input type="text" id="productCode" placeholder="ANY-SHIRT-001" class="mt-1 w-full p-2 border rounded-md" required>
-                    </div>
-                     <div>
-                        <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
-                        <input type="number" id="stock" placeholder="50" class="mt-1 w-full p-2 border rounded-md" required>
-                    </div>
-<!-- admin.html ফাইলের form এর ভেতরে যোগ করুন -->
+    <!-- Basic Information Section -->
+    <div class="md:col-span-2 border-b pb-4 mb-2">
+        <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+    </div>
+    
+    <div class="md:col-span-2">
+        <label for="productName" class="block text-sm font-medium text-gray-700">Product Name</label>
+        <input type="text" id="productName" placeholder="প্রোডাক্টের নাম" class="mt-1 w-full p-2 border rounded-md" required>
+    </div>
 
-<!-- Delivery Fee Type -->
-<div>
-    <label for="deliveryType" class="block text-sm font-medium text-gray-700">Delivery Payment Type</label>
-    <select id="deliveryType" class="mt-1 w-full p-2 border rounded-md">
-        <option value="regular">Regular (Pay with product)</option>
-        <option value="prepaid">Prepaid Delivery Fee</option>
-    </select>
-</div>
+    <div class="md:col-span-2">
+        <label for="ogPic" class="block text-sm font-medium text-gray-700">Product Image URL (OG Pic)</label>
+        <input type="text" id="ogPic" placeholder="https://example.com/image.jpg" class="mt-1 w-full p-2 border rounded-md">
+    </div>
+    
+    <div class="md:col-span-2">
+        <label for="productDescription" class="block text-sm font-medium text-gray-700">Product Description</label>
+        <textarea id="productDescription" placeholder="Product Description" rows="4" class="mt-1 w-full p-2 border rounded-md"></textarea>
+    </div>
 
-<!-- Special District for Discount -->
-<div>
-    <label for="specialDistrict" class="block text-sm font-medium text-gray-700">Special District (for lower fee)</label>
-    <input type="text" id="specialDistrict" placeholder="e.g., Dhaka" class="mt-1 w-full p-2 border rounded-md">
-</div>
+    <!-- Pricing Section -->
+    <div class="md:col-span-2 border-b pb-4 mb-2 mt-4">
+        <h3 class="text-lg font-medium text-gray-900">Pricing</h3>
+    </div>
 
-<!-- Delivery Fee for Special District -->
-<div>
-    <label for="feeSpecial" class="block text-sm font-medium text-gray-700">Fee for Special District</label>
-    <input type="number" id="feeSpecial" placeholder="60" class="mt-1 w-full p-2 border rounded-md">
-</div>
+    <div>
+        <label for="wholesalePrice" class="block text-sm font-medium text-gray-700">Wholesale Price (পাইকারি দাম)</label>
+        <input type="number" id="wholesalePrice" placeholder="500" class="mt-1 w-full p-2 border rounded-md" required>
+        <p class="text-xs text-gray-500 mt-1">Affiliates will buy at this price.</p>
+    </div>
+    <div>
+        <label for="price" class="block text-sm font-medium text-gray-700">Retail Price (খুচরা মূল্য)</label>
+        <input type="number" id="price" placeholder="999" class="mt-1 w-full p-2 border rounded-md" required>
+        <p class="text-xs text-gray-500 mt-1">Regular customer price.</p>
+    </div>
+    <div>
+        <label for="offerPrice" class="block text-sm font-medium text-gray-700">Offer Price (অফার প্রাইজ)</label>
+        <input type="number" id="offerPrice" placeholder="799" class="mt-1 w-full p-2 border rounded-md">
+        <p class="text-xs text-gray-500 mt-1">Optional discount price.</p>
+    </div>
+    
+    <!-- Inventory & Categorization Section -->
+    <div class="md:col-span-2 border-b pb-4 mb-2 mt-4">
+        <h3 class="text-lg font-medium text-gray-900">Inventory & Categorization</h3>
+    </div>
 
-<!-- Delivery Fee for Other Districts -->
-<div>
-    <label for="feeRegular" class="block text-sm font-medium text-gray-700">Fee for Other Districts</label>
-    <input type="number" id="feeRegular" placeholder="120" class="mt-1 w-full p-2 border rounded-md">
-</div>
+    <div>
+        <label for="productCode" class="block text-sm font-medium text-gray-700">Product Code / SKU</label>
+        <input type="text" id="productCode" placeholder="ANY-SHIRT-001" class="mt-1 w-full p-2 border rounded-md" required>
+    </div>
+    <div>
+        <label for="stock" class="block text-sm font-medium text-gray-700">Stock</label>
+        <input type="number" id="stock" placeholder="50" class="mt-1 w-full p-2 border rounded-md" required>
+    </div>
+    <div>
+        <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
+        <select id="type" class="mt-1 w-full p-2 border rounded-md">
+            <option value="Normal">Normal</option>
+            <option value="Flash">Flash Sale</option>
+            <option value="Popular">Popular</option>
+            <option value="New">New Arrival</option>
+        </select>
+    </div>
+    <div>
+        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+        <input type="text" id="category" placeholder="e.g., Men's Fashion" class="mt-1 w-full p-2 border rounded-md">
+    </div>
 
-                    <div class="md:col-span-2">
-                        <label for="ogPic" class="block text-sm font-medium text-gray-700">Product Image URL (OG Pic)</label>
-                        <input type="text" id="ogPic" placeholder="https://example.com/image.jpg" class="mt-1 w-full p-2 border rounded-md">
-                    </div>
-                    
-                    <div class="md:col-span-2">
-                        <label for="productDescription" class="block text-sm font-medium text-gray-700">Product Description</label>
-                        <textarea id="productDescription" placeholder="Product Description" rows="4" class="mt-1 w-full p-2 border rounded-md"></textarea>
-                    </div>
+    <!-- Delivery Options Section -->
+    <div class="md:col-span-2 border-b pb-4 mb-2 mt-4">
+        <h3 class="text-lg font-medium text-gray-900">Delivery Options</h3>
+    </div>
+    
+    <div>
+        <label for="deliveryType" class="block text-sm font-medium text-gray-700">Delivery Payment Type</label>
+        <select id="deliveryType" class="mt-1 w-full p-2 border rounded-md">
+            <option value="regular">Regular (Pay with product)</option>
+            <option value="prepaid">Prepaid (Pay delivery fee in advance)</option>
+        </select>
+    </div>
+    <div>
+        <label for="specialDistrict" class="block text-sm font-medium text-gray-700">Special District (for lower fee)</label>
+        <input type="text" id="specialDistrict" placeholder="e.g., Dhaka" class="mt-1 w-full p-2 border rounded-md">
+    </div>
+    <div>
+        <label for="feeSpecial" class="block text-sm font-medium text-gray-700">Fee for Special District</o-label>
+        <input type="number" id="feeSpecial" placeholder="60" class="mt-1 w-full p-2 border rounded-md">
+    </div>
+    <div>
+        <label for="feeRegular" class="block text-sm font-medium text-gray-700">Fee for Other Districts</label>
+        <input type="number" id="feeRegular" placeholder="120" class="mt-1 w-full p-2 border rounded-md">
+    </div>
 
-                    <div>
-                        <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
-                        <select id="type" class="mt-1 w-full p-2 border rounded-md">
-                            <option value="Normal">Normal</option>
-                            <option value="Flash">Flash Sale</option>
-                            <option value="Popular">Popular</option>
-                            <option value="New">New Arrival</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
-                        <input type="text" id="category" placeholder="e.g., Men's Fashion" class="mt-1 w-full p-2 border rounded-md">
-                    </div>
+    <!-- SEO Section (আগের মতোই) -->
+    <div class="md:col-span-2 border-b pb-4 mb-2 mt-4">
+        <h3 class="text-lg font-medium text-gray-900">SEO Details</h3>
+    </div>
+    <!-- ... (আপনার Meta Title, Keywords, Meta Description ফিল্ডগুলো এখানে থাকবে) ... -->
 
+    <!-- Form Action Buttons -->
+    <div class="md:col-span-2 flex space-x-4 mt-6">
+        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-md font-semibold hover:bg-indigo-700">Save Product</button>
+        <button type="button" id="clear-form-btn" class="w-full bg-gray-200 text-gray-800 p-3 rounded-md font-semibold hover:bg-gray-300">Clear Form</button>
+    </div>
+            </form>
                     <div class="md:col-span-2">
                         <h3 class="text-lg font-medium text-gray-900 mt-4 border-t pt-4">SEO Details</h3>
                     </div>
