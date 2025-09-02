@@ -164,30 +164,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /**
-     * Main function to load all data for the logged-in user.
-     */
-    async function loadPageData(user) {
-        try {
-            const userData = await fetchUserProfile(user.uid);
-            const orders = await fetchUserOrders(user.uid);
-            
-            updateUIVisibility(userData);
-            populateDashboard(userData, orders.length);
-            populateProfileForm(userData);
-            displayOrders(orders);
-            initializeEventListeners(userData);
+// static/account.js
 
-        } catch (error) {
-            console.error("CRITICAL ERROR while loading account page data:", error);
-            if (accountDashboard) {
-                accountDashboard.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500">${error.message}</p></div>`;
-            }
-        } finally {
-            loadingSpinner.style.display = 'none';
-            accountDashboard.classList.remove('hidden');
+// ... (ফাইলের উপরের অংশ আগের মতোই থাকবে)
+
+async function loadPageData(user) {
+    console.log("--- DEBUG: loadPageData STARTED for user:", user.uid);
+
+    try {
+        // --- STEP A: Fetch User Profile ---
+        console.log("--- DEBUG: [A] Attempting to fetch user profile...");
+        const userData = await fetchUserProfile(user.uid);
+        if (!userData) {
+            // This condition should ideally never be hit if fetchUserProfile throws an error
+            throw new Error("User data came back as null or undefined.");
         }
+        console.log("--- DEBUG: [A] User profile fetched SUCCESSFULLY.", userData);
+        
+        // --- STEP B: Fetch User Orders ---
+        console.log("--- DEBUG: [B] Attempting to fetch user orders...");
+        const orders = await fetchUserOrders(user.uid);
+        console.log(`--- DEBUG: [B] User orders fetched SUCCESSFULLY. Found ${orders.length} orders.`);
+
+        // --- STEP C: Populate UI ---
+        // We will call populate functions one by one to see if any of them cause an issue.
+        console.log("--- DEBUG: [C] Attempting to populate Dashboard...");
+        populateDashboard(userData, orders.length);
+        console.log("--- DEBUG: [C] Dashboard populated.");
+
+        console.log("--- DEBUG: [D] Attempting to populate Profile Form...");
+        populateProfileForm(userData);
+        console.log("--- DEBUG: [D] Profile Form populated.");
+        
+        console.log("--- DEBUG: [E] Attempting to display Orders...");
+        displayOrders(orders);
+        console.log("--- DEBUG: [E] Orders displayed.");
+
+        console.log("--- DEBUG: [F] Attempting to initialize Event Listeners...");
+        initializeEventListeners();
+        console.log("--- DEBUG: [F] Event Listeners initialized.");
+
+    } catch (error) {
+        console.error("--- DEBUG: CRITICAL ERROR caught in loadPageData ---", error);
+        if (accountDashboard) {
+            accountDashboard.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                    <h2 class="text-xl text-red-600 font-bold">Oops! Could not load page.</h2>
+                    <p class="text-gray-700 mt-2">${error.message}</p>
+                </div>`;
+        }
+    } finally {
+        // This will now definitely run unless the browser tab itself crashes.
+        console.log("--- DEBUG: [G] 'finally' block reached. Hiding spinner.");
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        if (accountDashboard) accountDashboard.classList.remove('hidden');
     }
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)    }
 
     // --- Data Fetching Functions ---
     async function fetchUserProfile(uid) {
