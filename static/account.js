@@ -179,15 +179,7 @@ function handleAffiliateSectionContent(userData, sectionElement) {
 
 // ... (ফাইলের বাকি অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে, যেমন handleAffiliateApplication)
 
-    function handleAffiliateSectionContent(userData, sectionElement) {
-        if (userData.affiliateStatus === 'pending') {
-            sectionElement.innerHTML = `<h3 class="text-lg font-semibold text-gray-800">Application Submitted</h3><p class="text-sm text-yellow-600 mt-2">Your affiliate application is under review.</p>`;
-        } else if (userData.affiliateStatus === 'rejected') {
-            sectionElement.innerHTML = `<h3 class="text-lg font-semibold text-gray-800">Application Status</h3><p class="text-sm text-red-600 mt-2">Unfortunately, your application was not approved.</p>`;
-        }
-        // If status is 'approved', the role would be 'affiliate', so this section is hidden anyway.
-        // If status is undefined or 'revoked', the default "Apply Now" button will be shown.
-    }
+
     
     // --- UI Population Functions ---
     function populateDashboard(userData, orderCount) {
