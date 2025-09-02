@@ -3,6 +3,7 @@ import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, updateDoc, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+
 // --- Step 2: Main script execution block ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM is ready. Initializing AnyShop account page script.");
