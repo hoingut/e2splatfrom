@@ -110,22 +110,74 @@ async function loadPageData(user) {
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
     
-    // --- Role-Based UI Management ---
-    function updateUIVisibility(userData) {
-        const affiliateDashboardLink = getElement('affiliate-dashboard-link', false);
-        const affiliateApplySection = getElement('affiliate-apply-section', false);
+    // static/account.js
 
-        if (userData.role === 'affiliate') {
-            if (affiliateDashboardLink) affiliateDashboardLink.classList.remove('hidden');
-            if (affiliateApplySection) affiliateApplySection.classList.add('hidden');
-        } else { // 'customer'
-            if (affiliateDashboardLink) affiliateDashboardLink.classList.add('hidden');
-            if (affiliateApplySection) {
-                affiliateApplySection.classList.remove('hidden');
-                handleAffiliateSectionContent(userData, affiliateApplySection);
-            }
+// ... (ফাইলের উপরের অংশ আগের মতোই থাকবে)
+
+// --- Role-Based UI Management ---
+function updateUIVisibility(userData) {
+    console.log("--- DEBUG: Updating UI based on user data:", userData); // লগ ১: ইউজারের ডেটা দেখুন
+
+    const affiliateDashboardLink = getElement('affiliate-dashboard-link', false);
+    const affiliateApplySection = getElement('affiliate-apply-section', false);
+
+    // Ensure we have the elements before proceeding
+    if (!affiliateDashboardLink || !affiliateApplySection) {
+        console.warn("Affiliate UI elements not found in HTML. Cannot update visibility.");
+        return;
+    }
+
+    const userRole = userData.role || 'customer'; // Default to 'customer' if role is not set
+    console.log(`--- DEBUG: User role is determined as: "${userRole}"`); // লগ ২: ইউজারের রোল দেখুন
+
+    if (userRole === 'affiliate') {
+        console.log("--- DEBUG: User is an affiliate. Showing affiliate dashboard link."); // লগ ৩.১
+        affiliateDashboardLink.classList.remove('hidden');
+        affiliateApplySection.classList.add('hidden');
+    } else { // 'customer' or any other role
+        console.log("--- DEBUG: User is a customer. Showing affiliate apply section."); // লগ ৩.২
+        affiliateDashboardLink.classList.add('hidden');
+        affiliateApplySection.classList.remove('hidden');
+        
+        // Now, let's decide what to show inside the apply section
+        handleAffiliateSectionContent(userData, affiliateApplySection);
+    }
+}
+
+function handleAffiliateSectionContent(userData, sectionElement) {
+    const status = userData.affiliateStatus;
+    console.log(`--- DEBUG: Handling affiliate section content. Current status: "${status}"`); // লগ ৪: অ্যাফিলিয়েট স্ট্যাটাস দেখুন
+
+    if (status === 'pending') {
+        sectionElement.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800">Application Submitted</h3>
+            <p class="text-sm text-yellow-600 mt-2">Your affiliate application is currently under review. We will notify you once it's processed.</p>`;
+        console.log("--- DEBUG: Displaying 'Pending' message.");
+    } else if (status === 'rejected') {
+        sectionElement.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800">Application Status</h3>
+            <p class="text-sm text-red-600 mt-2">Unfortunately, your recent affiliate application was not approved. Please contact support for more information.</p>`;
+        console.log("--- DEBUG: Displaying 'Rejected' message.");
+    } else {
+        // This is the default state if status is undefined, null, 'revoked', or anything else.
+        // It shows the "Apply Now" button.
+        sectionElement.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800">Become an Affiliate Partner!</h3>
+            <p class="text-sm text-gray-600 mt-2">Start your own business with zero investment. Sell our products and earn profit on every successful delivery.</p>
+            <button id="apply-affiliate-btn" class="mt-4 bg-indigo-600 text-white py-2 px-6 rounded-md hover:bg-indigo-700 transition font-semibold">
+                Apply Now
+            </button>`;
+        console.log("--- DEBUG: Displaying 'Apply Now' button.");
+
+        // We need to re-add the event listener because we replaced the innerHTML.
+        const applyBtn = getElement('apply-affiliate-btn', false);
+        if (applyBtn) {
+            applyBtn.addEventListener('click', handleAffiliateApplication);
         }
     }
+}
+
+// ... (ফাইলের বাকি অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে, যেমন handleAffiliateApplication)
 
     function handleAffiliateSectionContent(userData, sectionElement) {
         if (userData.affiliateStatus === 'pending') {
@@ -213,27 +265,7 @@ async function loadPageData(user) {
         }
     }
     
-    async function handleAffiliateApplication() {
-        const user = auth.currentUser;
-        if (!user || !confirm("Are you sure you want to apply to become an affiliate partner?")) return;
-        
-        const applyBtn = getElement('apply-affiliate-btn');
-        applyBtn.disabled = true;
-        applyBtn.textContent = 'Submitting...';
-        
-        try {
-            const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, { affiliateStatus: 'pending' });
-            alert('Your application has been submitted successfully!');
-            handleAffiliateSectionContent({ affiliateStatus: 'pending' }, getElement('affiliate-apply-section'));
-        } catch (error) {
-            console.error("Error submitting application:", error);
-            alert("Failed to submit application. Please try again.");
-            applyBtn.disabled = false;
-            applyBtn.textContent = 'Apply Now';
-        }
-    }
-    
+
     async function handleProfileUpdate(e) {
         e.preventDefault();
         const user = auth.currentUser;
