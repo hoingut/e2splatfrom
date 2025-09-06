@@ -93,14 +93,24 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = `/login?redirect=/admin/affiliates`;
         }
     });
+// static/admin-affiliates.js
 
-    /**
-     * Fetches users with 'pending' affiliate status and displays them.
-     */
-    async function fetchPendingApplications() {
+// ... (ফাইলের উপরের অংশ আগের মতোই থাকবে)
+
+/**
+ * Fetches users with 'pending' affiliate status and displays them.
+ */
+async function fetchPendingApplications() {
+    // Add a loading state for better UX
+    pendingListBody.innerHTML = `<tr><td colspan="3" class="text-center p-4">Loading pending applications...</td></tr>`;
+
+    try {
+        console.log("--- DEBUG: Fetching users with affiliateStatus == 'pending'");
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where("affiliateStatus", "==", "pending"));
         const querySnapshot = await getDocs(q);
+
+        console.log(`--- DEBUG: Found ${querySnapshot.size} pending applications.`);
 
         if (querySnapshot.empty) {
             pendingListBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-gray-500">No pending applications found.</td></tr>`;
@@ -126,7 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         pendingListBody.innerHTML = html;
+    } catch (error) {
+        console.error("--- DEBUG: Error fetching pending applications:", error);
+        pendingListBody.innerHTML = `<tr><td colspan="3" class="text-center p-4 text-red-500">Failed to load applications. Check console for errors.</td></tr>`;
     }
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
 
     /**
      * Fetches users with 'affiliate' role and displays them.
