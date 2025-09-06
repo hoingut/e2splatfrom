@@ -5,6 +5,7 @@ import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Step 2: DOM Element References (Defensive Selection) ---
     const getElement = (id) => document.getElementById(id);
