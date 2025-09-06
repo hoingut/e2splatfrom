@@ -5,6 +5,7 @@ import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM References ---
     const loadingSkeleton = document.getElementById('loading-skeleton');
