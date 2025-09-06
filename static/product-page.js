@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const relatedProductsContainer = getElement('related-products-container');
     const relatedProductsGrid = getElement('related-products-grid');
 
+    
     // --- State Management ---
     const state = {
         productId: null, affiliateId: null, customPrice: null, userRole: 'customer'
