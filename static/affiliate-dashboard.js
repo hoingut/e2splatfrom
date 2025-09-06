@@ -1,23 +1,25 @@
 // static/affiliate-dashboard.js
 
-// --- Imports ---
+// --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM References ---
-    const loadingContainer = document.getElementById('loading-container');
-    const dashboardContent = document.getElementById('dashboard-content');
-    const affiliateName = document.getElementById('affiliate-name');
-    const affiliateId = document.getElementById('affiliate-id');
-    const affiliateBalance = document.getElementById('affiliate-balance');
-    const totalOrders = document.getElementById('total-orders');
-    const totalEarned = document.getElementById('total-earned');
-    const productsGrid = document.getElementById('affiliate-products-grid');
-    const logoutBtn = document.getElementById('logout-btn');
+    // --- Step 2: DOM Element References (Defensive Selection) ---
+    const getElement = (id) => document.getElementById(id);
+    
+    const loadingContainer = getElement('loading-container');
+    const dashboardContent = getElement('dashboard-content');
+    const affiliateName = getElement('affiliate-name');
+    const affiliateId = getElement('affiliate-id');
+    const affiliateBalance = getElement('affiliate-balance');
+    const totalOrders = getElement('total-orders');
+    const totalEarned = getElement('total-earned');
+    const productsGrid = getElement('affiliate-products-grid');
+    const logoutBtn = getElement('logout-btn');
 
-    // --- Authentication and Authorization Check ---
+    // --- Step 3: Authentication and Authorization Check ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
@@ -26,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (docSnap.exists() && docSnap.data().role === 'affiliate') {
                     const affiliateData = docSnap.data();
-                    await loadDashboard(user.uid, affiliateData);
+                    await loadDashboard(affiliateData); // Pass the whole data object
                 } else {
                     throw new Error('Access denied. You are not an approved affiliate.');
                 }
@@ -40,18 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Main function to load all dashboard data.
-     * @param {string} uid - The affiliate's user ID.
      * @param {object} affiliateData - The affiliate's data from the 'users' document.
      */
-    async function loadDashboard(uid, affiliateData) {
+    async function loadDashboard(affiliateData) {
         try {
-            // Fetch stats and products in parallel
             const [stats, products] = await Promise.all([
-                fetchAffiliateStats(uid),
+                fetchAffiliateStats(affiliateData.affiliateId),
                 fetchAllProducts()
             ]);
             
-            // Populate UI
+            // Populate UI with fetched data
             affiliateName.textContent = affiliateData.name || 'Affiliate';
             affiliateId.textContent = affiliateData.affiliateId || 'N/A';
             affiliateBalance.textContent = `৳${(affiliateData.affiliateBalance || 0).toFixed(2)}`;
@@ -64,33 +64,31 @@ document.addEventListener('DOMContentLoaded', () => {
             dashboardContent.classList.remove('hidden');
         } catch(error) {
             console.error("Error loading dashboard:", error);
-            dashboardContent.innerHTML = `<p class="text-red-500">Failed to load dashboard data.</p>`;
+            dashboardContent.innerHTML = `<p class="text-red-500 p-4 bg-red-100 rounded-md">Failed to load dashboard data. Error: ${error.message}</p>`;
         }
     }
     
     /**
      * Fetches affiliate's order stats (completed orders and total profit).
-     * @param {string} uid - The affiliate's user ID.
+     * @param {string} affId - The affiliate's unique ID from the user document.
      */
-    async function fetchAffiliateStats(uid) {
-        const affiliateId = `AFF-${uid.substring(0, 6).toUpperCase()}`;
+    async function fetchAffiliateStats(affId) {
+        if (!affId) return { completedOrders: 0, totalProfit: 0 };
+        
         const ordersRef = collection(db, 'orders');
-        const q = query(ordersRef, where("affiliateId", "==", affiliateId), where("status", "==", "Delivered"));
+        const q = query(ordersRef, where("affiliateId", "==", affId), where("status", "==", "Delivered"));
         const querySnapshot = await getDocs(q);
         
         let totalProfit = 0;
         querySnapshot.forEach(doc => {
-            totalProfit += doc.data().profit || 0;
+            totalProfit += Number(doc.data().profit) || 0;
         });
         
-        return {
-            completedOrders: querySnapshot.size,
-            totalProfit: totalProfit
-        };
+        return { completedOrders: querySnapshot.size, totalProfit };
     }
 
     /**
-     * Fetches all products available for selling.
+     * Fetches all products available for selling from the 'products' collection.
      */
     async function fetchAllProducts() {
         const productsRef = collection(db, 'products');
@@ -100,12 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders product cards for affiliates.
+     * Renders product cards for affiliates and stores products globally for the link generator.
      * @param {Array} products - An array of product objects.
      */
     function displayProducts(products) {
+        window.allProducts = products; // Store for access by generateLink
         if (!products || products.length === 0) {
-            productsGrid.innerHTML = `<p>No products available to sell currently.</p>`;
+            productsGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No products are available to sell at the moment.</p>`;
             return;
         }
 
@@ -114,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <div class="bg-white rounded-lg shadow p-4 flex flex-col">
                     <img src="${product.ogPic || 'https://via.placeholder.com/300'}" alt="${product.name}" class="w-full h-40 object-cover rounded-md mb-3">
-                    <h4 class="font-semibold text-md">${product.name}</h4>
+                    <h4 class="font-semibold text-md flex-grow">${product.name}</h4>
                     <p class="text-sm text-gray-500 mt-1">Wholesale: <span class="font-bold">৳${product.wholesalePrice}</span></p>
                     <p class="text-sm text-gray-500">Retail: <span class="font-bold">৳${retailPrice}</span></p>
                     
@@ -130,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Generates a unique affiliate link and copies it to the clipboard.
+     * This function is attached to the window object to be accessible from inline onclick handlers.
      * @param {string} productId - The ID of the product.
      */
     window.generateLink = (productId) => {
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const product = window.allProducts.find(p => p.id === productId);
-        if(Number(sellingPrice) < product.wholesalePrice){
+        if (Number(sellingPrice) < product.wholesalePrice) {
             alert('Selling price cannot be less than the wholesale price.');
             return;
         }
@@ -153,27 +153,18 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.clipboard.writeText(link).then(() => {
             alert(`Link Copied!\n${link}`);
         }).catch(err => {
-            alert('Failed to copy link. Please copy it manually.');
+            alert('Failed to copy link. Please copy it manually from the console.');
+            console.log('Copy this link:', link);
             console.error('Clipboard error:', err);
         });
     };
-    
-    // Store products globally for the generateLink function
-    window.allProducts = []; 
-    // This is a simplified way. A better approach would be to pass product data to the function.
-    // Let's update `displayProducts` to do this.
-    
-    // Re-defining displayProducts to store data in the global scope for the simple onclick handler.
-    // A more advanced way would be to add event listeners programmatically.
-    function displayProducts(products) {
-        window.allProducts = products;
-        // ... (rest of the displayProducts function from above)
-    }
 
     // Logout button event listener
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            signOut(auth).catch(error => console.error('Logout Error:', error));
+            signOut(auth).then(() => {
+                window.location.href = '/'; // Redirect to homepage after logout
+            }).catch(error => console.error('Logout Error:', error));
         });
     }
 });
