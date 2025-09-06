@@ -1,10 +1,4 @@
 
-
-    <!-- Firebase SDKs and custom script -->
-    <script type="module" src="/static/firebaseConfig.js"></script>
-    <script type="module" src="/static/admin-affiliates.js">
-// static/admin-affiliates.js
-
 // --- Imports ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
