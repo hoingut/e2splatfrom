@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const senderNumberInput = getElement('senderNumber');
     const successScreen = getElement('success-screen');
 
+    
     // static/checkout.js (Full and Affiliate-Friendly Version)
     
     // --- State Management ---
