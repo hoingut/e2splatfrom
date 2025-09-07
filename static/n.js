@@ -1,9 +1,21 @@
+// static/admin-orders.js
 
 // --- Imports ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { 
+    collection, 
+    query, 
+    orderBy, 
+    getDocs, 
+    doc, 
+    updateDoc, 
+    getDoc,
+    where,  // <--- এই লাইনটি যোগ করা হয়েছে
+    limit   // <--- এটিও যোগ করা হয়েছে, কারণ কোডে এটি ব্যবহৃত হয়েছে
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+// ... (আপনার বাকি সব কোড আগের মতোই থাকবে)
 document.addEventListener('DOMContentLoaded', () => {
     const orderListBody = document.getElementById('order-list-body');
 
