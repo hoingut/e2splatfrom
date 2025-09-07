@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - AnyShop</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
 </head>
 <body class="bg-gray-100">
 
-    <!-- Simple Navigation Bar -->
     <nav class="bg-white shadow-sm p-4">
         <div class="container mx-auto">
             <a href="/" class="text-2xl font-bold text-indigo-600">AnyShop</a>
@@ -19,79 +16,60 @@
     </nav>
 
     <main class="container mx-auto p-4 md:p-8">
-        <!-- Loading State: Shown while product data is being fetched -->
+        <!-- Loading State -->
         <div id="loading-container" class="text-center py-20">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
             <p class="mt-4 text-gray-600">Loading Checkout...</p>
         </div>
 
-        <!-- Main Checkout Content: Initially hidden, shown after data loads -->
+        <!-- Main Checkout Content -->
         <div id="checkout-container" class="hidden">
             <h1 class="text-3xl font-bold mb-6 text-gray-800">Complete Your Order</h1>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 <!-- Left Side: Forms (Delivery, Payment) -->
                 <div class="lg:col-span-2">
+                    <!-- Affiliate Notice (initially hidden) -->
+                    <div id="affiliate-notice" class="hidden bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-md mb-6">
+                        <p class="font-semibold">This order is being placed through an affiliate partner. Thank you for supporting them!</p>
+                    </div>
+
                     <form id="place-order-form">
                         <!-- Step 1: Delivery Information -->
                         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-                            <h2 class="text-xl font-semibold mb-4 flex items-center"><span class="bg-indigo-600 text-white rounded-full h-6 w-6 text-sm flex items-center justify-center mr-3">1</span> Delivery Information</h2>
+                            <h2 class="text-xl font-semibold mb-4">1. Delivery Information</h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Delivery form fields... -->
+                                <div><label for="deliveryName" class="block text-sm font-medium">Full Name</label><input type="text" id="deliveryName" class="mt-1 w-full p-2 border rounded-md" required></div>
+                                <div><label for="deliveryPhone" class="block text-sm font-medium">Phone Number</label><input type="tel" id="deliveryPhone" class="mt-1 w-full p-2 border rounded-md" required></div>
+                                <div class="md:col-span-2"><label for="deliveryAddress" class="block text-sm font-medium">Full Address</label><textarea id="deliveryAddress" rows="3" class="mt-1 w-full p-2 border rounded-md" required></textarea></div>
                                 <div>
-                                    <label for="deliveryName" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                    <input type="text" id="deliveryName" class="mt-1 w-full p-2 border rounded-md" required>
-                                </div>
-                                <div>
-                                    <label for="deliveryPhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                                    <input type="tel" id="deliveryPhone" class="mt-1 w-full p-2 border rounded-md" required>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label for="deliveryAddress" class="block text-sm font-medium text-gray-700">Full Address (e.g., House, Road, Area)</label>
-                                    <textarea id="deliveryAddress" rows="3" class="mt-1 w-full p-2 border rounded-md" required></textarea>
-                                </div>
-                                <div><!-- checkout.html -> Delivery Information সেকশনে -->
-<div class="md:col-span-2">
-    <label for="deliveryCity" class="block text-sm font-medium text-gray-700">Select Your City/District</label>
-    <select id="deliveryCity" class="mt-1 w-full p-2 border rounded-md" required>
-        <option value="" disabled selected>-- Select a District --</option>
-        <option value="dhaka">Dhaka</option>
-        <option value="chittagong">Chittagong</option>
-        <option value="khulna">Khulna</option>
-        <option value="sylhet">Sylhet</option>
-        <option value="rajshahi">Rajshahi</option>
-        <option value="barisal">Barisal</option>
-        <option value="rangpur">Rangpur</option>
-        <option value="mymensingh">Mymensingh</option>
-        <!-- প্রয়োজনে আরও জেলা যোগ করুন -->
-    </select>
-</div>
+                                    <label for="deliveryCity" class="block text-sm font-medium">Select Your District</label>
+                                    <select id="deliveryCity" class="mt-1 w-full p-2 border rounded-md" required>
+                                        <option value="" disabled selected>-- Select District --</option>
+                                        <option value="dhaka">Dhaka</option>
+                                        <option value="chittagong">Chittagong</option>
+                                        <!-- Add other districts... -->
+                                    </select>
                                 </div>
                             </div>
                         </div>
-<!-- checkout.html -> Payment Method সেকশনে -->
-<div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <h2 class="text-xl font-semibold mb-4">2. Select Payment Method</h2>
-    <div id="payment-method-options" class="space-y-4">
-        <!-- JS will populate payment options here -->
-        <div class="text-center text-gray-500 p-4">Please select your district first to see payment options.</div>
-    </div>
-</div>
-                        
-                        <!-- Step 3: Payment Confirmation Section (Initially hidden) -->
-                        <div id="payment-confirmation-section" class="bg-white p-6 rounded-lg shadow-md hidden">
-                            <h2 class="text-xl font-semibold mb-4 flex items-center"><span class="bg-indigo-600 text-white rounded-full h-6 w-6 text-sm flex items-center justify-center mr-3">3</span> Confirm Your Payment</h2>
-                            <div id="payment-instructions" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-4 text-sm">
-                                <!-- JS will populate payment instructions here -->
+
+                        <!-- Step 2: Payment Method -->
+                        <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                            <h2 class="text-xl font-semibold mb-4">2. Select Payment Method</h2>
+                            <div id="payment-method-options" class="space-y-4">
+                                <div class="text-center text-gray-500 p-4">Please select your district first to see payment options.</div>
                             </div>
+                        </div>
+                        
+                        <!-- Step 3: Payment Confirmation (Initially hidden) -->
+                        <div id="payment-confirmation-section" class="bg-white p-6 rounded-lg shadow-md hidden">
+                            <h2 class="text-xl font-semibold mb-4">3. Confirm Your Payment</h2>
+                            <div id="payment-instructions" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-4"></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="transactionId" class="block text-sm font-medium text-gray-700">Transaction ID (TrxID)</label>
-                                    <input type="text" id="transactionId" class="mt-1 w-full p-2 border rounded-md" placeholder="e.g., 9A8B7C6D5E">
-                                </div>
-                                <div>
-                                    <label for="senderNumber" class="block text-sm font-medium text-gray-700">Sender's Number ( যে নম্বর থেকে টাকা পাঠিয়েছেন )</label>
-                                    <input type="tel" id="senderNumber" class="mt-1 w-full p-2 border rounded-md" placeholder="e.g., 01712345678">
-                                </div>
+                                <div><label for="transactionId" class="block text-sm font-medium">Transaction ID (TrxID)</label><input type="text" id="transactionId" class="mt-1 w-full p-2 border rounded-md"></div>
+                                <div><label for="senderNumber" class="block text-sm font-medium">Sender's Number</label><input type="tel" id="senderNumber" class="mt-1 w-full p-2 border rounded-md"></div>
                             </div>
                         </div>
 
@@ -105,34 +83,25 @@
                 <aside class="lg:col-span-1">
                     <div class="bg-white p-6 rounded-lg shadow-md sticky top-8">
                         <h2 class="text-xl font-semibold mb-4 border-b pb-3">Order Summary</h2>
-                        <!-- Product Item will be populated by JS -->
                         <div id="product-summary" class="flex items-center space-x-4 mb-4"></div>
                         <hr>
-                        <!-- Coupon Code -->
                         <div class="mt-4">
-                            <label for="couponCode" class="block text-sm font-medium text-gray-700">Have a Coupon?</label>
-                            <div class="flex mt-1">
-                                <input type="text" id="couponCode" class="w-full p-2 border rounded-l-md" placeholder="Enter Coupon">
-                                <button type="button" id="apply-coupon-btn" class="bg-gray-200 px-4 rounded-r-md hover:bg-gray-300 font-semibold text-sm">Apply</button>
-                            </div>
+                            <label for="couponCode" class="block text-sm font-medium">Coupon Code</label>
+                            <div class="flex mt-1"><input type="text" id="couponCode" class="w-full p-2 border rounded-l-md"><button type="button" id="apply-coupon-btn" class="bg-gray-200 px-4 rounded-r-md">Apply</button></div>
                             <p id="coupon-status" class="text-sm mt-2"></p>
                         </div>
                         <hr class="my-4">
-                        <!-- Price Details will be populated by JS -->
-                        <div id="price-details" class="space-y-2 text-sm"></div>
+                        <div id="price-details" class="space-y-2"></div>
                     </div>
                 </aside>
             </div>
         </div>
 
-        <!-- Success Screen: Initially hidden, shown after successful order -->
-        <div id="success-screen" class="hidden text-center bg-white p-10 rounded-lg shadow-xl max-w-2xl mx-auto">
-            <!-- Content will be populated by JS -->
-        </div>
+        <!-- Success Screen -->
+        <div id="success-screen" class="hidden text-center bg-white p-10 rounded-lg shadow-xl"></div>
     </main>
     
-    <!-- Script loading section -->
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/checkout.js"></script>
 </body>
-</html>
+        </html>
