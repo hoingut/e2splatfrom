@@ -1,4 +1,4 @@
-.
+
 // static/checkout.js
 
 // --- Step 1: Import all necessary functions and services from Firebase ---
