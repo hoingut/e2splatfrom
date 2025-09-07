@@ -1,12 +1,16 @@
 // static/checkout.js
 
-// --- Step 1: Import all necessary functions and services ---
+// --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db, doc, getDoc, addDoc, collection, serverTimestamp } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Step 2: DOM Element References & State Management ---
-    const getElement = (id) => document.getElementById(id);
+    // --- Step 2: Defensive DOM Element Selection ---
+    const getElement = (id, isCritical = true) => {
+        const element = document.getElementById(id);
+        if (!element && isCritical) console.error(`FATAL ERROR: HTML element with id "${id}" was not found.`);
+        return element;
+    };
     
     // Forms and Containers
     const loadingContainer = getElement('loading-container');
@@ -14,12 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const placeOrderForm = getElement('place-order-form');
     const successScreen = getElement('success-screen');
     const affiliateNotice = getElement('affiliate-notice');
-    
-    // Order Summary Elements
+    // ... (rest of the elements)
     const productSummaryDiv = getElement('product-summary');
     const priceDetailsDiv = getElement('price-details');
-    
-    // Input Elements
     const deliveryCitySelect = getElement('deliveryCity');
     const applyCouponBtn = getElement('apply-coupon-btn');
     const couponStatusP = getElement('coupon-status');
@@ -27,8 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentConfirmationSection = getElement('payment-confirmation-section');
     const transactionIdInput = getElement('transactionId');
     const senderNumberInput = getElement('senderNumber');
-    
-    // State object to manage all dynamic data
+
+    // --- Step 3: State Management & Configuration ---
     const state = {
         user: null, product: null, productId: null, affiliateId: null,
         subtotal: 0, discount: 0, deliveryFee: 0, total: 0,
@@ -38,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const paymentAccounts = { bkash: "01700000000", nagad: "01800000000" };
 
     // =================================================================
-    // --- SECTION A: EVENT HANDLER FUNCTIONS (Defined First) ---
-    // These functions contain the logic that runs when an event occurs.
+    // SECTION A: EVENT HANDLER FUNCTIONS (Defined First for clarity)
     // =================================================================
     
     async function handlePlaceOrder(e) {
@@ -84,9 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePriceDetails();
     }
 
-    function handleCouponApply() {
+   function handleCouponApply() {
         const couponInput = getElement('couponCode');
         const couponCode = couponInput.value.toUpperCase().trim();
+
 
         if (couponCode === 'DISCOUNT10') {
             state.discount = state.subtotal * 0.10;
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             couponStatusP.className = "text-sm mt-2 text-red-500";
         }
         updatePriceDetails();
-    }
+   }
     
     function handlePaymentMethodChange(e) {
         const selectedMethod = e.target.value;
@@ -120,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =================================================================
-    // --- SECTION B: DATA FETCHING & UI UPDATE FUNCTIONS ---
+    // SECTION B: DATA FETCHING & UI UPDATE FUNCTIONS
     // =================================================================
 
     async function loadProductData(customPrice) {
@@ -165,46 +166,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const isPrepaid = state.product?.delivery?.type === 'prepaid';
         const paymentAmount = isPrepaid ? state.deliveryFee : state.total;
         
-        let html = ` <label class="flex items-center p-4 border rounded-lg cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
+        let html = `
+            <label class="flex items-center p-4 border rounded-lg cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
                 <input type="radio" name="paymentMethod" value="bkash" class="h-4 w-4 text-indigo-600" required>
                 <span class="ml-3 font-medium">bKash (${isPrepaid ? 'Delivery Fee Only' : 'Full Payment'}) - ৳${paymentAmount.toFixed(2)}</span>
             </label>
             <label class="flex items-center p-4 border rounded-lg cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
                 <input type="radio" name="paymentMethod" value="nagad" class="h-4 w-4 text-indigo-600">
                 <span class="ml-3 font-medium">Nagad (${isPrepaid ? 'Delivery Fee Only' : 'Full Payment'}) - ৳${paymentAmount.toFixed(2)}</span>
-            </label>`; // (Payment options HTML generation logic here)
+            </label>
+        `;
+
+        if (!isPrepaid) {
+            html += `
+                <label class="flex items-center p-4 border rounded-lg cursor-pointer has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500">
+                    <input type="radio" name="paymentMethod" value="cod" class="h-4 w-4 text-indigo-600">
+                    <span class="ml-3 font-medium">Cash on Delivery (COD)</span>
+                </label>
+            `;
+        }
         
         paymentOptionsDiv.innerHTML = html;
-        paymentOptionsDiv.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
-            radio.addEventListener('change', handlePaymentMethodChange);
-        });
-    }
+        paymentOptionsDiv.querySelectorAll('input[name="paymentMethod"]').forEach(radio => radio.addEventListener('change', handlePaymentMethodChange));
 
-    function populateOrderSummary() {
+        const firstOption = paymentOptionsDiv.querySelector('input[name="paymentMethod"]');
+        if (firstOption) {
+            firstOption.checked = true;
+            handlePaymentMethodChange({ target: firstOption });
+        }
+    }
+    
+function populateOrderSummary() {
         productSummaryDiv.innerHTML = `<img src="${state.product.ogPic || 'https://via.placeholder.com/100'}" alt="${state.product.name}" class="w-16 h-16 rounded-md object-cover"><div><h3 class="font-semibold">${state.product.name}</h3><p class="text-gray-600 text-sm">Price: ৳${state.subtotal.toFixed(2)}</p></div>`;
     }
+
 
     function showError(message) {
         loadingContainer.innerHTML = `<p class="text-red-500 font-semibold p-4 bg-red-100 rounded-md">${message}</p>`;
     }
+
 
     function showSuccessScreen(orderId, orderDetails) {
         checkoutContainer.classList.add('hidden');
         successScreen.innerHTML = `<i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i><h2 class="text-3xl font-bold">Order Placed!</h2><p class="text-gray-600 mt-2">Your order is pending confirmation.</p><div class="mt-6 text-left border-t pt-4"><p><strong>Order ID:</strong> ${orderId}</p><p><strong>Total:</strong> ৳${orderDetails.priceDetails.total.toFixed(2)}</p></div><a href="/account" class="mt-6 inline-block bg-indigo-600 text-white py-2 px-6 rounded">View Orders</a>`;
         successScreen.classList.remove('hidden');
     }
-
     // =================================================================
     // --- SECTION C: INITIALIZATION & EVENT LISTENER ATTACHMENT ---
-    // This is the starting point of the script.
     // =================================================================
 
-    // Attach event listeners ONCE. This solves the duplicate order bug.
     if (placeOrderForm) placeOrderForm.addEventListener('submit', handlePlaceOrder);
     if (deliveryCitySelect) deliveryCitySelect.addEventListener('change', handleCityChange);
     if (applyCouponBtn) applyCouponBtn.addEventListener('click', handleCouponApply);
     
-    // Check user authentication status and initialize the page
     onAuthStateChanged(auth, (user) => {
         if (user) {
             state.user = user;
