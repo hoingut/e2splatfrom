@@ -146,12 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // These functions can be copied from the previous "Full checkout.js" answer
     // as their logic remains the same.
     
-    const deliveryCitySelect = getElement('deliveryCity');
-    deliveryCitySelect.addEventListener('change', (e) => {
-        state.selectedCity = e.target.value.toLowerCase();
-        calculateDeliveryFee();
-        updatePriceDetails();
-    });    
+
     // --- Step 5: Core Logic for Dynamic Delivery ---
     deliveryCitySelect.addEventListener('change', (e) => {
         state.selectedCity = e.target.value.toLowerCase();
