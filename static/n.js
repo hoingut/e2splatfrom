@@ -128,9 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
 
+// static/admin-orders.js
+
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
 /**
- * Updates the status of an order and, if delivered, updates the affiliate's balance.
- * This function is now more robust and performs multiple database operations.
+ * Updates the status of an order and, if delivered, calculates the CORRECT profit
+ * (excluding delivery fees) and adds it to the affiliate's balance.
  * @param {string} orderId - The ID of the order to update.
  * @param {string} newStatus - The new status value from the dropdown.
  */
@@ -142,49 +146,54 @@ window.updateOrderStatus = async (orderId, newStatus) => {
         // --- Step 1: Update the order status ---
         await updateDoc(orderRef, { status: newStatus });
         console.log(`Order ${orderId} status updated to ${newStatus}.`);
-
-        // Update the color of the select box visually
         if(selectElement) selectElement.className = `status-select status-${newStatus}`;
 
         // --- Step 2: If status is 'Delivered', handle affiliate balance ---
         if (newStatus === 'Delivered') {
-            // Get the latest order data to ensure we have the correct info
             const orderDoc = await getDoc(orderRef);
-            if (!orderDoc.exists()) {
-                throw new Error("Order document not found after update.");
-            }
+            if (!orderDoc.exists()) throw new Error("Order document not found after update.");
+            
             const orderData = orderDoc.data();
 
-            // Check if it's a valid affiliate order with profit
-            if (orderData.affiliateId && orderData.profit > 0) {
+            // Check if it's a valid affiliate order
+            if (orderData.affiliateId && orderData.productId) {
                 console.log(`Processing affiliate payment for order ${orderId}...`);
 
-                // Find the affiliate's user document using their affiliateId
+                // Fetch the product details to get the wholesale price
+                const productRef = doc(db, 'products', orderData.productId);
+                const productDoc = await getDoc(productRef);
+                if (!productDoc.exists()) throw new Error(`Product with ID ${orderData.productId} not found.`);
+                
+                const productData = productDoc.data();
+                const wholesalePrice = Number(productData.wholesalePrice) || 0;
+
+                // Calculate the final price the customer paid for the product (excluding delivery)
+                const customerPaidForProduct = (Number(orderData.priceDetails.subtotal) || 0) - (Number(orderData.priceDetails.discount) || 0);
+
+                // **THIS IS THE KEY FIX: Calculate profit accurately here**
+                const calculatedProfit = customerPaidForProduct - wholesalePrice;
+
+                if (calculatedProfit <= 0) {
+                    console.warn(`Profit for order ${orderId} is zero or negative (${calculatedProfit}). No balance will be added.`);
+                    return; // Stop execution if there is no profit
+                }
+
+                // Find the affiliate's user document
                 const usersRef = collection(db, 'users');
                 const q = query(usersRef, where("affiliateId", "==", orderData.affiliateId), limit(1));
                 const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    throw new Error(`Affiliate user with ID ${orderData.affiliateId} not found.`);
-                }
+                if (snapshot.empty) throw new Error(`Affiliate user with ID ${orderData.affiliateId} not found.`);
 
                 const affiliateDoc = snapshot.docs[0];
                 const affiliateRef = affiliateDoc.ref;
-                const currentBalance = affiliateDoc.data().affiliateBalance || 0;
-                const newBalance = currentBalance + orderData.profit;
+                const currentBalance = Number(affiliateDoc.data().affiliateBalance) || 0;
+                const newBalance = currentBalance + calculatedProfit;
                 
                 // Update the affiliate's balance
-                await updateDoc(affiliateRef, {
-                    affiliateBalance: newBalance
-                });
+                await updateDoc(affiliateRef, { affiliateBalance: newBalance });
 
-                console.log(`Successfully updated balance for user ${affiliateDoc.id}. New balance: ${newBalance}`);
-                alert(`Affiliate balance for ${affiliateDoc.data().name} has been updated!`);
-
-                // Also update payment status if it exists
-                if (orderData.paymentDetails) {
-                    await updateDoc(orderRef, { "paymentDetails.status": "Verified" });
-                }
+                console.log(`Successfully updated balance for user ${affiliateDoc.id}. Added: ৳${calculatedProfit.toFixed(2)}. New balance: ৳${newBalance.toFixed(2)}`);
+                alert(`Affiliate ${affiliateDoc.data().name}'s balance updated by ৳${calculatedProfit.toFixed(2)}!`);
             }
         }
         
@@ -192,7 +201,7 @@ window.updateOrderStatus = async (orderId, newStatus) => {
         console.error("Error during order status update process:", error);
         alert(`An error occurred: ${error.message}`);
         
-        // Optional: Revert the dropdown to its original state on failure
+        // Revert dropdown on failure
         try {
             const orderDoc = await getDoc(orderRef);
             if(orderDoc.exists() && selectElement) {
@@ -205,6 +214,5 @@ window.updateOrderStatus = async (orderId, newStatus) => {
     }
 };
 
-// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
+// ... (ফাইলের বাকি অংশ আগে
 });
-  
