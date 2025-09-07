@@ -21,28 +21,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const senderNumberInput = getElement('senderNumber');
     const successScreen = getElement('success-screen');
 
-    // --- Step 3: State Management & Configuration ---
+    // static/checkout.js (Full and Affiliate-Friendly Version)
+    
+    // --- State Management ---
     const state = {
         user: null, product: null, productId: null,
+        affiliateId: null, // To store the affiliate's reference ID
         subtotal: 0, discount: 0, deliveryFee: 0, total: 0,
         selectedCity: ''
     };
     
-    const paymentAccounts = {
-        bkash: "01700000000", // আপনার বিকাশ নম্বর দিন
-        nagad: "01800000000"  // আপনার নগদ নম্বর দিন
-    };
+    const paymentAccounts = { bkash: "01700000000", nagad: "01800000000" };
 
-    // --- Step 4: Initialization ---
+    // --- Initialization ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
             state.user = user;
             const params = new URLSearchParams(window.location.search);
             state.productId = params.get('productId');
+            state.affiliateId = params.get('ref'); // Get affiliate ref
+            const customPrice = params.get('price'); // Get custom price
+            
             if (state.productId) {
-                loadProductData();
+                loadProductData(customPrice);
             } else {
-                showError("No product was selected for checkout. Please go back and choose a product.");
+                showError("No product was selected for checkout.");
             }
         } else {
             const redirectUrl = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
@@ -50,16 +53,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function loadProductData() {
+    async function loadProductData(customPrice) {
         try {
+            if (state.affiliateId) {
+                getElement('affiliate-notice').classList.remove('hidden');
+            }
+
             const productRef = doc(db, 'products', state.productId);
             const docSnap = await getDoc(productRef);
-            if (!docSnap.exists()) throw new Error("The selected product could not be found.");
+            if (!docSnap.exists()) throw new Error("Product not found.");
 
             state.product = docSnap.data();
-            const price = Number(state.product.price) || 0;
-            const offerPrice = Number(state.product.offerPrice) || 0;
-            state.subtotal = offerPrice > 0 ? offerPrice : price;
+            
+            // Set subtotal based on whether it's an affiliate link with custom price or not
+            if (state.affiliateId && customPrice) {
+                state.subtotal = Number(customPrice);
+            } else {
+                const regularPrice = state.product.offerPrice > 0 ? state.product.offerPrice : state.product.price;
+                state.subtotal = Number(regularPrice) || 0;
+            }
             
             populateOrderSummary();
             updatePriceDetails();
@@ -71,6 +83,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // --- Form Submission (The Core of Affiliate Logic) ---
+    placeOrderForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const placeOrderBtn = getElement('place-order-btn');
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.textContent = "Processing...";
+
+        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const isPrepaidDelivery = state.product?.delivery?.type === 'prepaid';
+        
+        // Calculate affiliate profit only if an affiliate ID exists
+        const profit = state.affiliateId ? (state.subtotal - (state.product.wholesalePrice || state.subtotal)) : 0;
+        
+        const orderDetails = {
+            userId: state.user.uid,
+            userEmail: state.user.email,
+            productId: state.productId,
+            productName: state.product.name,
+            affiliateId: state.affiliateId || null, // Store affiliate ID if it exists
+            profit: profit > 0 ? profit : 0, // Ensure profit is not negative
+            priceDetails: {
+                subtotal: state.subtotal,
+                discount: state.discount,
+                deliveryFee: state.deliveryFee,
+                total: state.total,
+                amountPaid: 0
+            },
+            deliveryInfo: {
+                name: getElement('deliveryName').value,
+                phone: getElement('deliveryPhone').value,
+                address: getElement('deliveryAddress').value,
+                city: state.selectedCity,
+            },
+            paymentMethod: selectedPaymentMethod,
+            status: 'Pending',
+            orderDate: serverTimestamp()
+        };
+
+        if (selectedPaymentMethod !== 'cod') {
+            orderDetails.priceDetails.amountPaid = isPrepaidDelivery ? state.deliveryFee : state.total;
+            orderDetails.paymentDetails = {
+                transactionId: getElement('transactionId').value,
+                senderNumber: getElement('senderNumber').value,
+                accountNumber: paymentAccounts[selectedPaymentMethod],
+                status: 'Unverified'
+            };
+        }
+
+        try {
+            const docRef = await addDoc(collection(db, 'orders'), orderDetails);
+            showSuccessScreen(docRef.id, orderDetails);
+        } catch (error) {
+            console.error("Error writing document: ", error);
+            alert("Failed to place order. Please try again.");
+            placeOrderBtn.disabled = false;
+            placeOrderBtn.textContent = "Confirm Order";
+        }
+    });
+
+    // --- All other functions (Dynamic Delivery, UI Updates, Helpers) ---
+    // These functions can be copied from the previous "Full checkout.js" answer
+    // as their logic remains the same.
+    
+    const deliveryCitySelect = getElement('deliveryCity');
+    deliveryCitySelect.addEventListener('change', (e) => {
+        state.selectedCity = e.target.value.toLowerCase();
+        calculateDeliveryFee();
+        updatePriceDetails();
+    });    
     // --- Step 5: Core Logic for Dynamic Delivery ---
     deliveryCitySelect.addEventListener('change', (e) => {
         state.selectedCity = e.target.value.toLowerCase();
