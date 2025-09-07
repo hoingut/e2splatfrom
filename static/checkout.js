@@ -1,5 +1,4 @@
 
-// static/checkout.js
 
 // --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db, doc, getDoc, addDoc, collection, serverTimestamp } from './firebaseConfig.js';
