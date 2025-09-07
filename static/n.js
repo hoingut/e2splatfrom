@@ -112,39 +112,86 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    /**
-     * Updates the status of an order in Firestore.
-     * @param {string} orderId - The ID of the order to update.
-     * @param {string} newStatus - The new status value.
-     */
-    window.updateOrderStatus = async (orderId, newStatus) => {
-        const orderRef = doc(db, 'orders', orderId);
-        const selectElement = document.querySelector(`select[data-order-id="${orderId}"]`);
+// static/admin-orders.js
 
-        try {
-            await updateDoc(orderRef, { status: newStatus });
-            
-            // Update the color of the select box visually
-            selectElement.className = `status-select status-${newStatus}`;
-            
-            // Optionally, update payment status if the order is confirmed
-            if (newStatus === 'Confirmed') {
-                const orderDoc = await getDoc(orderRef);
-                if (orderDoc.exists() && orderDoc.data().paymentDetails) {
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Updates the status of an order and, if delivered, updates the affiliate's balance.
+ * This function is now more robust and performs multiple database operations.
+ * @param {string} orderId - The ID of the order to update.
+ * @param {string} newStatus - The new status value from the dropdown.
+ */
+window.updateOrderStatus = async (orderId, newStatus) => {
+    const orderRef = doc(db, 'orders', orderId);
+    const selectElement = document.querySelector(`select[data-order-id="${orderId}"]`);
+
+    try {
+        // --- Step 1: Update the order status ---
+        await updateDoc(orderRef, { status: newStatus });
+        console.log(`Order ${orderId} status updated to ${newStatus}.`);
+
+        // Update the color of the select box visually
+        if(selectElement) selectElement.className = `status-select status-${newStatus}`;
+
+        // --- Step 2: If status is 'Delivered', handle affiliate balance ---
+        if (newStatus === 'Delivered') {
+            // Get the latest order data to ensure we have the correct info
+            const orderDoc = await getDoc(orderRef);
+            if (!orderDoc.exists()) {
+                throw new Error("Order document not found after update.");
+            }
+            const orderData = orderDoc.data();
+
+            // Check if it's a valid affiliate order with profit
+            if (orderData.affiliateId && orderData.profit > 0) {
+                console.log(`Processing affiliate payment for order ${orderId}...`);
+
+                // Find the affiliate's user document using their affiliateId
+                const usersRef = collection(db, 'users');
+                const q = query(usersRef, where("affiliateId", "==", orderData.affiliateId), limit(1));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    throw new Error(`Affiliate user with ID ${orderData.affiliateId} not found.`);
+                }
+
+                const affiliateDoc = snapshot.docs[0];
+                const affiliateRef = affiliateDoc.ref;
+                const currentBalance = affiliateDoc.data().affiliateBalance || 0;
+                const newBalance = currentBalance + orderData.profit;
+                
+                // Update the affiliate's balance
+                await updateDoc(affiliateRef, {
+                    affiliateBalance: newBalance
+                });
+
+                console.log(`Successfully updated balance for user ${affiliateDoc.id}. New balance: ${newBalance}`);
+                alert(`Affiliate balance for ${affiliateDoc.data().name} has been updated!`);
+
+                // Also update payment status if it exists
+                if (orderData.paymentDetails) {
                     await updateDoc(orderRef, { "paymentDetails.status": "Verified" });
-                    // To refresh the whole page to see changes: location.reload();
-                    // Or update just that part of the UI. For simplicity, we can leave it to the next page load.
                 }
             }
-            
-            console.log(`Order ${orderId} status updated to ${newStatus}`);
-        } catch (error) {
-            console.error("Error updating order status:", error);
-            alert("Failed to update status. Please try again.");
-            // Revert the dropdown to its original state on failure
-            const orderDoc = await getDoc(orderRef);
-            if(orderDoc.exists()) selectElement.value = orderDoc.data().status;
         }
-    };
-});
+        
+    } catch (error) {
+        console.error("Error during order status update process:", error);
+        alert(`An error occurred: ${error.message}`);
+        
+        // Optional: Revert the dropdown to its original state on failure
+        try {
+            const orderDoc = await getDoc(orderRef);
+            if(orderDoc.exists() && selectElement) {
+                selectElement.value = orderDoc.data().status;
+                selectElement.className = `status-select status-${orderDoc.data().status}`;
+            }
+        } catch (revertError) {
+            console.error("Failed to revert dropdown state:", revertError);
+        }
+    }
+};
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)});
   
