@@ -208,40 +208,16 @@
         </div>
     </div>
 </section>
+
+<!-- ... body content ... -->
+<script type="module" src="/static/firebaseConfig.js"></script>
+<script type="module" src="/static/home.js"></script> <!-- এখানে auth.js থাকবে না -->
+</body>
     <style>
-        .unique-footer {
-            background-color: #282c34; /* Dark background */
-            color: #61dafb; /* Light blue text for contrast */
-            padding: 40px 20px;
-            text-align: center;
-            border-top: 5px solid #61dafb; /* A striking top border */
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow */
-            position: relative;
-            overflow: hidden; /* For any future animations */
-        }
 
-        .unique-footer::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(97, 218, 251, 0.1) 0%, transparent 70%);
-            animation: pulse-effect 10s infinite alternate; /* Example animation */
-            z-index: 0;
-        }
-
-        .footer-content {
-            position: relative; /* To keep content above the pseudo-element */
-            z-index: 1;
-        }
-
-        .unique-footer p {
-            margin: 0 0 10px 0;
-            font-size: 1em;
             letter-spacing: 1px;
         }
+
 
         .unique-footer .social-links a {
             color: #61dafb;
@@ -251,14 +227,17 @@
             transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
 
+
         .unique-footer .social-links a:hover {
             color: #a2f9ff; /* Lighter blue on hover */
             transform: translateY(-3px); /* Slight lift on hover */
         }
 
+
         .unique-footer .newsletter-form {
             margin-top: 20px;
         }
+
 
         .unique-footer .newsletter-form input[type="email"] {
             padding: 10px;
@@ -270,6 +249,7 @@
             color: #fff;
         }
 
+
         .unique-footer .newsletter-form button {
             padding: 10px 20px;
             background-color: #61dafb;
@@ -280,9 +260,11 @@
             transition: background-color 0.3s ease-in-out;
         }
 
+
         .unique-footer .newsletter-form button:hover {
             background-color: #a2f9ff;
         }
+
 
         /* Keyframe for the pulse animation */
         @keyframes pulse-effect {
@@ -291,6 +273,7 @@
         }
     </style>
     
+
 
     <footer class="unique-footer">
         <div class="footer-content">
@@ -310,14 +293,6 @@
             </div>
         </div>
     </footer>
-    <div id="support-widget" class="fixed bottom-5 left-5 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer">
-        <i class="fas fa-question text-2xl"></i>
-    </div>
-    <div id="cart-checkout-widget" class="fixed bottom-5 right-5 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer">
-        <i class="fas fa-shopping-cart text-2xl"></i>
-    </div>
-<!-- ... body content ... -->
-<script type="module" src="/static/firebaseConfig.js"></script>
-<script type="module" src="/static/home.js"></script> <!-- এখানে auth.js থাকবে না -->
-</body>
+
+
   </html>
