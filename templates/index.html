@@ -54,77 +54,6 @@
             <p class="mt-4 text-lg opacity-90">Find the best products at unbeatable prices.</p>
         </header>
 
-
-<style>
-    /* static/style.css (নতুন স্টাইল যোগ করুন) */
-
-/* =============== SLIDESHOW STYLES =============== */
-.slide-item {
-    transition: opacity 1s ease-in-out;
-}
-
-/* =============== ANIMATED REVIEW STYLES =============== */
-/* static/style.css -> ANIMATED REVIEW STYLES */
-
-.review-ticker-wrapper {
-    display: block; /* Ensure the wrapper is a block element */
-    width: 100%;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-}
-
-#review-ticker {
-    display: inline-flex; /* Use inline-flex for the scrolling container */
-    align-items: stretch; /* Ensure all cards have the same height */
-    animation: scroll-left 60s linear infinite; /* Increased duration for smoother scroll */
-}
-
-/* Add this to prevent pausing animation on hover (optional) */
-/*
-#review-ticker:hover {
-    animation-play-state: paused;
-}
-*/
-
-.review-card {
-    flex-shrink: 0;
-    width: 320px;
-    height: auto; /* Allow card height to be determined by content */
-    display: flex; /* Use flexbox for internal alignment */
-    flex-direction: column; /* Stack content vertically */
-    justify-content: space-between; /* Push content to top and bottom */
-    background-color: white;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    text-align: left;
-    margin-right: 2rem; /* Replaces space-x for better consistency */
-}
-
-/* ... (বাকি রিভিউ স্টাইল আগের মতোই থাকবে) ... */
-
-.review-stars {
-    color: #FBBF24; /* amber-400 */
-}
-
-@keyframes scroll-left {
-    from {
-        transform: translateX(0%);
-    }
-    to {
-        transform: translateX(-50%); /* Halfway, because the content is duplicated */
-    }
-}
-</style>
-    <script>
-        // static/home.js (নতুন কোড যোগ করুন)
-
-
-        
-    </script>
-        
-
 <!-- =============== 1. ADVANCED SLIDESHOW SECTION =============== -->
 <section class="my-8 relative group" id="hero-slider-container">
     <div class="overflow-hidden relative rounded-lg shadow-2xl h-56 sm:h-64 md:h-80 lg:h-96">
@@ -189,30 +118,138 @@
                 View All Products
             </a>
         </section>
-        
+    <style>
 
-<!-- ... (আপনার হট প্রোডাক্টস, নিউ প্রোডাক্টস ইত্যাদি সেকশন আগের মতোই থাকবে) ... -->
+    .reviews {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .review-card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 1.2s ease;
+    }
+    .review-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+
+    .review-card .stars {
+      color: #f1c40f;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+    }
+
+    .review-card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .reviewer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .reviewer img {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #eee;
+    }
+    .reviewer h4 {
+      font-size: 1rem;
+      margin: 0;
+      color: #111;
+    }
+    .reviewer span {
+      font-size: 0.9rem;
+      color: #777;
+    }
 
 
-<!-- =============== 2. ANIMATED REVIEW SECTION =============== -->
-<section class="py-16 bg-gray-50 my-10 overflow-hidden">
-    <div class="container mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-2">Loved by Our Customers</h2>
-        <p class="text-gray-600 mb-12">Here's what they are saying about us.</p>
-        
-        <!-- Scrolling Review Ticker -->
-        <div class="review-ticker-wrapper">
-            <div id="review-ticker" class="flex space-x-8">
-                <!-- Reviews will be duplicated and injected here by JS -->
-            </div>
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    @keyframes fadeInDown {
+      from {opacity: 0; transform: translateY(-30px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    @keyframes fadeInUp {
+      from {opacity: 0; transform: translateY(30px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+
+  <section class="reviews">
+    <div class="review-card">
+      <div class="stars">
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-regular fa-star"></i>
+      </div>
+      <p>"Great quality products! Delivery was fast and packaging was excellent. Will shop again."</p>
+      <div class="reviewer">
+        <img src="https://i.pravatar.cc/45?img=1" alt="Reviewer">
+        <div>
+          <h4>Rafiul Islam</h4>
+          <span>Dhaka, BD</span>
         </div>
+      </div>
     </div>
-</section>
+
+    <div class="review-card">
+      <div class="stars">
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+      </div>
+      <p>"Amazing customer service! The support team helped me quickly with my issue."</p>
+      <div class="reviewer">
+        <img src="https://i.pravatar.cc/45?img=5" alt="Reviewer">
+        <div>
+          <h4>Sadia Rahman</h4>
+          <span>Chittagong, BD</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="stars">
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-solid fa-star"></i>
+        <i class="fa-regular fa-star"></i>
+        <i class="fa-regular fa-star"></i>
+      </div>
+      <p>"The prices are reasonable and products are authentic. Highly recommend E2S Shop."</p>
+      <div class="reviewer">
+        <img src="https://i.pravatar.cc/45?img=9" alt="Reviewer">
+        <div>
+          <h4>Tanvir Ahmed</h4>
+          <span>Khulna, BD</span>
+        </div>
+      </div>
+    </div>
+  </section>
 <style>
-
-
-            letter-spacing: 1px;
-        }
 
 
 
@@ -324,6 +361,7 @@
     top:-200px;left:-200px;
     animation:spin 25s linear infinite;
     margin-left: 30%;
+      margi-top: 30%;
   }
 </style>
 
