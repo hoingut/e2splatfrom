@@ -128,61 +128,42 @@ window.buyNow = function(event, productId) {
     window.location.href = `/checkout?productId=${productId}`;
 };
 
+let slider = document.querySelector('.slider .list');
+let items = document.querySelectorAll('.slider .list .item');
+let next = document.getElementById('next');
+let prev = document.getElementById('prev');
+let dots = document.querySelectorAll('.slider .dots li');
 
-
-// =============== 1. ADVANCED SLIDESHOW FUNCTION ===============
-function initializeSlideshow() {
-    // --- Slider Data (এটাকে আপনি Firebase থেকে আনতে পারেন) ---
-    const slides = [
-        {
-            img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1999&auto=format&fit=crop',
-            link: '/products?category=Electronics',
-            alt: 'Electronics Sale'
-        },
-        {
-            img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop',
-            link: '/products?category=Audio',
-            alt: 'Audio Gadgets'
-        },
-        {
-            img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop',
-            link: '/products?category=Shoes',
-            alt: 'Fashionable Shoes'
-        }
-    ];
-
-
-    const sliderWrapper = document.getElementById('slider-wrapper');
-    const prevBtn = document.getElementById('prev-slide');
-    const nextBtn = document.getElementById('next-slide');
-    const indicatorsContainer = document.getElementById('slider-indicators');
-
-
-    if (!sliderWrapper || !prevBtn || !nextBtn || !indicatorsContainer) return;
-    
-    let currentIndex = 0;
-
-
-    // Create slides and indicators
-    sliderWrapper.innerHTML = slides.map(slide => `
-        <a href="${slide.link}" class="slide-item flex-shrink-0 w-full h-full">
-            <img src="${slide.img}" alt="${slide.alt}" class="w-full h-full object-cover">
-        </a>
-    `).join('');
-
-
-    indicatorsContainer.innerHTML = slides.map((_, index) => 
-        `<button class="indicator w-3 h-3 rounded-full bg-white/50 hover:bg-white" data-index="${index}"></button>`
-    ).join('');
-
-
-    const indicators = indicatorsContainer.querySelectorAll('.indicator');
-    
-    function updateSlider() {
-        sliderWrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
-        indicators.forEach((indicator, index) => {
-            indicator.classList.toggle('bg-white', index === currentIndex);
-            indicator.classList.toggle('bg-white/50', index !== currentIndex);
-        });
-    }
+let lengthItems = items.length - 1;
+let active = 0;
+next.onclick = function(){
+    active = active + 1 <= lengthItems ? active + 1 : 0;
+    reloadSlider();
 }
+prev.onclick = function(){
+    active = active - 1 >= 0 ? active - 1 : lengthItems;
+    reloadSlider();
+}
+let refreshInterval = setInterval(()=> {next.click()}, 3000);
+function reloadSlider(){
+    slider.style.left = -items[active].offsetLeft + 'px';
+    // 
+    let last_active_dot = document.querySelector('.slider .dots li.active');
+    last_active_dot.classList.remove('active');
+    dots[active].classList.add('active');
+
+    clearInterval(refreshInterval);
+    refreshInterval = setInterval(()=> {next.click()}, 3000);
+
+    
+}
+
+dots.forEach((li, key) => {
+    li.addEventListener('click', ()=>{
+         active = key;
+         reloadSlider();
+    })
+})
+window.onresize = function(event) {
+    reloadSlider();
+};
