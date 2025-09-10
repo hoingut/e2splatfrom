@@ -29,6 +29,11 @@ def single_product(product_id):
 def login():
     return render_template('login.html', title="Login or Signup")
 
+@app.route('/wp')
+def login():
+    return render_template('z.html', title="Login or Signup")
+
+
 @app.route('/account')
 def account():
     return render_template('account.html', title="My Account")
