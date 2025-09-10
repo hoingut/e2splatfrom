@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .app-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Admin Dashboard</h1>
+        <div id="appList">
+            <!-- Apps will be added here dynamically -->
+        </div>
+    </div>
+
+    <script>
+        const apps = [
+            { name: "App 1", link: "app1.html" },
+            { name: "App 2", link: "app2.html" },
+            { name: "App 3", link: "app3.html" },
+            // Add more apps here
+        ];
+
+        const appListContainer = document.getElementById("appList");
+
+        apps.forEach(app => {
+            const appItem = document.createElement("div");
+            appItem.classList.add("app-item", "d-flex", "align-items-center"); // Added flexbox for alignment
+            appItem.innerHTML = `
+                <a href="${app.link}" class="stretched-link" style="width: 100%; text-decoration: none; color: inherit;">
+                    ${app.name}
+                </a>
+            `;
+            appListContainer.appendChild(appItem);
+        });
+    </script>
+</body>
+          </html>
