@@ -30,7 +30,7 @@ def login():
     return render_template('login.html', title="Login or Signup")
 
 @app.route('/wp')
-def login():
+def wp():
     return render_template('z.html', title="Login or Signup")
 
 
