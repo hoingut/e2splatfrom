@@ -9,8 +9,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom CSS (optional) -->
     <link rel="stylesheet" href="/static/style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@100..800&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+<style>
+body {
+  font-family: "Anek Bangla", sans-serif;
+  
+}
+</style>
+
 </head>
 <body class="text-gray-800" style="background: #d3f2e0;">
 
@@ -27,6 +38,7 @@
         <div class="hidden lg:flex space-x-6 items-center">
             <a href="/" class="hover:text-indigo-600">Home</a>
             <a href="/products" class="hover:text-indigo-600">Products</a>
+<a href="/menu" class="hover:text-indigo-600">Offers</a>
             <a href="/menu" class="hover:text-indigo-600">Menu</a>
         </div>
         
@@ -443,14 +455,14 @@ input[type="radio"] {
 
   .e2s-bottom{
     margin-top:40px;padding-top:20px;border-top:1px solid rgba(255,255,255,.2);
-    text-align:center;font-size:.9rem;color:#bbb
+    text-align:center;font-size:.9rem;color:#bbb;
   }
   
   .e2s-footer::before{
     content:"";
     position:absolute;
     width:500px;height:500px;
-    background:radial-gradient(circle,#00e5ff44,#3bff00,transparent 70%);
+    
     border-radius:50%;
     top:-200px;left:-200px;
     animation:spin 25s linear infinite;
@@ -478,19 +490,19 @@ input[type="radio"] {
       <ul class="e2s-links">
         <li><a href="#">Home</a></li>
         <li><a href="#">Shop</a></li>
-        <li><a href="#">Top-Ups</a></li>
-        <li><a href="#">Subscriptions</a></li>
+        <li><a href="#">Offers</a></li>
+        <li><a href="#">About Us</a></li>
         <li><a href="#">Contact Us</a></li>
       </ul>
     </div>
     <!-- Customer Care -->
     <div class="e2s-card">
-      <h3>Customer Care</h3>
+      <h3>Growth</h3>
       <ul class="e2s-links">
-        <li><a href="#">FAQs</a></li>
-        <li><a href="#">Terms & Conditions</a></li>
-        <li><a href="#">Refund Policy</a></li>
-        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Earn</a></li>
+        <li><a href="#">Sell</a></li>
+        <li><a href="#">Shop</a></li>
+        <li><a href="#">Investment</a></li>
       </ul>
     </div>
     <!-- Contact -->
@@ -498,13 +510,16 @@ input[type="radio"] {
       
     <div class="e2s-card">
       <h3>Contact</h3>
-      <p><i class="fa-solid fa-phone"></i> +880 1234-567890</p>
-      <p><i class="fa-solid fa-envelope"></i> support@e2sshop.com</p>
-      <p><i class="fa-solid fa-location-dot"></i> Dhaka, Bangladesh</p>
+      <p><i class="fa-solid fa-phone"></i> +880 1781-1747</p>
+
+      <p><i class="fab fa-facebook"></i> E2S Shop</p>
+      <p><i class="fab fa-whatsapp"></i> +880 1781-146747</p>
+      <p><i class="fa-solid fa-envelope"></i> support.e2s@gmail.com</p>
+      <p><i class="fa-solid fa-location-dot"></i> Tongi, Dhaka, Bangladesh</p>
     </div>
   </div>
   <div class="e2s-bottom">
-    © <span id="year"></span> E2S Platfrom  — All Rights Reserved.
+    © <span>2025</span> E2S Platfrom  — All Rights Reserved.
   </div>
 </footer>
     
@@ -516,4 +531,4 @@ input[type="radio"] {
 
 
 
-                  </html>
+            </html>
