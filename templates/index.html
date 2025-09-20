@@ -9,14 +9,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom CSS (optional) -->
     <link rel="stylesheet" href="/static/style.css">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@100..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@100..800&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
 <style>
 body {
+   font-family: "Ubuntu", sans-serif;
+ 
+}
+.bn {
   font-family: "Anek Bangla", sans-serif;
   
 }
@@ -32,10 +35,10 @@ body {
         <button id="menu-toggle-btn" class="text-xl lg:hidden">
             <i class="fas fa-bars"></i>
         </button>
-        <a href="/" class="hidden lg:block text-2xl font-bold text-indigo-600">E2S Shop</a>
+        <a href="/" class="hidden lg:block text-2xl font-bold " style="color: #024721;">E2S Shop</a>
 
         <!-- Center: Navigation Links (for larger screens) -->
-        <div class="hidden lg:flex space-x-6 items-center">
+        <div class="hidden lg:flex space-x-6 items-center" style="background: #d5f5da;">
             <a href="/" class="hover:text-indigo-600">Home</a>
             <a href="/products" class="hover:text-indigo-600">Products</a>
 <a href="/menu" class="hover:text-indigo-600">Offers</a>
@@ -43,10 +46,10 @@ body {
         </div>
         
         <!-- Center Title (for smaller screens) -->
-         <a href="/" class="lg:hidden text-2xl font-bold text-indigo-600">E2S Platfrom </a>
+         <a href="/" class="lg:hidden text-2xl font-bold text-indigo-600" style="color: #024721;">E2S Platfrom </a>
 
         <!-- Right: Account & Cart -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-4" style="background: #d5f5da;">
             <button id="notification-btn" class="text-xl"><i class="fas fa-bell"></i></button>
             <a href="/account" class="text-xl"><i class="fas fa-user"></i></a>
             <a href="/checkout" class="text-xl"><i class="fas fa-shopping-cart"></i></a>
@@ -57,6 +60,10 @@ body {
     <div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg absolute top-16 left-0 w-full z-40">
         <a href="/" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
         <a href="/products" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Products</a>
+
+        <a href="/products" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Account</a>
+
+        <a href="/products" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">About Us</a>
         <a href="/menu" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Menu</a>
     </div>
 
@@ -114,16 +121,10 @@ body {
             </div>
         </section>
         
-        <!-- Notice Section -->
-        <section class="my-10 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow">
-            <h3 class="font-bold">Notice</h3>
-            <p>Special discounts available this weekend! Use code <span class="font-semibold">WEEKEND15</span> for 15% off.</p>
-        </section>
-
         <!-- Flash Sell Section (Add if needed) -->
         <!-- CTA for All Products -->
         <section class="text-center my-10">
-            <a href="/products" class="bg-indigo-600 text-white text-lg font-semibold py-3 px-10 rounded-full hover:bg-indigo-700 transition-transform transform hover:scale-105">
+            <a href="/products" class="bg-indigo-600 text-white text-lg font-semibold py-3 px-10 rounded-full hover:bg-indigo-700 transition-transform transform hover:scale-105" style="background: #07a34c;">
                 View All Products
             </a>
         </section>
@@ -531,4 +532,4 @@ input[type="radio"] {
 
 
 
-                                                            </html>
+            </html>
