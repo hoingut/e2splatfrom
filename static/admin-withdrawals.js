@@ -1,10 +1,21 @@
-
+// static/admin-withdrawals.js
 
 // --- Imports ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { collection, query, where, getDocs, doc, updateDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    doc, 
+    updateDoc, 
+    getDoc, 
+    orderBy,
+    serverTimestamp // <--- এই লাইনটি যোগ করা হয়েছে
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+// ... (আপনার বাকি সব কোড আগের মতোই থাকবে)
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM References ---
     const pendingBody = document.getElementById('pending-withdrawals-body');
