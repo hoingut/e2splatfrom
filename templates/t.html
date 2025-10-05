@@ -1,0 +1,861 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn with E2S Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@100..800&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+*{
+margin: 0;
+padding: 0;
+}
+        :root {
+            --bg-light: #6ec293;
+            --logo-color: #024721;
+            --text-color: #42594c;
+            --dark-green: #07331a;
+            --button-color: #07a34c;
+   
+        }
+        }
+
+        .en {
+            font-family: "Ubuntu", sans-serif;
+        }
+        .bn {
+            font-family: "Anek Bangla", sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            line-height: 1.4;
+            overflow-x: hidden;
+            font-family: "Anek Bangla", sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--dark-green);
+            color: #fff;
+            padding: 8px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--logo-color);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            animation: pulse 2s infinite ease-in-out;
+text-decoration: none;
+        }
+
+        .navbar-links {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        .navbar-links a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-links a:hover {
+            background-color: var(--button-color);
+            border-radius: 5px;
+        }
+
+        .nav-toggle-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.8em;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(7, 51, 26, 0.7), rgba(7, 51, 26, 0.7)), url('https://via.placeholder.co/1500x800/07331a/6ec293?text=E2S+Platform') no-repeat center center/cover;
+            color: #fff;
+            text-align: center;
+            padding: 100px 20px;
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .hero p {
+            font-size: 1.3em;
+            margin-bottom: 40px;
+            animation: slideInRight 1s ease-out;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--button-color);
+            color: #fff;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #058a3a;
+            transform: translateY(-3px);
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 80px 0;
+            text-align: center;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .section:nth-child(even) {
+            background-color: #e9f5ed; /* Lighter shade for contrast */
+        }
+
+        .section h2 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: var(--dark-green);
+        }
+
+        .section p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-item {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-item i {
+            font-size: 3em;
+            color: var(--button-color);
+            margin-bottom: 20px;
+        }
+
+        .feature-item h3 {
+            font-size: 1.5em;
+            color: var(--dark-green);
+            margin-bottom: 15px;
+        }
+
+        /* How to Join Steps */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-top: 50px;
+            align-items: center;
+        }
+
+        .step {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 700px;
+            text-align: left;
+            animation: slideInUp 0.7s ease-out forwards;
+            opacity: 0;
+        }
+
+        .step:nth-child(1) { animation-delay: 0.1s; }
+        .step:nth-child(2) { animation-delay: 0.3s; }
+        .step:nth-child(3) { animation-delay: 0.5s; }
+        .step:nth-child(4) { animation-delay: 0.7s; }
+
+
+        .step .step-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--button-color);
+            background-color: #e0ffe0;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            margin-top: 0;
+            color: var(--dark-green);
+        }
+
+        /* Contact Section */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .contact-item {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .contact-item i {
+            font-size: 2.5em;
+            color: var(--button-color);
+            margin-bottom: 15px;
+        }
+
+        .contact-item a {
+            color: var(--dark-green);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: var(--dark-green);
+            color: #fff;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+        }
+
+        .footer .social-links a {
+            color: #fff;
+            font-size: 1.5em;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .footer .social-links a:hover {
+            color: var(--button-color);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar .logo {
+                font-size: 1.5em;
+            }
+
+            .navbar-links {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                background-color: var(--dark-green);
+                position: absolute;
+                top: 70px; /* Adjust based on navbar height */
+                left: 0;
+                padding: 10px 0;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .navbar-links.active {
+                display: flex;
+            }
+
+            .navbar-links a {
+                text-align: center;
+                padding: 15px;
+            }
+
+            .nav-toggle-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5em;
+            }
+
+            .hero p {
+                font-size: 1em;
+            }
+
+            .section h2 {
+                font-size: 2em;
+            }
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+            .step .step-number {
+                margin-bottom: 15px;
+            }
+        }
+
+.w{
+margin: 2%;}
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo en">E2S Platform</a>
+            <button class="nav-toggle-btn" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="navbar-links" id="navbarLinks">
+                <li><a href="#introduce" class="bn">পরিচয়</a></li>
+                <li><a href="#features" class="bn">বৈশিষ্ট্য</a></li>
+                <li><a href="#how-to-join" class="bn">যোগদানের পদ্ধতি</a></li>
+                <li><a href="#rules" class="bn">নিয়মাবলী</a></li>
+                <li><a href="#contact" class="bn">যোগাযোগ</a></li>
+                <li><a href="#quotes" class="bn">উক্তি</a></li>
+                <li><a href="/" class="btn en">Main Website</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <h1 class="bn">E2S প্ল্যাটফর্মের সাথে আয় করুন - বিনিয়োগ ছাড়াই!</h1>
+            <p class="en">Join our affiliate program and start earning commissions by promoting products from the E2S Shop. No investment required!</p>
+            <a href="#how-to-join" class="btn bn">এখনই শুরু করুন</a>
+        </div>
+    </header>
+
+    <!-- Introduce Section -->
+    <section id="introduce" class="section">
+        <div class="container">
+            <h2 class="bn">E2S প্ল্যাটফর্মের পরিচিতি</h2>
+            <p class="bn">E2S হল একটি উদ্ভাবনী প্ল্যাটফর্ম যা আপনাকে বিনিয়োগ ছাড়াই অনলাইনে আয় করার সুযোগ দেয়। আমাদের অ্যাফিলিয়েট প্রোগ্রামের মাধ্যমে, আপনি E2S শপ থেকে বিভিন্ন পণ্য প্রচার করে কমিশন উপার্জন করতে পারবেন। এটি তাদের জন্য একটি দারুণ সুযোগ যারা নিজস্ব ব্যবসা শুরু করতে চান কিন্তু প্রাথমিক বিনিয়োগের ঝুঁকি নিতে চান না।</p>
+            <p class="bn">আমরা আপনাকে সফল হওয়ার জন্য প্রয়োজনীয় সমস্ত সরঞ্জাম এবং সমর্থন প্রদান করি। আজই আমাদের সাথে যোগ দিন এবং আপনার আয়ের যাত্রা শুরু করুন!</p>
+        </div>
+        </section>
+
+
+<style>
+
+        .s {
+            font-family: "Anek Bangla", sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .e2s-container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1, h2, h3 {
+            color: var(--dark-green);
+            font-weight: 700;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 1.8em;
+            border-bottom: 2px solid var(--button-color);
+            padding-bottom: 8px;
+            display: inline-block;
+            animation: slideInLeft 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        h2:nth-of-type(1) { animation-delay: 0.3s; }
+        h2:nth-of-type(2) { animation-delay: 0.8s; }
+        h2:nth-of-type(3) { animation-delay: 1.3s; }
+
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h3 {
+            font-size: 1.4em;
+            color: var(--button-color);
+            margin-top: 20px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: var(--text-color);
+        }
+
+        strong {
+            color: var(--dark-green);
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 25px;
+        }
+
+        ul li {
+            background-color: #f7fdfa;
+            margin-bottom: 10px;
+            padding: 12px 18px;
+            border-left: 5px solid var(--button-color);
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 1.05em;
+        }
+
+        ul li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            margin-bottom: 30px;
+            animation: zoomIn 1s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        @keyframes zoomIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 1.05em;
+        }
+
+        th {
+            background-color: var(--dark-green);
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #e6ffe6;
+            cursor: pointer;
+        }
+
+        /* Unique class for a section, demonstrating animation */
+        .method-section {
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background-color: #eef9f2;
+            border: 1px dashed var(--button-color);
+            animation: bounceIn 1s ease-out 0.5s forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Specific styles for English font if needed, though Anek Bangla is primary */
+        .en {
+            font-family: "Ubuntu", sans-serif;
+        }
+        .bn {
+            font-family: "Anek Bangla", sans-serif;
+        }
+    </style>
+<div class="s">
+    <div class="e2s-container">
+        <h1 class="bn">E2S প্ল্যাটফর্ম — অ্যাফিলিয়েট ও রিসেল কিভাবে করবেন</h1>
+
+        <p class="bn">নীচে E2S-এ আয় করার <strong>২টি সহজ পদ্ধতি</strong> উদাহরণসহ দেওয়া হলো।</p>
+
+        <div class="method-section">
+            <h2 class="bn">১) অ্যাফিলিয়েট লিংক (Affiliate Link Method)</h2>
+            <p class="bn">প্রতিটি প্রোডাক্টের জন্য কাস্টম অ্যাফিলিয়েট লিংক তৈরি করে আপনি শেয়ার করবেন। লিংকের মাধ্যমে কেউ কেনাকাটা করলে আপনি Wholesale ও Selling প্রাইসের পার্থক্য স্টেপ অনুযায়ী কমিশন পাবেন।</p>
+
+            <h3 class="bn">উদাহরণ — অ্যাফিলিয়েট লিংক</h3>
+            <ul>
+                <li class="bn">প্রোডাক্ট: সাদা ঘড়ি</li>
+                <li class="bn">Wholesale Price (থোক দাম): ৮০০ টাকা</li>
+                <li class="bn">Customer Selling Price (ক্রেতা যে দামে কিনল): ১,০০০ টাকা</li>
+                <li class="bn">আপনার ইনকাম = ১,০০০ - ৮০০ = <strong>২০০ টাকা</strong></li>
+            </ul>
+        </div>
+
+        <div class="method-section">
+            <h2 class="bn">২) রিসেল করা (Reselling Method)</h2>
+            <p class="bn">Wholesale দামে পণ্য নেওয়া হয়; আপনি নিজে মূল্য ঠিক করে গ্রাহকের কাছে বিক্রি করবেন। তোমার লাভ = বিক্রয় মূল্য − Wholesale মূল্য।</p>
+
+            <h3 class="bn">উদাহরণ — রিসেল</h3>
+            <ul>
+                <li class="bn">প্রোডাক্ট: ট্রাভেল ব্যাগ</li>
+                <li class="bn">Wholesale Price: ৫০০ টাকা</li>
+                <li class="bn">আপনি বিক্রি করলেন: ৭৫০ টাকা</li>
+                <li class="bn">আপনার লাভ = ৭৫০ - ৫০০ = <strong>২৫০ টাকা</strong></li>
+            </ul>
+        </div>
+
+        <h2 class="bn">সংক্ষেপে তুলনা</h2>
+        <table class="bn">
+            <thead>
+                <tr>
+                    <th>পদ্ধতি</th>
+                    <th>কারা কাজ করবে</th>
+                    <th>ইনকামের ধরন</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Affiliate Link</td>
+                    <td>যারা লিংক শেয়ার করে সহজে আয় করতে চান</td>
+                    <td>লিংক দিয়ে বিক্রিতে Wholesale ও Selling-এর পার্থক্য অনুযায়ী কমিশন</td>
+                </tr>
+                <tr>
+                    <td>Resell</td>
+                    <td>যারা নিজের ব্র্যান্ড/গ্রুপে বিক্রি করে বেশি লাভ করতে চান</td>
+                    <td>আপনি যে দামে বিক্রি করবেন - Wholesale = আপনার লাভ</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="bn">আমাদের বিশেষ বৈশিষ্ট্যসমূহ</h2>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h3 class="bn">ইনভেস্টমেন্ট  নেই</h3>
+                    <p class="bn">কোনো বিনিয়োগ ছাড়াই আপনার আয়ের যাত্রা শুরু করুন। কোনো হাইডেন চার্জ নেই!</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-store"></i>
+                    <h3 class="bn">E2S Shop</h3>
+                    <p class="bn">E2S শপের বিস্তৃত পণ্যতালিকা থেকে আপনার পছন্দের পণ্য বেছে নিন।</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-percent"></i>
+                    <h3 class="bn">আকর্ষণীয় লাভ</h3>
+                    <p class="bn">প্রতিটি সফল বিক্রয়ের জন্য উচ্চ লাভ উপভোগ করুন।</p>
+                </div><div class="feature-item">
+                    <i class="fas fa-percent"></i>
+                    <h3 class="bn">Advence Payment নেই*</h3>
+                    <p class="bn">এমন অনেক পন্য আছে যেগুলো অর্ডার করতে এডভান্স পেমেন্ট করতে হয় না! ফুল ক্যাশ অন ডেলিভারি ।  তাই যার কছে পন্য বিক্রি করবেন তার এডভান্স কোনো টাকা</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3 class="bn">Withdraw </h3>
+                    <p class="bn">আপনার বিক্রয়,  আয়, অর্ডারসহো সবকিছুর বিস্তারিত তথ্য ট্র্যাক করুন।</p>
+                </div>
+<div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3 class="bn">এক্টিভিটি ট্র্যাকিং</h3>
+                    <p class="bn">মাত্র ২০ টাকা হলেই, উইথড্র! </p>
+                </div>
+<div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3 class="bn">সাপোর্ট </h3>
+                    <p class="bn">ডেটিকেটেড ২৪/৭ সাপোর্ট! </p>
+                </div>
+<div class="feature-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3 class="bn">Resources </h3>
+                    <p class="bn">Coming Soon!</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- How to Join Section -->
+    <section id="how-to-join" class="section">
+        <div class="container">
+            <h2 class="bn">E2S অ্যাফিলিয়েট প্রোগ্রামে কিভাবে যোগদান করবেন?</h2>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="bn">রেজিস্টার করুন</h3>
+                        <p class="bn">আমাদের ওয়েবসাইটে একটি বিনামূল্যে অ্যাকাউন্ট তৈরি করুন। এটি সহজ এবং দ্রুত!, একাউন্ট খুলতে<a href="/login"> ক্লিক করুন!</a></p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="bn">Affiliates এর জন্য আবেদন করুন!</h3>
+                        <p class="bn">Account এর পেজের নিচের দিকে, Apply For Affiliates এ ক্লিক করে আবেদন করুন, এবং আপনার ইমেইল টি Admin এর WhatsApp এ মেসেজ দিন!</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="bn">প্রণ্য বিক্রি করুন</h3>
+                        <p class="bn">প্রত্যেকটি প্রোডাক্টের অ্যাফিলিয়েট লিংক  অথবা আপনি নিজে আপনার পেজ অথবা আইডি অথবা ফ্রেন্ডদের কাছে পণ্য বিক্রি করবেন! এছাড়া আপনি যেখানে খুশি সেখানে বিক্রি করতে পারেন!</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3 class="bn">আয় করুন</h3>
+                        <p class="bn">আপনার লিঙ্কের মাধ্যমে অথবা আপনার প্রতিটি সফল বিক্রয়ের জন্য আপনার লাভ হওয়া টাকা আপনার একাউন্টে জমা হবে! </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rules Section -->
+    <section id="rules" class="section">
+        <div class="container">
+            <h2 class="bn">E2S অ্যাফিলিয়েট প্রোগ্রামের নিয়মাবলী</h2>
+            <ul class="bn" style="text-align: left; max-width: 800px; margin: 0 auto; list-style: disc; padding-left: 20px;">
+                <li>কাজ করার এবং টাকা ইনকাম করার প্রবল আগ্রহ থাকতে হবে</li>
+                <li>কোনো মিথ্যা বা বিভ্রান্তিকর তথ্য প্রদান করা যাবে না।</li>
+                <li>মার্কেটিং এর বেসিক জানতে হব। </li>
+                <li>নির্দিষ্ট পণ্য বা প্রচারের জন্য বিশেষ নিয়মাবলী প্রযোজ্য হতে পারে।</li>
+                <li>এক টানা ২ মাস কোনো প্রডাক্ট না বিক্রি না করতে পারলে, তাকে বাদ দিয়ে দেওয়া হবে। </li>
+<li>এক টানা ১৪ দিন অফলাইন থাকলে, তাকে বাদ দিয়ে দেওয়া হবে।</li>
+<li>কাজে জয়েন হওয়ার পর কাজ না করতে চাইলে, কথা বলে বাদ দিতে হবে। </li>
+                <li>কোনো সমস্যা বা জিজ্ঞাসার জন্য আমাদের সহায়তা দলের সাথে যোগাযোগ করুন।</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="bn">আমাদের সাথে যোগাযোগ করুন</h2>
+            <p class="bn">আপনার কোনো প্রশ্ন বা সাহায্যের প্রয়োজন হলে, অনুগ্রহ করে আমাদের সাথে যোগাযোগ করতে দ্বিধা করবেন না। শুধু মাত্র Affiliates এর জন্য!</p>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <h3 class="bn">হোয়াটসঅ্যাপ</h3>
+                    <p class="en"><a href="https://wa.me/8801781146747" target="_blank">+880 1781146747</a></p>
+                </div>
+                <div class="contact-item">
+                    <i class="fab fa-facebook"></i>
+                    <h3 class="bn">এডমিনের ফেসবুক আইডি</h3>
+                    <p class="en"><a href="https://www.facebook.com/AliHosenYTC" target="_blank">Ali Hosen</a></p>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-globe"></i>
+                    <h3 class="bn">প্রধান ওয়েবসাইট</h3>
+                    <p class="en"><a href="https://www.e2splatfrom.xyz" target="_blank">www.e2splatfrom.xyz</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quotes Section -->
+    <section id="quotes" class="section">
+        <div class="container">
+            <h2 class="bn"></h2>
+            <p class="bn" style="font-style: italic; font-size: 1.2em;">"সুযোগ খোঁজা মানেই জীবন, সুযোগ তৈরি করা মানেই ভবিষ্যৎ।"</p>
+            <p class="bn" style="font-style: italic; font-size: 1.2em;">"আজকের ছোট পদক্ষেপ, আগামীর বিশাল সাফল্য।"</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="en">&copy; 2025 E2S Platform. All rights reserved.</p>
+            <div class="social-links">
+                <a href="https://www.facebook.com/greenshelofficial" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://wa.me/+8801992944769" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('navToggle').addEventListener('click', function() {
+            var navbarLinks = document.getElementById('navbarLinks');
+            navbarLinks.classList.toggle('active');
+        });
+
+        // Optional: Close nav on link click for mobile
+        document.querySelectorAll('.navbar-links a').forEach(item => {
+            item.addEventListener('click', () => {
+                var navbarLinks = document.getElementById('navbarLinks');
+                if (navbarLinks.classList.contains('active')) {
+                    navbarLinks.classList.remove('active');
+                }
+            });
+        });
+
+        // Add animation on scroll for sections and steps
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section, .step').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.7s ease-out, transform 0.7s ease-out';
+            observer.observe(section);
+        });
+
+    </script>
+</body>
+</html>
+
