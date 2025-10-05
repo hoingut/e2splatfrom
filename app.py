@@ -17,7 +17,7 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/affiliates')
+@app.route('/affiliate')
 def home():
     return render_template('t.html')
     
