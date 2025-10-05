@@ -18,7 +18,7 @@ def home():
 
 
 @app.route('/affiliate')
-def home():
+def affiliate():
     return render_template('t.html')
     
 @app.route('/products')
