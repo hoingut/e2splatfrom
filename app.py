@@ -16,6 +16,11 @@ def inject_global_variables():
 def home():
     return render_template('index.html')
 
+
+@app.route('/affiliates')
+def home():
+    return render_template('t.html')
+    
 @app.route('/products')
 def all_products():
     return render_template('products.html')
