@@ -1,47 +1,683 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .app-item {
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Dashboard — Tools & To-Do</title>
+<style>
+  :root{
+    --bg: #f7f9fb;
+    --card: #ffffff;
+    --muted: #6b7280;
+    --text: #0f172a;
+    --accent: #0ea5a4;
+    --danger: #ef4444;
+    --glass: rgba(255,255,255,0.6);
+    --radius: 12px;
+    --shadow: 0 6px 18px rgba(16,24,40,0.06);
+    --gap: 16px;
+    --transition: 200ms ease;
+    --maxwidth: 1100px;
+  }
+
+  /* Advanced mode variables (applied when .advanced on body) */
+  body.advanced {
+    --shadow: 0 12px 36px rgba(16,24,40,0.12);
+    --glass: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(250,250,251,0.65));
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    background: linear-gradient(180deg,var(--bg),#ffffff);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:24px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+
+  .app {
+    width:100%;
+    max-width:var(--maxwidth);
+  }
+
+  header {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .brand {
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .logo {
+    width:44px;height:44px;border-radius:10px;
+    background: linear-gradient(135deg,var(--accent),#60a5fa);
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
+    box-shadow:var(--shadow);
+  }
+  h1{margin:0;font-size:18px}
+  p.subtitle{margin:0;color:var(--muted);font-size:13px}
+
+  .controls {
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .btn {
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 12px;border-radius:10px;background:var(--card);box-shadow:var(--shadow);
+    border:1px solid rgba(15,23,42,0.04);cursor:pointer;font-weight:600;
+    transition:transform var(--transition), box-shadow var(--transition);
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;border:1px dashed rgba(15,23,42,0.06);font-weight:600}
+  .btn.toggle { padding:6px 10px; font-weight:600; font-size:13px }
+
+  main {
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:var(--gap);
+    align-items:start;
+  }
+
+  /* Left column cards */
+  .card {
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:var(--shadow);
+    border:1px solid rgba(15,23,42,0.03);
+  }
+
+  /* Tools grid */
+  .tools-header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px }
+  .tools-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+    gap:12px;
+  }
+  .tool {
+    display:flex;
+    gap:12px;
+    align-items:center;
+    padding:12px;border-radius:10px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,251,0.9));
+    border:1px solid rgba(15,23,42,0.03);
+    cursor:grab;
+    transition:transform var(--transition), box-shadow var(--transition);
+  }
+  .tool:active { cursor:grabbing; transform:scale(0.995) }
+  .tool .favicon {
+    width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;
+    background:rgba(15,23,42,0.06);
+  }
+  .tool-info {flex:1;min-width:0}
+  .tool-title {font-weight:700;font-size:14px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .tool-url {font-size:12px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .tool-actions {display:flex;gap:8px}
+
+  /* Tiny forms inline */
+  .inline-form {display:flex;gap:8px;align-items:center}
+  .input, .input-mini {
+    padding:8px 10px;border-radius:8px;border:1px solid rgba(15,23,42,0.06);background:transparent;outline:none;
+  }
+  .input{flex:1}
+  .input-mini{width:120px}
+
+  /* Right column (To-do) */
+  .todo-header {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .todo-list {display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto;padding-right:6px}
+  .todo-item {
+    display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid rgba(15,23,42,0.03);
+    background:var(--card);box-shadow:var(--shadow);cursor:grab;
+  }
+  .todo-item.done {opacity:0.6;text-decoration:line-through}
+  .checkbox {
+    width:18px;height:18px;border-radius:6px;border:2px solid rgba(15,23,42,0.12);display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  .todo-text {flex:1;min-width:0}
+  .todo-meta {font-size:12px;color:var(--muted)}
+
+  /* small helpers */
+  .muted{color:var(--muted);font-size:13px}
+  .flex {display:flex;gap:8px;align-items:center}
+  .spacer{flex:1}
+  .danger{color:var(--danger)}
+  .small{font-size:12px;padding:6px 8px}
+  .pill{padding:6px 10px;border-radius:999px;border:1px solid rgba(15,23,42,0.04)}
+
+  /* responsive */
+  @media (max-width:900px){
+    main{grid-template-columns: 1fr; padding-bottom:40px}
+    .controls{flex-wrap:wrap}
+  }
+
+  /* drag placeholder style */
+  .drag-placeholder{outline:2px dashed rgba(14,165,164,0.25);border-radius:10px;padding:12px}
+  a.tool-link{all:unset;cursor:pointer}
+  footer{margin-top:12px;color:var(--muted);font-size:13px}
+</style>
 </head>
 <body>
-    <div class="container mt-4">
+<div class="app" role="application" aria-label="Admin Dashboard">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">AD</div>
+      <div>
         <h1>Admin Dashboard</h1>
-        <div id="appList">
-            <!-- Apps will be added here dynamically -->
-        </div>
+        <p class="subtitle">Tools grid • To-Do • Local save • Light-first • Advanced mode</p>
+      </div>
     </div>
 
-    <script>
-        const apps = [
-            { name: "App 1", link: "app1.html" },
-            { name: "App 2", link: "app2.html" },
-            { name: "App 3", link: "app3.html" },
-            // Add more apps here
-        ];
+    <div class="controls">
+      <button id="btn-advanced" class="btn toggle" title="Toggle advanced visuals">Advanced: Off</button>
+      <button id="btn-reset" class="btn ghost" title="Reset local data">Reset</button>
+      <button id="btn-export" class="btn" title="Export JSON">Export</button>
+      <input id="import-file" type="file" accept="application/json" style="display:none">
+      <button id="btn-import" class="btn ghost" title="Import JSON">Import</button>
+    </div>
+  </header>
 
-        const appListContainer = document.getElementById("appList");
+  <main>
+    <section class="card" aria-labelledby="tools-title">
+      <div class="tools-header">
+        <div>
+          <h2 id="tools-title" style="margin:0;font-size:15px">Tools</h2>
+          <div class="muted" id="tools-count">0 tools</div>
+        </div>
 
-        apps.forEach(app => {
-            const appItem = document.createElement("div");
-            appItem.classList.add("app-item", "d-flex", "align-items-center"); // Added flexbox for alignment
-            appItem.innerHTML = `
-                <a href="${app.link}" class="stretched-link" style="width: 100%; text-decoration: none; color: inherit;">
-                    ${app.name}
-                </a>
-            `;
-            appListContainer.appendChild(appItem);
-        });
-    </script>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="search-tools" class="input-mini" placeholder="Search tools…" aria-label="Search tools">
+          <button id="btn-add-tool-toggle" class="btn small">+ Add</button>
+        </div>
+      </div>
+
+      <div id="add-tool-panel" style="display:none;margin-bottom:12px">
+        <form id="form-add-tool" class="inline-form" onsubmit="return false;">
+          <input id="tool-name" class="input" placeholder="Tool name (ex: Analytics)" required>
+          <input id="tool-url" class="input-mini" placeholder="https://..." required>
+          <button id="add-tool" class="btn">Add</button>
+        </form>
+        <div class="muted" style="margin-top:8px;font-size:13px">Tip: Add tools with full URL to open in a new tab.</div>
+      </div>
+
+      <div id="tools-grid" class="tools-grid" aria-live="polite"></div>
+
+      <footer>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div class="muted">Drag & drop to reorder • Click card to open link</div>
+          <div class="muted">Double-click a card to quick-edit</div>
+        </div>
+      </footer>
+    </section>
+
+    <aside>
+      <div class="card" aria-labelledby="todo-title">
+        <div class="todo-header">
+          <div>
+            <h2 id="todo-title" style="margin:0;font-size:15px">To-Do</h2>
+            <div class="muted" id="todo-count">0 items</div>
+          </div>
+          <div class="flex">
+            <select id="filter-todo" class="pill">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+            <button id="clear-completed" class="btn small">Clear Completed</button>
+          </div>
+        </div>
+
+        <form id="form-add-todo" onsubmit="return false;" style="display:flex;gap:8px;margin-bottom:10px">
+          <input id="todo-input" class="input" placeholder="Add a task and press Enter" required>
+          <button id="add-todo" class="btn">Add</button>
+        </form>
+
+        <div id="todo-list" class="todo-list" aria-live="polite"></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+          <div class="muted">Drag to reorder • Click checkbox to toggle</div>
+          <div class="spacer"></div>
+          <div class="muted" id="remaining-count">0 remaining</div>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px 0;font-size:14px">Quick Add Tool (preset)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button data-name="Analytics" data-url="https://analytics.google.com" class="btn ghost preset">Analytics</button>
+          <button data-name="Docs" data-url="https://docs.google.com" class="btn ghost preset">Docs</button>
+          <button data-name="GitHub" data-url="https://github.com" class="btn ghost preset">GitHub</button>
+          <button data-name="Support" data-url="https://example.com/support" class="btn ghost preset">Support</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+/* =============================
+   DATA LAYER & STORAGE KEYS
+   ============================= */
+const STORAGE_KEY = 'admin_dashboard_v1';
+const defaults = {
+  tools: [
+    { id: idNow(), name: 'Dashboard Home', url: 'https://example.com', color: '#fde68a' },
+    { id: idNow(1), name: 'User Admin', url: 'https://example.com/users', color: '#bbf7d0' }
+  ],
+  todos: [
+    { id: idNow(2), text: 'Review analytics', done: false },
+    { id: idNow(3), text: 'Ship release', done: true }
+  ],
+  settings: { advanced: false }
+};
+
+function idNow(offset=0){ return 'id_' + (Date.now() + offset + Math.floor(Math.random()*999)) }
+
+/* Load from localStorage or defaults */
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return structuredClone(defaults);
+    const parsed = JSON.parse(raw);
+    // Simple sanity checks:
+    if(!parsed.tools || !Array.isArray(parsed.tools)) parsed.tools = defaults.tools;
+    if(!parsed.todos || !Array.isArray(parsed.todos)) parsed.todos = defaults.todos;
+    if(!parsed.settings) parsed.settings = defaults.settings;
+    return parsed;
+  } catch(e) {
+    console.warn('Failed to load state, using defaults', e);
+    return structuredClone(defaults);
+  }
+}
+function saveState(state){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/* app state */
+let state = loadState();
+
+/* =============================
+   UI BINDINGS & RENDERERS
+   ============================= */
+
+const toolsGrid = document.getElementById('tools-grid');
+const toolsCount = document.getElementById('tools-count');
+const btnAddToolToggle = document.getElementById('btn-add-tool-toggle');
+const addToolPanel = document.getElementById('add-tool-panel');
+const formAddTool = document.getElementById('form-add-tool');
+const inputToolName = document.getElementById('tool-name');
+const inputToolUrl = document.getElementById('tool-url');
+const searchTools = document.getElementById('search-tools');
+
+const todoListEl = document.getElementById('todo-list');
+const todoCount = document.getElementById('todo-count');
+const remainingCount = document.getElementById('remaining-count');
+const formAddTodo = document.getElementById('form-add-todo');
+const todoInput = document.getElementById('todo-input');
+const filterTodo = document.getElementById('filter-todo');
+const clearCompletedBtn = document.getElementById('clear-completed');
+
+const btnAdvanced = document.getElementById('btn-advanced');
+const btnReset = document.getElementById('btn-reset');
+const btnExport = document.getElementById('btn-export');
+const btnImport = document.getElementById('btn-import');
+const importFile = document.getElementById('import-file');
+
+const presets = document.querySelectorAll('.preset');
+
+
+/* RENDER */
+
+function renderTools(filterText='') {
+  toolsGrid.innerHTML = '';
+  const list = state.tools.filter(t => t.name.toLowerCase().includes(filterText.toLowerCase()) || t.url.toLowerCase().includes(filterText.toLowerCase()));
+  toolsCount.textContent = `${list.length} tool${list.length===1?'':'s'}`;
+  list.forEach(tool => {
+    const card = document.createElement('div');
+    card.className = 'tool';
+    card.dataset.id = tool.id;
+    card.draggable = true;
+    card.innerHTML = `
+      <div class="favicon" aria-hidden="true" style="background:${tool.color || 'rgba(0,0,0,0.05)'}">
+        ${(tool.name||'').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
+      </div>
+      <div class="tool-info">
+        <div class="tool-title">${escapeHtml(tool.name)}</div>
+        <div class="tool-url">${escapeHtml(shortenUrl(tool.url))}</div>
+      </div>
+      <div class="tool-actions">
+        <button class="btn small open" title="Open tool">Open</button>
+        <button class="btn small ghost edit" title="Edit">Edit</button>
+        <button class="btn small danger del" title="Delete">Del</button>
+      </div>
+    `;
+    // Click open
+    card.querySelector('.open').addEventListener('click', ()=> window.open(tool.url,'_blank'));
+    card.querySelector('.del').addEventListener('click', ()=> {
+      if(confirm('Delete tool "'+tool.name+'"?')) {
+        state.tools = state.tools.filter(t => t.id !== tool.id);
+        saveState(state); renderTools(searchTools.value); renderTodos();
+      }
+    });
+    // Edit (quick)
+    card.querySelector('.edit').addEventListener('click', ()=> quickEditTool(tool.id));
+    // Double-click card: quick edit
+    card.addEventListener('dblclick', ()=> quickEditTool(tool.id));
+    // Click the empty area also opens link for convenience
+    card.addEventListener('click', (e)=> {
+      if(e.target.closest('.tool-actions')) return; // don't open when clicking actions
+      window.open(tool.url,'_blank');
+    });
+
+    // Drag handlers
+    makeDraggable(card, {
+      onDrop: (fromId, toId) => reorderItems(state.tools, fromId, toId),
+      onReorder: () => { state.tools = state.tools; saveState(state); renderTools(searchTools.value); }
+    });
+
+    toolsGrid.appendChild(card);
+  });
+}
+
+/* To-Do rendering */
+function renderTodos() {
+  todoListEl.innerHTML = '';
+  const filter = filterTodo.value;
+  let list = state.todos.slice();
+  if(filter === 'active') list = list.filter(t=>!t.done);
+  if(filter === 'completed') list = list.filter(t=>t.done);
+  todoCount.textContent = `${state.todos.length} item${state.todos.length===1?'':'s'}`;
+  remainingCount.textContent = `${state.todos.filter(t=>!t.done).length} remaining`;
+
+  list.forEach(todo=>{
+    const item = document.createElement('div');
+    item.className = 'todo-item' + (todo.done ? ' done' : '');
+    item.dataset.id = todo.id;
+    item.draggable = true;
+    item.innerHTML = `
+      <div class="checkbox" title="Toggle"></div>
+      <div class="todo-text">${escapeHtml(todo.text)}</div>
+      <div class="todo-meta">${todo.done ? 'Done' : ''}</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn small ghost edit">✎</button>
+        <button class="btn small danger del">Del</button>
+      </div>
+    `;
+    item.querySelector('.checkbox').addEventListener('click', ()=> {
+      todo.done = !todo.done;
+      saveState(state); renderTodos(); renderTools(searchTools.value);
+    });
+    item.querySelector('.del').addEventListener('click', ()=> {
+      if(confirm('Delete task "'+todo.text+'"?')) {
+        state.todos = state.todos.filter(t => t.id !== todo.id);
+        saveState(state); renderTodos();
+      }
+    });
+    item.querySelector('.edit').addEventListener('click', ()=> {
+      const newText = prompt('Edit task', todo.text);
+      if(newText!==null){ todo.text = newText.trim(); saveState(state); renderTodos(); }
+    });
+
+    makeDraggable(item, {
+      onDrop: (fromId, toId) => reorderItems(state.todos, fromId, toId),
+      onReorder: () => { state.todos = state.todos; saveState(state); renderTodos(); }
+    });
+
+    todoListEl.appendChild(item);
+  });
+}
+
+/* Helpers */
+function escapeHtml(str=''){
+  return String(str)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;').replaceAll("'",'&#39;');
+}
+function shortenUrl(url=''){
+  try {
+    const u = new URL(url);
+    return u.hostname + (u.pathname === '/' ? '' : u.pathname);
+  } catch(e){ return url }
+}
+
+/* Reorder utility for arrays by id */
+function reorderItems(arr, fromId, toId){
+  const idxFrom = arr.findIndex(i=>i.id===fromId);
+  const idxTo = arr.findIndex(i=>i.id===toId);
+  if(idxFrom === -1 || idxTo === -1) return;
+  const [item] = arr.splice(idxFrom,1);
+  arr.splice(idxTo,0,item);
+  saveState(state);
+  renderTools(searchTools.value);
+  renderTodos();
+}
+
+/* Drag & drop helper (minimal, robust) */
+function makeDraggable(element, { onDrop, onReorder }){
+  let draggingEl = null;
+  element.addEventListener('dragstart', (e)=>{
+    draggingEl = element;
+    element.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', element.dataset.id); } catch(e){}
+  });
+  element.addEventListener('dragend', ()=>{
+    draggingEl = null;
+    element.classList.remove('dragging');
+    document.querySelectorAll('.drag-placeholder').forEach(n=>n.classList.remove('drag-placeholder'));
+  });
+
+  element.addEventListener('dragover', (e)=>{
+    e.preventDefault();
+    const grid = element.parentElement;
+    const draggingId = document.querySelector('.dragging')?.dataset?.id;
+    if(!draggingId || draggingId === element.dataset.id) return;
+    // Add placeholder style to current target
+    grid.querySelectorAll('.tool, .todo-item').forEach(n=>n.classList.remove('drag-placeholder'));
+    element.classList.add('drag-placeholder');
+  });
+
+  element.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    const fromId = e.dataTransfer.getData('text/plain') || document.querySelector('.dragging')?.dataset?.id;
+    const toId = element.dataset.id;
+    if(fromId && toId && fromId !== toId) {
+      if(typeof onDrop === 'function') onDrop(fromId, toId);
+      if(typeof onReorder === 'function') onReorder();
+    }
+    element.classList.remove('drag-placeholder');
+  });
+}
+
+/* Quick edit tool modal (prompt-based, lightweight) */
+function quickEditTool(id){
+  const t = state.tools.find(x=>x.id===id);
+  if(!t) return;
+  const newName = prompt('Tool name', t.name);
+  if(newName === null) return;
+  const newUrl = prompt('Tool URL', t.url);
+  if(newUrl === null) return;
+  t.name = newName.trim() || t.name;
+  t.url = newUrl.trim() || t.url;
+  // optionally recolor
+  if(confirm('Change color?')) t.color = prompt('Hex color (e.g. #fde68a)', t.color || '#e5e7eb') || t.color;
+  saveState(state);
+  renderTools(searchTools.value);
+}
+
+/* =============================
+   EVENT BINDINGS
+   ============================= */
+
+btnAddToolToggle.addEventListener('click', ()=> {
+  addToolPanel.style.display = (addToolPanel.style.display === 'none' || addToolPanel.style.display === '') ? 'block' : 'none';
+  inputToolName.focus();
+});
+
+formAddTool.addEventListener('submit', ()=>{
+  const name = inputToolName.value.trim();
+  const url = inputToolUrl.value.trim();
+  if(!name || !url) return alert('Please provide name & URL');
+  addTool({ id: idNow(), name, url, color: randomColor() });
+  inputToolName.value=''; inputToolUrl.value='';
+});
+
+function addTool(tool){
+  state.tools.push(tool);
+  saveState(state);
+  renderTools(searchTools.value);
+}
+
+/* Quick add preset buttons */
+presets.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    addTool({ id:idNow(), name: btn.dataset.name, url: btn.dataset.url, color: randomColor() });
+  });
+});
+
+/* Search filter */
+searchTools.addEventListener('input', ()=> renderTools(searchTools.value));
+
+/* To-do add */
+formAddTodo.addEventListener('submit', ()=> {
+  const t = todoInput.value.trim();
+  if(!t) return;
+  state.todos.push({ id: idNow(), text: t, done: false });
+  todoInput.value='';
+  saveState(state); renderTodos();
+});
+
+document.getElementById('add-todo').addEventListener('click', ()=> formAddTodo.dispatchEvent(new Event('submit')));
+
+/* Filter & clear */
+filterTodo.addEventListener('change', renderTodos);
+clearCompletedBtn.addEventListener('click', ()=>{
+  if(!confirm('Remove all completed tasks?')) return;
+  state.todos = state.todos.filter(t=>!t.done);
+  saveState(state); renderTodos();
+});
+
+/* Advanced toggle */
+function applyAdvancedUI(){
+  document.body.classList.toggle('advanced', state.settings.advanced);
+  btnAdvanced.textContent = `Advanced: ${state.settings.advanced ? 'On' : 'Off'}`;
+}
+btnAdvanced.addEventListener('click', ()=>{
+  state.settings.advanced = !state.settings.advanced;
+  saveState(state); applyAdvancedUI();
+});
+
+/* Reset button */
+btnReset.addEventListener('click', ()=>{
+  if(!confirm('Reset dashboard to default state? This will erase current tools & todos.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  saveState(state); renderAll();
+});
+
+/* Export/Import */
+btnExport.addEventListener('click', ()=> {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'dashboard-export.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+btnImport.addEventListener('click', ()=> importFile.click());
+importFile.addEventListener('change', async (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  try {
+    const text = await f.text();
+    const parsed = JSON.parse(text);
+    if(!confirm('Load imported data and overwrite current data?')) return;
+    state = parsed;
+    saveState(state); renderAll();
+  } catch(err){ alert('Import failed: invalid JSON') }
+  e.target.value = '';
+});
+
+/* Keyboard shortcuts: N to focus add tool name, T to focus todo input */
+document.addEventListener('keydown', (e)=>{
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if(e.key.toLowerCase() === 'n'){ inputToolName.focus(); e.preventDefault(); }
+  if(e.key.toLowerCase() === 't'){ todoInput.focus(); e.preventDefault(); }
+});
+
+/* Utility random color */
+function randomColor(){
+  const palettes = ['#fde68a','#bbf7d0','#bfdbfe','#fbcfe8','#fef3c7','#ffd8a8','#ecd4ff'];
+  return palettes[Math.floor(Math.random()*palettes.length)];
+}
+
+/* =============================
+   INITIALIZE
+   ============================= */
+function renderAll(){
+  renderTools();
+  renderTodos();
+  applyAdvancedUI();
+}
+renderAll();
+
+/* =============================
+   SMALL POLISH: Double click to quick-add
+   ============================= */
+toolsGrid.addEventListener('dblclick', (e)=>{
+  if(e.target === toolsGrid){
+    addTool({ id:idNow(), name: 'New Tool', url: 'https://example.com', color: randomColor() });
+  }
+});
+
+/* =============================
+   Small helpers: make arrays reorderable by id when dropping to blank area
+   ============================= */
+function setupBlankDropZones() {
+  // If user drags to the end (not onto an element), allow dropping to append
+  [toolsGrid, todoListEl].forEach(container=>{
+    container.addEventListener('dragover', (e)=> e.preventDefault());
+    container.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      const fromId = e.dataTransfer.getData('text/plain') || document.querySelector('.dragging')?.dataset?.id;
+      if(!fromId) return;
+      // Append to end if not already present
+      if(container === toolsGrid) {
+        const arr = state.tools;
+        const already = arr.findIndex(x=>x.id===fromId);
+        if(already === -1) return;
+        const [item] = arr.splice(already,1);
+        arr.push(item); saveState(state); renderTools(searchTools.value);
+      } else {
+        const arr = state.todos;
+        const already = arr.findIndex(x=>x.id===fromId);
+        if(already === -1) return;
+        const [item] = arr.splice(already,1);
+        arr.push(item); saveState(state); renderTodos();
+      }
+    });
+  });
+}
+setupBlankDropZones();
+
+/* Accessibility & focus handling (small) */
+document.querySelectorAll('.btn').forEach(b=>{ b.addEventListener('keydown', (e)=> { if(e.key==='Enter') b.click(); }) });
+
+/* small utility: ensure state persist on unload */
+window.addEventListener('beforeunload', ()=> saveState(state));
+</script>
 </body>
-          </html>
+    </html>
