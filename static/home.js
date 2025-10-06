@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${hasOffer ? `<span class="text-sm text-gray-500 line-through ml-2">৳${product.price}</span>` : ''}
                             </div>
                         </div>
-                        <button onclick="buyNow(event, '${id}')" class="w-full text-center bg-indigo-500 text-white py-2 rounded-md mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-sm font-semibold">
+                        <button onclick="buyNow(event, '${id}')" class="w-full text-center bg-indigo-500 text-white py-2 rounded-md mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 io text-sm font-semibold">
                             Buy Now
                         </button>
                     </div>
