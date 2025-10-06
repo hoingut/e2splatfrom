@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedCity: ''
     };
     
-    const paymentAccounts = { bkash: "01700000000", nagad: "01800000000" };
+    const paymentAccounts = { bkash: "01992944769", nagad: "01781146747" };
 
     // =================================================================
     // SECTION A: EVENT HANDLER FUNCTIONS (Defined First for clarity)
