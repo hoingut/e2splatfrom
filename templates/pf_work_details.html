@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Details - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .bg-dark-card { background-color: #111827; } .border-dark { border-color: #374151; }
+        .prose-dark { color: #D1D5DB; }
+        .prose-dark a { color: #7d285d; }
+        .prose-dark strong { color: #FFF; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <a href="/pf" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Back to All Jobs</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
+            <p class="mt-4">Loading Work Details...</p>
+        </div>
+
+        <!-- Main Content (Initially Hidden) -->
+        <div id="work-details-content" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Main Job Details -->
+                <div class="lg:col-span-2 bg-dark-card border border-dark p-8 rounded-xl">
+                    <h1 id="work-title" class="text-3xl font-bold mb-4"></h1>
+                    <div id="work-description" class="prose prose-dark max-w-none"></div>
+                </div>
+
+                <!-- Right Column: Summary and Action Area -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Brand Info -->
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl text-center">
+                        <img id="brand-logo" src="https://via.placeholder.com/80" alt="Brand Logo" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover">
+                        <h3 id="brand-name" class="font-semibold text-lg"></h3>
+                        <p class="text-sm text-gray-400">Posted on: <span id="post-date"></span></p>
+                    </div>
+
+                    <!-- Job Summary -->
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Budget</span>
+                            <span id="work-budget" class="font-bold text-xl text-white"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Category</span>
+                            <span id="work-category" class="font-semibold bg-gray-700 px-2 py-1 rounded text-xs"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Status</span>
+                            <span id="work-status" class="font-semibold capitalize"></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div id="action-area" class="bg-dark-card border border-dark p-6 rounded-xl">
+                        <!-- Content will be populated by JS based on user role -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_work_details.js"></script>
+</body>
+                          </html>
