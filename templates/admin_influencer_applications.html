@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Applications - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <style>
+        /* Simple modal styles */
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-white shadow-sm p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Influencer Applications</h1>
+            <a href="/admin" class="text-indigo-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>Back to Main Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <!-- Pending Applications Section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Pending Applications</h2>
+            <div id="pending-applications-list" class="space-y-4">
+                <!-- Loading state -->
+                <p id="loading-text" class="text-center text-gray-500 py-8">Loading applications...</p>
+                <!-- JS will populate this with application cards -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Details Modal (Initially Hidden) -->
+    <div id="details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-overlay hidden opacity-0 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-content transform scale-95">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-semibold">Application Details</h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <!-- Modal Body -->
+            <div id="modal-body-content" class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Content will be populated by JS -->
+            </div>
+            <!-- Modal Footer -->
+            <div id="modal-footer-actions" class="p-4 bg-gray-50 border-t flex justify-end space-x-3">
+                <!-- Action buttons will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/admin_influencer_applications.js"></script>
+</body>
+</html>
