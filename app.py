@@ -73,6 +73,12 @@ def pf_influencer_inbox():
     """Renders the inbox/messaging page for an influencer."""
     return render_template('pf_influencer_inbox.html', title="Inbox")
 
+# app.py
+@app.route('/pf/brand/inbox')
+def pf_brand_inbox():
+    """Renders the inbox for a brand to manage job posts and proposals."""
+    return render_template('pf_brand_inbox.html', title="Brand Inbox")
+    
 @app.route('/pf/dashboard/settings')
 def pf_influencer_settings():
     """Renders the settings page for an influencer."""
