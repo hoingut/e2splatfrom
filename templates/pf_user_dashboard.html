@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; }
+        .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .bg-dark-card { background-color: #111827; } /* gray-900 */
+        .border-dark { border-color: #374151; } /* gray-700 */
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <div>
+                <button id="logout-btn" class="text-sm font-semibold text-red-400 hover:text-red-300">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 md:p-10">
+        <!-- Loading State -->
+        <div id="loading-container" class="flex justify-center items-center h-full py-20">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-mulberry"></div>
+        </div>
+        
+        <!-- Dashboard Content (Initially Hidden) -->
+        <div id="dashboard-content" class="hidden">
+            <header class="mb-10">
+                <h1 class="text-3xl md:text-4xl font-bold">Welcome, <span id="user-name"></span>!</h1>
+                <p class="text-gray-400">Manage your collaboration posts and track their status.</p>
+            </header>
+
+            <!-- Main Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left/Main Column: Your Job Posts -->
+                <div class="lg:col-span-2">
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-semibold">Your Job Posts</h2>
+                            <a href="/pf/dashboard/ad" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-5 rounded-full transition text-sm">
+                                <i class="fas fa-plus mr-2"></i>Post a New Job
+                            </a>
+                        </div>
+                        <div id="work-history-list" class="space-y-4">
+                            <!-- JS will populate this -->
+                            <p class="text-gray-500 text-center py-8">You haven't posted any jobs yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Balance and Affiliate Application -->
+                <div class="lg:col-span-1 space-y-8">
+                    <!-- Balance Card -->
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl">
+                        <h3 class="text-sm font-semibold text-gray-400">Account Balance</h3>
+                        <p id="balance" class="text-3xl font-bold mt-2">৳0.00</p>
+                        <button class="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition text-sm">
+                            Add Money
+                        </button>
+                    </div>
+                    
+                    <!-- Become an Influencer Card -->
+                    <div id="influencer-application-card" class="bg-dark-card border border-dark p-6 rounded-xl">
+                        <!-- Content will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_user_dashboard.js"></script>
+</body>
+  </html>
