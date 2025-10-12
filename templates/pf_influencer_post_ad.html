@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Your Service - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .ring-mulberry:focus { --tw-ring-color: #7d285d; } .border-mulberry { border-color: #7d285d; }
+        input, select, textarea { background-color: #1F2937; border-color: #4B5563; }
+        input:focus, select:focus, textarea:focus { border-color: #7d285d; ring: 1; ring-color: #7d285d; }
+        .checkbox-label { display: flex; align-items: center; padding: 0.75rem; border: 1px solid #4B5563; border-radius: 0.375rem; cursor: pointer; }
+        .checkbox-label:has(input:checked) { background-color: #7d285d; border-color: #7d285d; color: white; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <a href="/pf/dashboard/i" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white">Create a Service Package</h1>
+            <p class="text-gray-400 mt-2">Offer a ready-made package for brands to purchase directly.</p>
+        </header>
+
+        <form id="service-post-form" class="bg-gray-900/50 border border-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+            
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-300">Service Title</label>
+                <input type="text" id="title" class="mt-1 w-full p-2 rounded-md" placeholder="e.g., Instagram Reel for a Fashion Brand" required>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-300">Detailed Description</label>
+                <textarea id="description" rows="5" class="mt-1 w-full p-2 rounded-md" placeholder="Describe exactly what you will provide in this package..." required></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-300">Category</label>
+                    <select id="category" class="mt-1 w-full p-2 rounded-md" required>
+                        <option>Fashion & Beauty</option><option>Tech & Gadgets</option><option>Food & Cooking</option><option>Gaming</option><option>Travel</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="budget" class="block text-sm font-medium text-gray-300">Package Price (Budget)</label>
+                    <input type="number" id="budget" class="mt-1 w-full p-2 rounded-md" placeholder="e.g., 5000" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Platform(s)</label>
+                <div id="platforms" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label class="checkbox-label"><input type="checkbox" value="instagram" class="h-4 w-4 hidden"><span class="ml-2">Instagram</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="facebook" class="h-4 w-4 hidden"><span class="ml-2">Facebook</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="youtube" class="h-4 w-4 hidden"><span class="ml-2">YouTube</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="tiktok" class="h-4 w-4 hidden"><span class="ml-2">TikTok</span></label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Content Type(s)</label>
+                <div id="contentTypes" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label class="checkbox-label"><input type="checkbox" value="story" class="h-4 w-4 hidden"><span class="ml-2">Story</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="post" class="h-4 w-4 hidden"><span class="ml-2">Post</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="video" class="h-4 w-4 hidden"><span class="ml-2">Video</span></label>
+                    <label class="checkbox-label"><input type="checkbox" value="reel" class="h-4 w-4 hidden"><span class="ml-2">Reel</span></label>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Cover Image</label>
+                <div class="mt-1 flex items-center space-x-4 p-4 border-2 border-dashed border-gray-600 rounded-md">
+                    <img id="image-preview" src="https://via.placeholder.com/150" alt="Preview" class="w-24 h-24 object-cover rounded-md">
+                    <div class="flex-grow">
+                        <input type="file" id="cover-image" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mulberry file:text-white hover:file:bg-mulberry-dark cursor-pointer">
+                        <p id="upload-status" class="text-xs text-gray-500 mt-2">Recommended: 16:9 ratio</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" id="submit-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-3 px-6 rounded-md transition flex items-center justify-center disabled:opacity-50">
+                    <span id="btn-text">Post Service Package</span>
+                    <div id="btn-spinner" class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-3 hidden"></div>
+                </button>
+            </div>
+        </form>
+    </main>
+    
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_influencer_post_ad.js"></script>
+</body>
+              </html>
