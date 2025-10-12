@@ -25,7 +25,12 @@ def pf_home():
 def pf_work_details(work_id):
     """Renders the details of a specific work/job post."""
     return render_template('pf_work_details.html', title="Work Details")
-
+# app.py
+@app.route('/admin/influencer-applications')
+def admin_influencer_applications():
+    """Renders the page for managing influencer applications."""
+    return render_template('admin_influencer_applications.html', title="Influencer Applications")
+    
 @app.route('/pf/influencer/<user_id>')
 def pf_influencer_profile(user_id):
     """Renders the public profile of an influencer."""
