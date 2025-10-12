@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Influencer Program - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; }
+        .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .ring-mulberry:focus { --tw-ring-color: #7d285d; }
+        .border-mulberry { border-color: #7d285d; }
+        input, select, textarea { background-color: #1F2937; border-color: #4B5563; }
+        input:focus, select:focus, textarea:focus { border-color: #7d285d; ring: 1; ring-color: #7d285d; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <a href="/pf/dashboard" class="text-sm font-semibold hover:text-mulberry">Back to Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white">Influencer Application</h1>
+            <p class="text-gray-400 mt-2">Join our network of creators. Please fill out the form below.</p>
+        </header>
+
+        <!-- Application Form -->
+        <form id="influencer-application-form" class="bg-gray-900/50 border border-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+            
+            <!-- Personal and Page Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="pageName" class="block text-sm font-medium text-gray-300">Page/Channel Name</label>
+                    <input type="text" id="pageName" class="mt-1 w-full p-2 rounded-md" required>
+                </div>
+                <div>
+                    <label for="contactNumber" class="block text-sm font-medium text-gray-300">Contact Number</label>
+                    <input type="tel" id="contactNumber" class="mt-1 w-full p-2 rounded-md" required>
+                </div>
+            </div>
+
+            <!-- Profile Picture Upload -->
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Profile Picture</label>
+                <div class="mt-1 flex items-center space-x-4 p-4 border-2 border-dashed border-gray-600 rounded-md">
+                    <img id="image-preview" src="https://via.placeholder.com/100" alt="Image preview" class="w-24 h-24 rounded-full object-cover">
+                    <div class="flex-grow">
+                        <input type="file" id="image-upload" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mulberry file:text-white hover:file:bg-mulberry-dark cursor-pointer">
+                        <p id="upload-status" class="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 10MB.</p>
+                    </div>
+                </div>
+                <input type="hidden" id="profilePicUrl"> <!-- This will store the ImgBB URL -->
+            </div>
+            
+            <!-- Category and Platforms -->
+            <div>
+                <label for="category" class="block text-sm font-medium text-gray-300">Primary Category</label>
+                <select id="category" class="mt-1 w-full p-2 rounded-md" required>
+                    <option value="" disabled selected>Select your main niche</option>
+                    <option>Fashion & Beauty</option><option>Tech & Gadgets</option><option>Food & Cooking</option><option>Gaming</option><option>Travel</option><option>Fitness</option><option>Arts & Crafts</option><option>Comedy/Funny</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-300">Your Platforms (Links)</label>
+                <div class="space-y-3 mt-1">
+                    <div class="flex items-center"><i class="fab fa-facebook w-6 text-blue-500"></i><input type="url" id="facebookUrl" class="ml-3 w-full p-2 rounded-md" placeholder="https://facebook.com/yourpage"></div>
+                    <div class="flex items-center"><i class="fab fa-instagram w-6 text-pink-500"></i><input type="url" id="instagramUrl" class="ml-3 w-full p-2 rounded-md" placeholder="https://instagram.com/yourprofile"></div>
+                    <div class="flex items-center"><i class="fab fa-youtube w-6 text-red-500"></i><input type="url" id="youtubeUrl" class="ml-3 w-full p-2 rounded-md" placeholder="https://youtube.com/yourchannel"></div>
+                </div>
+            </div>
+
+            <!-- Bio/Description -->
+            <div>
+                <label for="bio" class="block text-sm font-medium text-gray-300">Short Bio / About Your Content</label>
+                <textarea id="bio" rows="4" class="mt-1 w-full p-2 rounded-md" placeholder="Tell us about yourself and the content you create..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4">
+                <button type="submit" id="submit-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-3 px-6 rounded-md transition flex items-center justify-center">
+                    <span id="btn-text">Submit Application</span>
+                    <div id="btn-spinner" class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-3 hidden"></div>
+                </button>
+            </div>
+
+        </form>
+    </main>
+    
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_apply_influencer.js"></script>
+</body>
+          </html>
