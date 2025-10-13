@@ -255,19 +255,49 @@ async function displayWorkDetails(postId) {
     /**
      * Approves a completed work and marks it as 'completed'.
      */
-    window.approveWork = async (workId) => {
-        if (!confirm('Are you sure you want to approve this submission and release the payment? This action is final.')) return;
+  // static/pf_brand_inbox.js
+
+// ... (ফাইলের উপরের অংশ এবং hireInfluencer ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Approves a completed work, marks its status as 'completed', and releases payment.
+ * This function is attached to the 'window' object to be callable from inline HTML onclick.
+ */
+window.approveWork = async (workId) => {
+    if (!confirm('Are you sure you want to approve this submission and release the payment? This action is final.')) return;
+    
+    // Find the button and show a loading state (optional but good UX)
+    const detailsPanel = document.getElementById('details-content');
+    const approveBtn = detailsPanel.querySelector(`button[onclick="window.approveWork('${workId}')"]`);
+    if(approveBtn) {
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Approving...';
+    }
+    
+    const workRef = doc(db, 'works', workId);
+    try {
+        await updateDoc(workRef, { 
+            status: 'completed',
+            approvedAt: serverTimestamp() // Add an approval timestamp
+        });
         
-        const workRef = doc(db, 'works', workId);
-        try {
-            await updateDoc(workRef, { status: 'completed' });
-            alert('Work approved! Payment will be released to the influencer.');
-            // The Cloud Function will automatically handle the payment.
-            const work = (await getDoc(workRef)).data();
-            selectJob(work.postId, 'completed'); // Refresh the view
-        } catch (error) {
-            console.error("Error approving work:", error);
-            alert("Failed to approve work.");
+        alert('Work approved successfully! Payment will be released to the influencer automatically by the server.');
+        
+        // Refresh the view to show the 'completed' status
+        // Find the post ID associated with this work to re-select it
+        const workDoc = await getDoc(workRef);
+        if(workDoc.exists()) {
+            const postId = workDoc.data().postId;
+            // Highlight the job post again
+            document.getElementById(`job-${postId}`).click();
         }
-    };
-});
+
+    } catch (error) {
+        console.error("Error approving work:", error);
+        alert("Failed to approve work. Please try again.");
+        if(approveBtn) {
+            approveBtn.disabled = false;
+            approveBtn.textContent = 'Approve & Release Payment';
+        }
+    }
+};
