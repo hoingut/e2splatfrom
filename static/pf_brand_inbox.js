@@ -1,10 +1,22 @@
-
+// static/pf_brand_inbox.js
 
 // --- Imports ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, getDocs, orderBy, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { 
+    doc, 
+    getDoc, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    orderBy, 
+    writeBatch, 
+    updateDoc,
+    limit  // <--- এই লাইনটি যোগ করা হয়েছে
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+// ... (আপনার বাকি সব কোড আগের মতোই থাকবে)
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM References ---
     const getElement = (id) => document.getElementById(id);
