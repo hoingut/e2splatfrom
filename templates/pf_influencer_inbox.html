@@ -48,6 +48,8 @@
                     <button class="tab-btn" data-status="completed">Completed</button>
                 </nav>
             </div>
+            <!-- pf_influencer_inbox.html এর Modal Body তে -->
+
 
             <!-- Work List Container -->
             <div id="work-list-container" class="space-y-4">
@@ -71,6 +73,15 @@
         </div>
     </div>
     
+<!-- 'in-progress' status এর জন্য -->
+<textarea id="start-note" ...></textarea>
+<input type="file" id="start-screenshot" ...>
+<button onclick="submitUpdate('${work.id}', 'started')">Mark as Started</button>
+
+<!-- 'started-confirmation' status এর জন্য -->
+<textarea id="complete-note" ...></textarea>
+<input type="file" id="complete-screenshot" ...>
+<button onclick="submitUpdate('${work.id}', 'completed')">Mark as Complete</button>
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_influencer_inbox.js"></script>
 </body>
