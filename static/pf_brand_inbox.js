@@ -145,40 +145,73 @@ async function displayProposals(postId) {
     /**
      * Displays the details and progress of a work that is 'in-progress' or 'completed'.
      */
-    async function displayWorkDetails(postId) {
-        // Find the work associated with this post
+    // static/pf_brand_inbox.js
+
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Displays the details and progress of a work that is 'in-progress' or 'completed'.
+ * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
+ */
+async function displayWorkDetails(postId) {
+    try {
         const worksRef = collection(db, 'works');
         const q = query(worksRef, where("postId", "==", postId), limit(1));
         const snapshot = await getDocs(q);
 
-        if(snapshot.empty){
-             detailsContent.innerHTML = `<p class="text-gray-500">Work details not found.</p>`;
-             return;
+        if (snapshot.empty) {
+            detailsContent.innerHTML = `<p class="text-gray-500">Work details not yet available for this post.</p>`;
+            return;
         }
         
         const workDoc = snapshot.docs[0];
-        const work = {id: workDoc.id, ...workDoc.data()};
+        const work = { id: workDoc.id, ...workDoc.data() };
         
         let workHTML = `<h3 class="text-xl font-semibold mb-4">Work Progress</h3>`;
         workHTML += `<p>Status: <span class="font-bold capitalize">${work.status.replace('-', ' ')}</span></p>`;
         
-        if (work.status === 'submitted-for-review') {
+        // --- THIS IS THE KEY FIX ---
+        // Check if submissions exist and the array is not empty.
+        if (work.submissions && work.submissions.length > 0) {
             const lastSubmission = work.submissions[work.submissions.length - 1];
+            
             workHTML += `
                 <div class="mt-4 border-t border-dark pt-4">
-                    <h4 class="font-semibold">Influencer's Submission:</h4>
-                    <p class="text-sm text-gray-300 my-2">Note: "${lastSubmission.note}"</p>
-                    <a href="${lastSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Submission Screenshot/Link</a>
-                    <div class="mt-4">
-                        <button onclick="approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button>
-                    </div>
-                </div>
+                    <h4 class="font-semibold">Latest Submission from Influencer:</h4>
+                    <p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${lastSubmission.note || 'No note provided.'}"</p>
             `;
-        } else if (work.status === 'completed') {
+
+            if (lastSubmission.screenshotUrl) {
+                workHTML += `<a href="${lastSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Submission Screenshot/Link</a>`;
+            }
+
+            // Show the "Approve" button only if the work is submitted for review.
+            if (work.status === 'submitted-for-review') {
+                workHTML += `
+                    <div class="mt-4">
+                        <button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button>
+                    </div>
+                `;
+            }
+            workHTML += `</div>`;
+        } 
+        else if (work.status === 'in-progress') {
+             workHTML += `<p class="mt-4 text-yellow-400">Waiting for the influencer to start and submit the work.</p>`;
+        }
+        
+        if (work.status === 'completed') {
              workHTML += `<p class="mt-4 text-green-400 font-semibold">This collaboration is complete. Payment has been released.</p>`;
         }
+        
         detailsContent.innerHTML = workHTML;
+
+    } catch (error) {
+        console.error("Error displaying work details:", error);
+        detailsContent.innerHTML = `<p class="text-red-500">Could not load work details.</p>`;
     }
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
 
     /**
      * Hires an influencer, creating a 'work' document and updating post/proposal statuses.
