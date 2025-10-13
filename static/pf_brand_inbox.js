@@ -141,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
  * Displays the details and progress of an ongoing or completed work.
  * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
  */
+// static/pf_brand_inbox.js
+
+// ... (ফাইলের উপরের অংশ আগের মতোই থাকবে)
+
 async function displayWorkDetails(postId) {
     try {
         const worksRef = collection(db, 'works');
@@ -148,52 +152,56 @@ async function displayWorkDetails(postId) {
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-            detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not been started for this post yet.</p>`;
+            detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not been started yet.</p>`;
             return;
         }
         
         const workDoc = snapshot.docs[0];
         const work = { id: workDoc.id, ...workDoc.data() };
         
-        // --- THIS IS THE KEY FIX ---
-        // Fetch influencer details to show in the progress panel
         const influencerRef = doc(db, 'users', work.influencerId);
         const influencerSnap = await getDoc(influencerRef);
-        const influencerName = influencerSnap.exists() ? influencerSnap.data().name : 'Unknown Influencer';
+        const influencerName = influencerSnap.exists() ? influencerSnap.data().name : 'Unknown';
 
         let workHTML = `
             <h3 class="text-xl font-semibold mb-4">Work Progress</h3>
             <p class="text-sm text-gray-400">Influencer: <strong class="text-white">${influencerName}</strong></p>
-            <p class="mb-4">Status: <span class="font-bold capitalize text-yellow-400">${work.status.replace('-', ' ')}</span></p>
+            <p>Status: <span class="font-bold capitalize text-yellow-400">${work.status.replace('-', ' ')}</span></p>
         `;
         
-        // Check if submissions exist and the array is not empty.
-        if (work.submissions && work.submissions.length > 0) {
-            // Find the latest submission of type 'completed' (or the very last one)
-            const lastSubmission = work.submissions.filter(s => s.type === 'completed').pop() || work.submissions[work.submissions.length - 1];
+        // --- THIS IS THE KEY FIX ---
+        // Check if submissions exist and is an array with items
+        if (Array.isArray(work.submissions) && work.submissions.length > 0) {
+            // Find the submission for 'review'
+            const reviewSubmission = work.submissions.find(s => s.type === 'completed');
             
-            workHTML += `
-                <div class="mt-4 border-t border-dark pt-4">
-                    <h4 class="font-semibold text-white">Latest Submission from Influencer:</h4>
-                    <p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${lastSubmission.note || 'No note provided.'}"</p>
-            `;
+            workHTML += `<div class="mt-4 border-t border-dark pt-4">`;
 
-            if (lastSubmission.screenshotUrl) {
-                workHTML += `<a href="${lastSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Submission Screenshot/Link</a>`;
+            if (reviewSubmission) {
+                workHTML += `
+                    <h4 class="font-semibold text-white">Final Submission for Review:</h4>
+                    <p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${reviewSubmission.note || 'No note provided.'}"</p>
+                `;
+                if (reviewSubmission.screenshotUrl) {
+                    workHTML += `<a href="${reviewSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Final Submission</a>`;
+                }
+            } else {
+                workHTML += `<h4 class="font-semibold text-white">Work in progress...</h4>`;
             }
-
-            // Show the "Approve" button ONLY if the work is submitted for review.
-            if (work.status === 'submitted-for-review') {
+            
+            // Show the "Approve" button ONLY if the status is correct
+            if (work.status === 'submitted-for-review' && reviewSubmission) {
                 workHTML += `
                     <div class="mt-4">
                         <button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button>
                     </div>
                 `;
             }
+
             workHTML += `</div>`;
         } 
         else if (work.status === 'in-progress') {
-             workHTML += `<p class="mt-4 text-yellow-400">Waiting for the influencer to make their first submission.</p>`;
+             workHTML += `<p class="mt-4 text-yellow-400">Waiting for the influencer to submit their work.</p>`;
         }
         
         if (work.status === 'completed') {
@@ -207,6 +215,8 @@ async function displayWorkDetails(postId) {
         detailsContent.innerHTML = `<p class="text-red-500">Could not load work details.</p>`;
     }
 }
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে, নিশ্চিত করুন window.approveWork ফাংশনটি আছে)
 
 // ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
     /**
