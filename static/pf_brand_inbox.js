@@ -90,10 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Fetches and displays proposals for a selected job post.
      */
-    async function displayProposals(postId) {
-        const proposalsRef = collection(db, 'proposals');
-        const q = query(proposalsRef, where("postId", "==", postId), where("status", "==", "pending"));
-        const snapshot = await getDocs(q);
+// pf_brand_inbox.js -> displayProposals()
+async function displayProposals(postId) {
+    const proposalsRef = collection(db, 'proposals');
+    
+    // **FIX**: Query by brandId (which is the current user's ID) AND postId
+    const q = query(
+        proposalsRef, 
+        where("brandId", "==", currentUser.uid),
+        where("postId", "==", postId),
+        where("status", "==", "pending")
+    );
+    const snapshot = await getDocs(q);
+    // ... (বাকি কোড আগের মতোই)
 
         if (snapshot.empty) {
             detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Proposals</h3><p class="text-gray-500">No pending proposals for this job yet.</p>`;
