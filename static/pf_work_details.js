@@ -6,6 +6,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/fir
 import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DEBUG: pf_work_details.js script started.");
+
     // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
     const loadingContainer = getElement('loading-container');
@@ -20,19 +22,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Step 3: Authentication and Page Load Initialization ---
     onAuthStateChanged(auth, async (user) => {
+        console.log("DEBUG: Auth state changed.");
         currentUser = user;
+        
         if (user) {
             try {
                 const userRef = doc(db, 'users', user.uid);
                 const docSnap = await getDoc(userRef);
                 currentUserRole = docSnap.exists() ? docSnap.data().role : 'customer';
+                console.log(`DEBUG: User is logged in. Role determined as: '${currentUserRole}'`);
             } catch (error) {
-                console.error("Error fetching user role:", error);
-                currentUserRole = 'customer';
+                console.error("DEBUG: Error fetching user role:", error);
+                currentUserRole = 'customer'; // Default to customer on error
             }
         } else {
             currentUserRole = null; // Guest user
+            console.log("DEBUG: User is not logged in (Guest).");
         }
+        
         await loadWorkDetails();
     });
 
@@ -40,18 +47,21 @@ document.addEventListener('DOMContentLoaded', () => {
      * Main function to fetch and display the work/job details.
      */
     async function loadWorkDetails() {
+        console.log("DEBUG: loadWorkDetails() called.");
         if (!workId) {
             displayError("Work ID not found in the URL.");
             return;
         }
+
         try {
             const workRef = doc(db, 'posts', workId);
             const docSnap = await getDoc(workRef);
 
             if (!docSnap.exists()) {
-                throw new Error("This work post does not exist or has been removed.");
+                throw new Error("This work post does not exist or may have been deleted.");
             }
             workData = docSnap.data();
+            console.log("DEBUG: Work data fetched successfully:", workData);
             
             populateStaticDetails(workData);
             populateActionArea();
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingContainer.classList.add('hidden');
             contentContainer.classList.remove('hidden');
         } catch (error) {
-            console.error("Error loading work details:", error);
+            console.error("DEBUG: Error in loadWorkDetails():", error);
             displayError(error.message);
         }
     }
@@ -81,15 +91,18 @@ document.addEventListener('DOMContentLoaded', () => {
         statusEl.textContent = statusText;
         const statusColors = {'open-for-proposals': 'text-green-400', 'in-progress': 'text-yellow-400', 'completed': 'text-blue-400'};
         statusEl.className = `font-semibold capitalize ${statusColors[data.status] || 'text-gray-400'}`;
+        console.log("DEBUG: Static details populated.");
     }
 
     /**
      * Populates the action area with relevant buttons based on user role and work status.
-     * This is the core logic that implements all your conditions.
      */
     function populateActionArea() {
+        console.log(`DEBUG: Populating action area. User Role: '${currentUserRole}', Work Status: '${workData.status}'`);
+
         // Case 1: The user is the author of the post (Brand Owner)
         if (currentUser && workData.authorId === currentUser.uid) {
+            console.log("DEBUG: Rendering UI for 'Post Author'.");
             actionArea.innerHTML = `
                 <h3 class="font-semibold text-lg mb-2">My Post</h3>
                 <p class="text-sm text-gray-400 mb-3">You are the author of this job post.</p>
@@ -97,28 +110,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="delete-post-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-md">Delete Post</button>`;
             getElement('delete-post-btn').addEventListener('click', deletePost);
         } 
-        // Case 2: The user is an influencer and the job is open for applications
-        else if (currentUserRole === 'influencer' && workData.status === 'open-for-proposals') {
+        // Case 2: The job is no longer open
+        else if (workData.status !== 'open-for-proposals') {
+            console.log("DEBUG: Rendering UI for 'Closed Job'.");
+            actionArea.innerHTML = `<p class="text-center text-yellow-400 font-semibold">This job is no longer accepting new applications.</p>`;
+        }
+        // Case 3: The user is an influencer and the job is open
+        else if (currentUserRole === 'influencer') {
+            console.log("DEBUG: Rendering UI for 'Influencer - Apply Now'.");
             actionArea.innerHTML = `
                 <h3 class="font-semibold text-lg mb-2">Apply for this Job</h3>
                 <textarea id="cover-letter" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-md" rows="4" placeholder="Write a short proposal..."></textarea>
                 <button id="apply-btn" class="w-full mt-3 bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Submit Proposal</button>`;
             getElement('apply-btn').addEventListener('click', submitProposal);
         }
-        // Case 3: The user is an influencer but the job is closed
-        else if (currentUserRole === 'influencer' && workData.status !== 'open-for-proposals') {
-            actionArea.innerHTML = `<p class="text-center text-yellow-400 font-semibold">This job is no longer accepting new applications.</p>`;
-        }
         // Case 4: The user is not logged in (Guest)
         else if (!currentUser) {
+            console.log("DEBUG: Rendering UI for 'Guest'.");
             actionArea.innerHTML = `
                 <h3 class="font-semibold text-lg mb-2">Join to Apply</h3>
-                <p class="text-sm text-gray-400 mb-3">Log in or sign up as an influencer to apply for this job.</p>
+                <p class="text-sm text-gray-400 mb-3">Log in or sign up as an influencer to apply.</p>
                 <a href="/login?redirect=${window.location.pathname}" class="w-full block text-center bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Login or Sign Up</a>`;
         }
-        // Case 5: The user is a logged-in customer/brand but not the author (Only View)
+        // Case 5: The user is a logged-in non-influencer (Only View)
         else {
-            actionArea.innerHTML = `<p class="text-center text-gray-500">This is a preview of the job post. Only influencers can apply.</p>`;
+            console.log("DEBUG: Rendering UI for 'Other Logged-in User'.");
+            actionArea.innerHTML = `<p class="text-center text-gray-500">Only approved influencers can apply for jobs.</p>`;
         }
     }
 
@@ -146,19 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("You have already submitted a proposal for this job.");
             }
 
-            const proposalData = {
-                postId: workId,
-                postTitle: workData.title,
-                influencerId: currentUser.uid,
-                brandId: workData.authorId,
-                coverLetter: coverLetter,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            };
+            const proposalData = { /* ... (proposal data object) ... */ };
             await addDoc(proposalsRef, proposalData);
             
             alert('Your proposal has been submitted successfully!');
             actionArea.innerHTML = `<p class="text-center text-green-400 font-semibold">Application Submitted!</p>`;
+
         } catch (error) {
             alert(`Error: ${error.message}`);
             applyBtn.disabled = false;
@@ -170,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Handles the deletion of a post by its author.
      */
     async function deletePost() {
-        if (!confirm("Are you sure you want to permanently delete this job post? This action cannot be undone.")) return;
+        if (!confirm("Are you sure you want to permanently delete this job post?")) return;
 
         const deleteBtn = getElement('delete-post-btn');
         deleteBtn.disabled = true;
@@ -178,9 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const workRef = doc(db, 'posts', workId);
-            await deleteDoc(workRef);
+await deleteDoc(workRef);
             alert("Job post deleted successfully.");
-            window.location.href = '/pf/dashboard'; // Redirect to brand dashboard
+            window.location.href = '/pf/dashboard';
         } catch (error) {
             console.error("Error deleting post:", error);
             alert("Failed to delete the post.");
