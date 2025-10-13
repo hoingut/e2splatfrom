@@ -1,12 +1,15 @@
 // static/pf_influencer_inbox.js
 
-// --- Imports ---
+// --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { 
+    doc, getDoc, collection, query, where, getDocs, 
+    updateDoc, serverTimestamp, arrayUnion 
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM References ---
+    // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
     const workListContainer = getElement('work-list-container');
     const loadingSpinner = getElement('loading-spinner');
@@ -15,11 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = getElement('close-modal-btn');
     const logoutBtn = getElement('logout-btn');
 
+    // --- State Management ---
     let currentUser = null;
     let allWorks = [];
-    let currentStatusFilter = 'pending';
+    let currentStatusFilter = 'pending'; // Default tab
 
-    // --- Authentication and Authorization Check ---
+    // --- Step 3: Authentication and Authorization Check ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
@@ -29,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (docSnap.exists() && docSnap.data().role === 'influencer') {
                     await fetchAllWorks();
                 } else {
-                    throw new Error('You are not an approved influencer.');
+                    throw new Error('You do not have permission to view this page.');
                 }
             } catch (error) {
                 document.body.innerHTML = `<div class="text-center p-10"><p class="text-red-500">${error.message}</p></div>`;
@@ -40,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /**
-     * Fetches all works assigned to the current influencer.
+     * Fetches all works assigned to the current influencer from the 'works' collection.
      */
     async function fetchAllWorks() {
         loadingSpinner.style.display = 'block';
@@ -52,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const snapshot = await getDocs(q);
             allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderWorksByStatus(currentStatusFilter);
-        } catch (error) {
+        } catch (error) => {
             console.error("Error fetching works:", error);
             workListContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load your works.</p>`;
         } finally {
@@ -66,8 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderWorksByStatus(status) {
         currentStatusFilter = status;
         const filteredWorks = allWorks.filter(work => {
-            if (status === 'in-progress') return work.status === 'in-progress' || work.status === 'submitted-for-review';
-            return work.status === status;
+            if (status === 'pending') return work.status === 'pending';
+            if (status === 'in-progress') return ['in-progress', 'started-confirmation'].includes(work.status);
+            if (status === 'completed') return ['completed', 'submitted-for-review', 'rejected-by-brand'].includes(work.status);
+            return false;
         });
 
         if (filteredWorks.length === 0) {
@@ -77,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         workListContainer.innerHTML = filteredWorks.map(work => createWorkCard(work)).join('');
         
-        // Add event listeners to the new "Manage" buttons
         document.querySelectorAll('.manage-work-btn').forEach(button => {
             button.addEventListener('click', () => openWorkModal(button.dataset.workId));
         });
@@ -110,31 +115,26 @@ document.addEventListener('DOMContentLoaded', () => {
         getElement('modal-title').textContent = work.title;
         const modalBody = getElement('modal-body');
         
-        let content = `
-            <p class="text-gray-400 mb-4">${work.description}</p>
-            <p><strong>Brand:</strong> ${work.brandName}</p>
-            <p><strong>Budget:</strong> ৳${work.budget}</p>
-            <hr class="border-dark my-4">
-        `;
+        let content = `<p class="text-gray-400 mb-4">${work.description}</p><p><strong>Budget:</strong> ৳${work.budget}</p><hr class="border-dark my-4">`;
         
-        // Dynamically show actions based on work status
-        if (work.status === 'pending') {
-            content += `
-                <p class="font-semibold mb-2">Do you want to accept this job?</p>
-                <div class="flex space-x-3">
-                    <button onclick="updateWorkStatus('${work.id}', 'in-progress')" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Accept Job</button>
-                    <button onclick="updateWorkStatus('${work.id}', 'rejected-by-influencer')" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Reject</button>
-                </div>`;
-        } else if (work.status === 'in-progress') {
-            content += `
-                <p class="font-semibold mb-2">Submit your work for review:</p>
-                <p class="text-sm text-gray-400 mb-2">Please provide a link or screenshot of the completed work.</p>
-                <input id="submission-link" type="text" class="w-full p-2 bg-gray-800 border border-gray-600 rounded mb-2" placeholder="e.g., https://instagram.com/p/...">
-                <button onclick="updateWorkStatus('${work.id}', 'submitted-for-review', document.getElementById('submission-link').value)" class="bg-mulberry hover:bg-mulberry-dark text-white py-2 px-4 rounded">Submit for Review</button>`;
-        } else if (work.status === 'submitted-for-review') {
-             content += `<p class="text-yellow-400 font-semibold">Your work is under review by the brand. Please wait for their confirmation.</p>`;
-        } else if (work.status === 'completed') {
-            content += `<p class="text-green-400 font-semibold">This work has been successfully completed and approved!</p>`;
+        switch (work.status) {
+            case 'pending':
+                content += `<p class="font-semibold mb-2">Do you want to accept this job?</p><div class="flex space-x-3"><button onclick="window.updateWorkStatus('${work.id}', 'in-progress')" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Accept Job</button><button onclick="window.updateWorkStatus('${work.id}', 'rejected-by-influencer')" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Reject</button></div>`;
+                break;
+            case 'in-progress':
+                content += `<p class="font-semibold mb-2">Confirm you have started the work:</p><textarea id="start-note" class="w-full p-2 bg-gray-800 border border-gray-600 rounded mb-2" placeholder="Any initial notes for the brand? (optional)"></textarea><label class="block text-sm mb-2">Add a screenshot (optional):<input type="file" id="start-screenshot" class="mt-1 block w-full text-sm"></label><button onclick="window.submitUpdate('${work.id}', 'started')" class="bg-mulberry hover:bg-mulberry-dark text-white py-2 px-4 rounded">Mark as Started</button>`;
+                break;
+            case 'started-confirmation':
+                content += `<p class="font-semibold mb-2">Submit your final work for approval:</p><textarea id="complete-note" class="w-full p-2 bg-gray-800 border border-gray-600 rounded mb-2" placeholder="Final delivery notes and links..."></textarea><label class="block text-sm mb-2">Add final screenshot/proof (required):<input type="file" id="complete-screenshot" class="mt-1 block w-full text-sm"></label><button onclick="window.submitUpdate('${work.id}', 'completed')" class="bg-mulberry hover:bg-mulberry-dark text-white py-2 px-4 rounded">Mark as Complete</button>`;
+                break;
+            case 'submitted-for-review':
+                content += `<p class="text-yellow-400 font-semibold">Your work is under review by the brand. Please wait for their confirmation.</p>`;
+                break;
+            case 'completed':
+                content += `<p class="text-green-400 font-semibold">This work has been successfully completed and approved!</p>`;
+                break;
+            default:
+                content += `<p class="text-gray-400">Status: ${work.status}</p>`;
         }
         
         modalBody.innerHTML = content;
@@ -150,27 +150,71 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn.addEventListener('click', closeModal);
 
     /**
-     * Updates the status of a work in Firestore.
+     * Updates the status of a work (e.g., accept/reject).
      */
-    window.updateWorkStatus = async (workId, newStatus, submissionLink = null) => {
+    window.updateWorkStatus = async (workId, newStatus) => {
+        if (!confirm(`Are you sure you want to update the status to: ${newStatus}?`)) return;
         const workRef = doc(db, 'works', workId);
         try {
-            let updateData = { status: newStatus };
-            if (newStatus === 'in-progress') updateData.acceptedAt = serverTimestamp();
-            if (newStatus === 'submitted-for-review') {
-                if (!submissionLink) { alert("Please provide a submission link or screenshot."); return; }
-                updateData.submission = { link: submissionLink, submittedAt: serverTimestamp() };
-            }
-
-            await updateDoc(workRef, updateData);
+            await updateDoc(workRef, { status: newStatus });
             alert(`Work status updated to: ${newStatus}`);
             closeModal();
-            await fetchAllWorks(); // Refresh the list
+            await fetchAllWorks();
         } catch (error) {
             console.error("Error updating work status:", error);
             alert("Failed to update status.");
         }
     };
+
+    /**
+     * Submits an update with notes and screenshots.
+     */
+    window.submitUpdate = async (workId, type) => {
+        const noteInput = getElement(`${type}-note`);
+        const screenshotInput = getElement(`${type}-screenshot`);
+        const file = screenshotInput ? screenshotInput.files[0] : null;
+        
+        if (type === 'completed' && !file && !noteInput.value.trim()) {
+            alert("Please provide a submission link/note or upload a screenshot for the final submission.");
+            return;
+        }
+
+        const modalBody = getElement('modal-body');
+        const submitButton = modalBody.querySelector(`button[onclick*="submitUpdate"]`);
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            let screenshotUrl = null;
+            if (file) {
+                screenshotUrl = await uploadImage(file);
+            }
+            
+            const submission = { type, note: noteInput.value.trim(), screenshotUrl, timestamp: serverTimestamp() };
+            const workRef = doc(db, 'works', workId);
+            await updateDoc(workRef, {
+                submissions: arrayUnion(submission),
+                status: type === 'started' ? 'started-confirmation' : 'submitted-for-review'
+            });
+
+            alert('Update submitted successfully!');
+            closeModal();
+            await fetchAllWorks();
+        } catch (error) {
+            console.error("Error submitting update:", error);
+            alert(`Submission failed: ${error.message}`);
+            if (submitButton) submitButton.disabled = false;
+        }
+    };
+
+    async function uploadImage(file) {
+        const IMGBB_API_KEY = '5e7311818264c98ebf4a79dbb58b55aa'; // Ensure this is correct
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+        const result = await response.json();
+        if (!result.success) throw new Error(`Image upload failed: ${result.error.message}`);
+        return result.data.url;
+    }
 
     // --- Tab Switching Logic ---
     tabs.forEach(tab => {
