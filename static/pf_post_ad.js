@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 platforms: selectedPlatforms,
                 contentTypes: selectedContentTypes,
                 coverImage: coverImageUrl, // Can be null if no image was uploaded
-                status: 'active', // 'active', 'in-progress', 'completed'
+                status: 'open-for-proposals', // 'active', 'in-progress', 'completed'
                 createdAt: serverTimestamp(),
             };
 
