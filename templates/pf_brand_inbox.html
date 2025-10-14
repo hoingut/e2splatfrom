@@ -38,16 +38,20 @@
         <!-- Main Content (Grid) -->
         <div id="inbox-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Left Column: Your Job Posts -->
-            <div class="lg:col-span-1">
-                <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                    <h2 class="text-xl font-semibold mb-4">Your Job Posts</h2>
-                    <div id="job-posts-list" class="space-y-3">
-                        <!-- JS will populate this -->
-                    </div>
-                </div>
-            </div>
+<!-- ... (ফাইলের উপরের অংশ আগের মতোই থাকবে) ... -->
 
+<!-- Left Column: Your Job Posts -->
+<div class="lg:col-span-1">
+    <div class="bg-dark-card border border-dark p-6 rounded-xl">
+        <h2 class="text-xl font-semibold mb-4">Your Job Posts</h2>
+        <!-- **CRITICAL CHANGE**: No more inline onclick. Event delegation will handle this. -->
+        <div id="job-posts-list" class="space-y-3">
+            <!-- JS will populate this -->
+        </div>
+    </div>
+</div>
+
+<!-- ... (ফাইলের বাকি অংশ আগের মতোই থাকবে) ... -->
             <!-- Right Column: Proposals and Work Details -->
             <div class="lg:col-span-2">
                 <div id="details-panel" class="bg-dark-card border border-dark p-6 rounded-xl">
