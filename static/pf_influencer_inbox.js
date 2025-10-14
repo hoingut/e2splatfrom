@@ -46,23 +46,33 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Fetches all works assigned to the current influencer from the 'works' collection.
      */
-    async function fetchAllWorks() {
-        loadingSpinner.style.display = 'block';
-        workListContainer.innerHTML = '';
-        
-        try {
-            const worksRef = collection(db, 'works');
-            const q = query(worksRef, where("influencerId", "==", currentUser.uid));
-            const snapshot = await getDocs(q);
-            allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderWorksByStatus(currentStatusFilter);
-        } catch (error) => {
-            console.error("Error fetching works:", error);
-            workListContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load your works.</p>`;
-        } finally {
-            loadingSpinner.style.display = 'none';
-        }
+    // static/pf_influencer_inbox.js
+
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Fetches all works assigned to the current influencer from the 'works' collection.
+ * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
+ */
+async function fetchAllWorks() {
+    loadingSpinner.style.display = 'block';
+    workListContainer.innerHTML = '';
+    
+    try {
+        const worksRef = collection(db, 'works');
+        const q = query(worksRef, where("influencerId", "==", currentUser.uid));
+        const snapshot = await getDocs(q);
+        allWorks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderWorksByStatus(currentStatusFilter);
+    } catch (error) { // <-- **FIXED**: Removed the arrow '=>'
+        console.error("Error fetching works:", error);
+        workListContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load your works. Please check your internet connection and permissions.</p>`;
+    } finally {
+        loadingSpinner.style.display = 'none';
     }
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
 
     /**
      * Filters and renders works based on the selected status tab.
