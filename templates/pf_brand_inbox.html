@@ -12,12 +12,13 @@
         body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
         .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
         .bg-dark-card { background-color: #111827; } .border-dark { border-color: #374151; }
+        .job-item.selected { background-color: #7d285d; color: white; }
+        .job-item.selected .text-gray-400 { color: #d1d5db; }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header -->
-    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-dark">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
             <a href="/pf/dashboard" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Back to Dashboard</a>
@@ -27,37 +28,31 @@
     <main class="container mx-auto p-6 md:p-10">
         <header class="mb-8">
             <h1 class="text-3xl font-bold">Brand Inbox</h1>
-            <p class="text-gray-400">Manage proposals and track your ongoing collaborations.</p>
+            <p class="text-gray-400">Manage your job posts, review proposals, and track collaborations.</p>
         </header>
 
-        <!-- Loading State -->
         <div id="loading-container" class="text-center py-20">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
         </div>
 
-        <!-- Main Content (Grid) -->
-        <div id="inbox-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="inbox-content" class="hidden grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             
-<!-- ... (ফাইলের উপরের অংশ আগের মতোই থাকবে) ... -->
+            <!-- Left Column: Job Posts List -->
+            <div class="md:col-span-1 lg:col-span-1">
+                <div class="bg-dark-card border border-dark p-4 rounded-xl h-full">
+                    <h2 class="text-lg font-semibold mb-4 px-2">Your Job Posts</h2>
+                    <div id="job-posts-list" class="space-y-2">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+            </div>
 
-<!-- Left Column: Your Job Posts -->
-<div class="lg:col-span-1">
-    <div class="bg-dark-card border border-dark p-6 rounded-xl">
-        <h2 class="text-xl font-semibold mb-4">Your Job Posts</h2>
-        <!-- **CRITICAL CHANGE**: No more inline onclick. Event delegation will handle this. -->
-        <div id="job-posts-list" class="space-y-3">
-            <!-- JS will populate this -->
-        </div>
-    </div>
-</div>
-
-<!-- ... (ফাইলের বাকি অংশ আগের মতোই থাকবে) ... -->
-            <!-- Right Column: Proposals and Work Details -->
-            <div class="lg:col-span-2">
-                <div id="details-panel" class="bg-dark-card border border-dark p-6 rounded-xl">
-                    <div id="details-content" class="text-center text-gray-500 py-16">
+            <!-- Right Column: Details Panel -->
+            <div class="md:col-span-2 lg:col-span-3">
+                <div id="details-panel" class="bg-dark-card border border-dark p-6 rounded-xl min-h-[60vh]">
+                    <div id="details-content" class="text-center text-gray-500 flex flex-col justify-center items-center h-full">
                         <i class="fas fa-arrow-left text-3xl mb-4"></i>
-                        <p>Select a job post from the left to view proposals or work status.</p>
+                        <p>Select a job post from the left to begin.</p>
                     </div>
                 </div>
             </div>
@@ -67,4 +62,4 @@
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_brand_inbox.js"></script>
 </body>
-  </html>
+    </html>
