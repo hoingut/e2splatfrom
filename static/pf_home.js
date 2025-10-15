@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const noResults = getElement('no-results');
     const loginBtn = getElement('login-btn');
     const dashboardBtn = getElement('dashboard-btn');
-
+    
     // --- Step 3: Check Auth State for UI update ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -28,23 +28,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // --- Step 4: Filter Definitions ---
-    // This structure makes it easy to add/remove filters in the future.
+    // --- Step 4: Filter Definitions (based on your PDF mind map) ---
     const filterDefinitions = {
         influencer: [
+            { id: 'mood', label: 'Mood', type: 'select', dbField: 'influencerProfile.mood', options: ['Ready Package', 'Creative Freedom'] },
             { id: 'category', label: 'Category', type: 'select', dbField: 'influencerProfile.category', options: ['Funny', 'Arts', 'Tech', 'Fashion', 'Beauty', 'Gaming', 'Food'] },
             { id: 'platform', label: 'Platform', type: 'checkbox', dbField: 'influencerProfile.platforms', options: ['Facebook', 'Instagram', 'YouTube', 'TikTok'] },
             { id: 'reach', label: 'Followers (Up to)', type: 'range', dbField: 'influencerProfile.reach', min: 1000, max: 1000000, step: 10000, default: 1000000 },
         ],
         job: [
+            { id: 'mood', label: 'Collaboration Mood', type: 'select', dbField: 'mood', options: ['Ready Package', 'Creative Freedom'] },
             { id: 'category', label: 'Job Category', type: 'select', dbField: 'category', options: ['Fashion', 'Gadgets', 'Food', 'Gaming', 'Beauty', 'Tech'] },
             { id: 'platform', label: 'Platform', type: 'checkbox', dbField: 'platforms', options: ['Instagram', 'Facebook', 'TikTok', 'YouTube'] },
-            { id: 'contentType', label: 'Content Type', type: 'checkbox', dbField: 'contentTypes', options: ['Story', 'Post', 'Video', 'Reel'] },
             { id: 'budget', label: 'Budget (Up to)', type: 'range', dbField: 'budget', min: 1000, max: 50000, step: 1000, default: 50000 },
         ]
     };
-    
-    // --- Step 5: Core Functions ---
+
+    // =================================================================
+    // SECTION A: CORE FUNCTIONS
+    // =================================================================
 
     /**
      * Renders the filter inputs based on the selected type ('influencer' or 'job').
@@ -86,11 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
         filterDefinitions[filterFor].forEach(filter => {
             if (filter.type === 'select' || filter.type === 'range') {
                 const element = getElement(`${filter.id}_filter`);
-                if (element.value !== 'all' && element.value !== String(filter.max)) filters[filter.id] = element.value;
+                // Only add to criteria if a specific option is chosen (not 'all' or the max range)
+                if (element && element.value !== 'all' && element.value !== String(filter.max)) {
+                    filters[filter.dbField] = element.value;
+                }
             }
             if (filter.type === 'checkbox') {
                 const checked = Array.from(document.querySelectorAll(`#${filter.id}_filter input:checked`)).map(cb => cb.value);
-                if (checked.length > 0) filters[filter.id] = checked;
+                if (checked.length > 0) {
+                    filters[filter.dbField] = checked;
+                }
             }
         });
         return filters;
@@ -108,41 +115,43 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.classList.add('hidden');
 
         try {
-            let firestoreQuery;
             const isJobSearch = criteria.filterFor === 'job';
-            
+            const collectionName = isJobSearch ? 'posts' : 'users';
+            let q = collection(db, collectionName);
+
             if (isJobSearch) {
-                let q = collection(db, 'posts');
-                if (criteria.category) q = query(q, where('category', '==', criteria.category));
-                if (criteria.platforms) q = query(q, where('platforms', 'array-contains-any', criteria.platforms));
-                if (criteria.contentType) q = query(q, where('contentTypes', 'array-contains-any', criteria.contentType));
-                if (criteria.budget) q = query(q, where('budget', '<=', Number(criteria.budget)));
-                firestoreQuery = query(q, orderBy('createdAt', 'desc'), limit(12));
-            } else { // 'influencer'
-                let q = collection(db, 'users');
+                q = query(q, where('status', '==', 'open-for-proposals'));
+            } else {
                 q = query(q, where('role', '==', 'influencer'));
-                if (criteria.category) q = query(q, where('influencerProfile.category', '==', criteria.category));
-                if (criteria.platforms) q = query(q, where('influencerProfile.platforms', 'array-contains-any', criteria.platforms));
-                if (criteria.reach) q = query(q, where('influencerProfile.reach', '<=', Number(criteria.reach)));
-                firestoreQuery = query(q, orderBy('influencerProfile.reach', 'desc'), limit(12));
             }
 
-            const querySnapshot = await getDocs(firestoreQuery);
+            for (const key in criteria) {
+                if (key !== 'filterFor') {
+                    const value = criteria[key];
+                    if (Array.isArray(value)) {
+                        q = query(q, where(key, 'array-contains-any', value));
+                    } else if (key.includes('budget') || key.includes('reach')) {
+                        q = query(q, where(key, '<=', Number(value)));
+                    } else {
+                        q = query(q, where(key, '==', value));
+                    }
+                }
+            }
+
+            const finalQuery = query(q, orderBy(isJobSearch ? 'createdAt' : 'influencerProfile.reach', 'desc'), limit(12));
+            const querySnapshot = await getDocs(finalQuery);
 
             if (querySnapshot.empty) {
                 noResults.classList.remove('hidden');
             } else {
-                const resultsHTML = querySnapshot.docs.map(doc => {
-                    return isJobSearch 
-                        ? createJobCard({ id: doc.id, ...doc.data() })
-                        : createInfluencerCard({ id: doc.id, ...doc.data() });
-                }).join('');
-                postListGrid.innerHTML = resultsHTML;
+                postListGrid.innerHTML = querySnapshot.docs.map(doc => 
+                    isJobSearch ? createJobCard({ id: doc.id, ...doc.data() }) : createInfluencerCard({ id: doc.id, ...doc.data() })
+                ).join('');
             }
         } catch (error) {
             console.error("Error fetching data:", error);
             noResults.classList.remove('hidden');
-            noResults.innerHTML = `<p class="text-red-500">Error loading data. You may need to create Firestore indexes. Check the console for a link.</p>`;
+            noResults.innerHTML = `<p class="text-red-500">Error: ${error.message}. You may need to create Firestore indexes. Check the console for a link.</p>`;
         } finally {
             loadingSpinner.style.display = 'none';
         }
@@ -159,9 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-xs text-gray-400">Posted: ${post.createdAt?.toDate().toLocaleDateString() || 'Recently'}</p>
                     </div>
                 </div>
+                ${post.coverImage ? `<img src="${post.coverImage}" alt="Job Image" class="w-full h-56 object-cover">` : ''}
                 <div class="p-4 border-t border-gray-800 flex-grow">
                     <h4 class="text-lg font-semibold">${post.title}</h4>
-                    <p class="text-sm text-gray-400 mt-2">${description}${post.description.length > 130 ? '...' : ''}</p>
+                    <p class="text-sm text-gray-400 mt-2">${description}${description.length >= 130 ? '...' : ''}</p>
                 </div>
                 <div class="p-4 flex justify-between items-center bg-gray-900">
                     <div><span class="text-xs text-gray-400">Budget</span><p class="font-bold text-lg">৳${(post.budget || 0).toLocaleString()}</p></div>
@@ -172,31 +182,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createInfluencerCard(user) {
         const profile = user.influencerProfile;
-        if (!profile) return ''; // Don't render if influencer profile is incomplete
+        if (!profile) return '';
         const bio = (profile.bio || '').substring(0, 130);
         return `
             <div class="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
                 <div class="p-4 flex items-center space-x-3">
-                    <img src="${profile.profilePicUrl || 'https://i.pravatar.cc/150'}" alt="Profile Pic" class="w-12 h-12 rounded-full object-cover">
+                    <img src="${profile.pageProfilePicUrl || 'https://i.pravatar.cc/150'}" alt="Profile Pic" class="w-12 h-12 rounded-full object-cover">
                     <div>
                         <h3 class="font-bold">${profile.pageName} <i class="fas fa-check-circle text-blue-500 text-sm"></i></h3>
                         <p class="text-xs text-gray-400 capitalize">${profile.category}</p>
                     </div>
                 </div>
                 <div class="p-4 border-t border-gray-800 flex-grow">
-                    <p class="text-sm text-gray-400">${bio}${profile.bio.length > 130 ? '...' : ''}</p>
+                    <p class="text-sm text-gray-400">${bio}${bio.length >= 130 ? '...' : ''}</p>
                 </div>
                 <div class="p-4 flex justify-between items-center bg-gray-900">
-                    <div><span class="text-xs text-gray-400">Followers</span><p class="font-bold text-lg">${(profile.reach || 0).toLocaleString()}</p></div>
+                    <div><span class="text-xs text-gray-400">Followers</span><p class="font-bold text-lg">${(profile.followers || 0).toLocaleString()}</p></div>
                     <a href="/pf/influencer/${user.id}" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-5 rounded-full transition text-sm">View Profile</a>
                 </div>
             </div>`;
     }
 
-    // --- Step 6: Initial Setup & Event Listeners ---
-    filterTypeRadios.forEach(radio => radio.addEventListener('change', (e) => renderFilters(e.target.value)));
-    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFiltersAndFetch);
+    // =================================================================
+    // SECTION C: INITIALIZATION & EVENT LISTENERS
+    // =================================================================
+
+    filterTypeRadios.forEach(radio => radio.addEventListener('change', (e) => {
+        renderFilters(e.target.value);
+        applyFiltersAndFetch();
+    }));
+    applyFiltersBtn.addEventListener('click', applyFiltersAndFetch);
     
-    renderFilters('job'); // Render filters for 'job' by default
-    applyFiltersAndFetch(); // Fetch initial data
+    // Initial load
+    renderFilters('job');
+    applyFiltersAndFetch();
 });
