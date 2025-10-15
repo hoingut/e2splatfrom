@@ -46,24 +46,52 @@
             </p>
         </section>
 
-        <!-- Advanced Filter Section -->
-        <section id="advanced-filter" class="bg-gray-900/50 border border-gray-800 p-6 rounded-xl shadow-lg mb-12">
-            <div class="flex items-center space-x-6 border-b border-gray-700 pb-4 mb-4">
-                <label class="flex items-center cursor-pointer"><input type="radio" name="filter_for" value="job" class="hidden peer" checked><span class="px-4 py-2 rounded-md font-semibold text-gray-400 peer-checked:bg-mulberry peer-checked:text-white transition">Find Jobs</span></label>
-                <label class="flex items-center cursor-pointer"><input type="radio" name="filter_for" value="influencer" class="hidden peer"><span class="px-4 py-2 rounded-md font-semibold text-gray-400 peer-checked:bg-mulberry peer-checked:text-white transition">Find Influencers</span></label>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div id="filter-grid" class="contents"></div>
-                <div class="flex items-end"><button id="apply-filters-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 px-6 rounded-md h-10 flex items-center justify-center"><i class="fas fa-search mr-2"></i>Apply Filters</button></div>
-            </div>
-        </section>
-        
-        <!-- Post List Section -->
-        <section id="post-list-section">
-            <div id="loading-spinner" class="text-center py-16"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div></div>
-            <div id="post-list-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-            <div id="no-results" class="hidden text-center py-16 text-gray-500"><i class="fas fa-box-open text-5xl"></i><p class="mt-4 font-semibold">No results found for your criteria.</p></div>
-        </section>
+        <!-- pf_home.html -->
+
+<!-- ... (Header and Hero Banner remain the same) ... -->
+
+<!-- Advanced Filter Section -->
+<section id="advanced-filter" class="bg-gray-900/50 border border-gray-800 p-6 rounded-xl shadow-lg mb-12">
+    <!-- Filter Type Switcher -->
+    <div class="flex items-center space-x-6 border-b border-gray-700 pb-4 mb-6">
+        <label class="flex items-center cursor-pointer">
+            <input type="radio" name="filter_for" value="job" class="hidden peer" checked>
+            <span class="px-4 py-2 rounded-md font-semibold text-gray-400 peer-checked:bg-mulberry peer-checked:text-white transition">Find Jobs</span>
+        </label>
+        <label class="flex items-center cursor-pointer">
+            <input type="radio" name="filter_for" value="influencer" class="hidden peer">
+            <span class="px-4 py-2 rounded-md font-semibold text-gray-400 peer-checked:bg-mulberry peer-checked:text-white transition">Find Influencers</span>
+        </label>
+    </div>
+    <!-- Dynamic Filter Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+        <!-- JS will populate this grid with filter inputs -->
+        <div id="filter-grid" class="contents"></div> 
+        <!-- Action Button -->
+        <button id="apply-filters-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 px-6 rounded-md h-10 flex items-center justify-center">
+            <i class="fas fa-search mr-2"></i>Apply Filters
+        </button>
+    </div>
+</section>
+
+<!-- Post List Section -->
+<section id="post-list-section">
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="text-center py-16">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
+    </div>
+    <!-- Grid for Posts/Influencers -->
+    <div id="post-list-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- JS will inject cards here -->
+    </div>
+    <!-- No Results Message -->
+    <div id="no-results" class="hidden text-center py-16 text-gray-500">
+        <i class="fas fa-box-open text-5xl"></i>
+        <p class="mt-4 font-semibold">No results found for your criteria.</p>
+    </div>
+</section>
+
+<!-- ... (Rest of the HTML and script tags) ... -->
     </main>
     
     <script type="module" src="/static/firebaseConfig.js"></script>
