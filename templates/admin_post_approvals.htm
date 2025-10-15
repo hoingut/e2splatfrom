@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Post Approvals - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-white shadow-sm p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">Job Post Approvals</h1>
+            <a href="/admin" class="text-indigo-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>Back to Main Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Pending for Approval</h2>
+            <div id="pending-posts-list" class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase">Job & Brand Details</th>
+                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase">Budget</th>
+                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase">Payment Details (Manual Verification)</th>
+                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-list-body" class="divide-y divide-gray-200">
+                        <!-- JS will populate this -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/admin_post_approvals.js"></script>
+</body>
+  </html>
