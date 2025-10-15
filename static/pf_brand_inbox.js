@@ -1,6 +1,6 @@
 // static/pf_brand_inbox.js
 
-// --- Imports ---
+// --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
@@ -9,24 +9,26 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- DOM References ---
+    console.log("DEBUG: pf_brand_inbox.js -> DOM fully loaded and script started.");
+
+    // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
     const loadingContainer = getElement('loading-container');
     const inboxContent = getElement('inbox-content');
     const jobPostsList = getElement('job-posts-list');
     const detailsContent = getElement('details-content');
     
-    // --- State Management ---
     let currentUser = null;
-    let jobPosts = []; // Store all job posts data
 
     // =================================================================
     // SECTION A: INITIALIZATION & CORE LOGIC
     // =================================================================
 
     onAuthStateChanged(auth, async (user) => {
+        console.log("DEBUG: Auth state changed.");
         if (user) {
             currentUser = user;
+            // You can add a role check here to redirect non-brands if needed
             await loadBrandInbox();
         } else {
             window.location.href = `/login?redirect=/pf/brand/inbox`;
@@ -34,25 +36,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function loadBrandInbox() {
+        console.log("DEBUG: loadBrandInbox() -> Started.");
         try {
             const postsRef = collection(db, 'posts');
             const q = query(postsRef, where("authorId", "==", currentUser.uid), orderBy("createdAt", "desc"));
             const snapshot = await getDocs(q);
+            console.log(`DEBUG: loadBrandInbox -> Found ${snapshot.size} job posts.`);
 
-            jobPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            if (jobPosts.length === 0) {
-                jobPostsList.innerHTML = `<p class="text-gray-500 p-4">You have no job posts.</p>`;
+            if (snapshot.empty) {
+                jobPostsList.innerHTML = `<p class="text-gray-500 p-4">You have not posted any jobs yet.</p>`;
             } else {
-                jobPostsList.innerHTML = jobPosts.map(post => createJobPostItem(post)).join('');
+                jobPostsList.innerHTML = snapshot.docs.map(doc => createJobPostItem(doc.id, doc.data())).join('');
             }
-            
+
             loadingContainer.classList.add('hidden');
             inboxContent.classList.remove('hidden');
 
         } catch (error) {
-            console.error("Error loading brand inbox:", error);
-            jobPostsList.innerHTML = `<p class="text-red-500 p-4">Failed to load job posts.</p>`;
+            console.error("DEBUG: loadBrandInbox -> CRITICAL ERROR:", error);
+            jobPostsList.innerHTML = `<p class="text-red-500 p-4">Failed to load job posts. Check console for details.</p>`;
         }
     }
 
@@ -60,103 +62,134 @@ document.addEventListener('DOMContentLoaded', () => {
     // SECTION B: UI RENDERING FUNCTIONS
     // =================================================================
 
-    function createJobPostItem(post) {
+    function createJobPostItem(postId, post) {
         return `
-            <div id="job-${post.id}" 
+            <div id="job-${postId}" 
                  class="job-item p-3 rounded-md cursor-pointer border-2 border-transparent hover:bg-gray-800"
-                 data-post-id="${post.id}">
-                <div class="flex justify-between items-center pointer-events-none">
-                    <h4 class="font-semibold truncate">${post.title}</h4>
-                    <span class="text-xs ${post.status === 'open-for-proposals' ? 'text-green-400' : 'text-yellow-400'}">${post.status === 'open-for-proposals' ? 'Open' : 'In Progress'}</span>
-                </div>
+                 data-post-id="${postId}"
+                 data-status="${post.status}">
+                <h4 class="font-semibold truncate pointer-events-none">${post.title}</h4>
                 <p class="text-xs text-gray-400 capitalize pointer-events-none">${post.status.replace('-', ' ')}</p>
             </div>
         `;
     }
 
-    async function selectJob(postId) {
-        document.querySelectorAll('.job-item').forEach(el => el.classList.remove('selected'));
-        getElement(`job-${postId}`).classList.add('selected');
+    async function selectJob(postId, status) {
+        console.log(`DEBUG: selectJob -> Selected PostID: ${postId}, Status: ${status}`);
+        document.querySelectorAll('.job-item').forEach(el => el.classList.remove('bg-mulberry', 'text-white'));
+        getElement(`job-${postId}`).classList.add('bg-mulberry', 'text-white');
         detailsContent.innerHTML = `<p class="py-16 text-center text-gray-400">Loading details...</p>`;
 
-        const selectedPost = jobPosts.find(p => p.id === postId);
-        if (!selectedPost) return;
-
-        if (selectedPost.status === 'open-for-proposals') {
+        if (status === 'open-for-proposals') {
             await displayProposals(postId);
         } else {
             await displayWorkDetails(postId);
         }
     }
-    
+
     async function displayProposals(postId) {
-        // ... (This function remains mostly the same as the "Full" version)
+        console.log(`DEBUG: displayProposals -> Fetching for PostID: ${postId}`);
+        try {
+            const proposalsRef = collection(db, 'proposals');
+            const q = query(proposalsRef, where("brandId", "==", currentUser.uid), where("postId", "==", postId), where("status", "==", "pending"));
+            const snapshot = await getDocs(q);
+            console.log(`DEBUG: displayProposals -> Found ${snapshot.size} proposals.`);
+
+            if (snapshot.empty) {
+                detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Proposals</h3><p class="text-gray-500">No pending proposals for this job yet.</p>`;
+                return;
+            }
+
+            const proposalPromises = snapshot.docs.map(async (propDoc) => {
+                const proposal = { id: propDoc.id, ...propDoc.data() };
+                const userRef = doc(db, 'users', proposal.influencerId);
+                const userSnap = await getDoc(userRef);
+                proposal.influencerData = userSnap.exists() ? userSnap.data() : null;
+                return proposal;
+            });
+
+            const proposals = await Promise.all(proposals);
+
+            detailsContent.innerHTML = `
+                <h3 class="text-xl font-semibold mb-4">Proposals Received (${proposals.length})</h3>
+                <div class="space-y-4">
+                    ${proposals.map(p => createProposalCard(p, postId)).join('')}
+                </div>`;
+        } catch (error) {
+            console.error("DEBUG: displayProposals -> CRITICAL ERROR:", error);
+            detailsContent.innerHTML = `<p class="text-red-500">Could not load proposals. Error: ${error.message}</p>`;
+        }
+    }
+    
+    function createProposalCard(proposal, postId) {
+        const influencerId = proposal.influencerId;
+        const profile = proposal.influencerData?.influencerApplication?.page;
+        const name = profile?.pageName || proposal.influencerData?.name || 'Unknown Influencer';
+        const picUrl = profile?.pageProfilePicUrl || 'https://via.placeholder.com/40';
+        const followers = profile?.followers || 0;
+
+        return `
+            <div class="bg-gray-800 p-4 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <img src="${picUrl}" class="w-10 h-10 rounded-full object-cover" alt="${name}'s profile picture">
+                        <div>
+                            <a href="/pf/influencer/${influencerId}" target="_blank" class="font-bold hover:underline">${name}</a>
+                            <p class="text-xs text-gray-400">${followers.toLocaleString()} Followers</p>
+                        </div>
+                    </div>
+                    <button onclick="window.hireInfluencer('${proposal.id}', '${influencerId}', '${postId}')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md text-sm">Hire</button>
+                </div>
+                <p class="text-sm text-gray-300 mt-3 border-t border-dark pt-3">${proposal.coverLetter}</p>
+            </div>`;
     }
 
     async function displayWorkDetails(postId) {
-        // ... (This is the new, advanced version)
+        console.log(`DEBUG: displayWorkDetails -> Fetching work details for PostID: ${postId}`);
         try {
             const worksRef = collection(db, 'works');
             const q = query(worksRef, where("postId", "==", postId), limit(1));
             const snapshot = await getDocs(q);
 
             if (snapshot.empty) {
-                detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not started.</p>`;
+                detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not started for this post yet.</p>`;
                 return;
             }
             
             const workDoc = snapshot.docs[0];
             const work = { id: workDoc.id, ...workDoc.data() };
+            console.log("DEBUG: displayWorkDetails -> Found work document:", work);
             
             const influencerRef = doc(db, 'users', work.influencerId);
             const influencerSnap = await getDoc(influencerRef);
-            const influencerProfile = influencerSnap.exists() ? influencerSnap.data().influencerApplication.page : { pageName: 'Unknown' };
+            const influencerName = influencerSnap.exists() ? influencerSnap.data().name : 'Unknown Influencer';
 
-            let workHTML = `
-                <h3 class="text-xl font-semibold mb-4">Work Progress: ${work.title}</h3>
-                <div class="flex items-center space-x-3 mb-6">
-                    <img src="${influencerProfile.pageProfilePicUrl || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover">
-                    <div>
-                        <p class="text-sm text-gray-400">Working with:</p>
-                        <a href="/pf/influencer/${work.influencerId}" target="_blank" class="font-bold hover:underline">${influencerProfile.pageName}</a>
-                    </div>
-                </div>
-            `;
+            let workHTML = `<h3 class="text-xl font-semibold mb-4">Work Progress</h3><p class="text-sm text-gray-400">Influencer: <strong class="text-white">${influencerName}</strong></p><p>Status: <span class="font-bold capitalize text-yellow-400">${work.status.replace('-', ' ')}</span></p>`;
             
-            // Timeline view of submissions
-            workHTML += '<div class="space-y-6 border-l-2 border-dark pl-6">';
             if (Array.isArray(work.submissions) && work.submissions.length > 0) {
-                work.submissions.forEach(submission => {
-                    workHTML += `
-                        <div class="relative">
-                            <div class="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-mulberry"></div>
-                            <h4 class="font-semibold capitalize">${submission.type} Confirmation</h4>
-                            <p class="text-xs text-gray-400">${submission.timestamp.toDate().toLocaleString()}</p>
-                            <p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${submission.note || 'No note.'}"</p>
-                            ${submission.screenshotUrl ? `<a href="${submission.screenshotUrl}" target="_blank" class="text-blue-400 text-sm hover:underline">View Proof</a>` : ''}
-                        </div>`;
-                });
-            } else {
-                 workHTML += `<div class="relative"><div class="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-yellow-400"></div><p class="text-yellow-400">Waiting for influencer to start the work.</p></div>`;
+                console.log("DEBUG: displayWorkDetails -> Work has submissions. Processing...");
+                const lastSubmission = work.submissions[work.submissions.length - 1];
+                
+                workHTML += `<div class="mt-4 border-t border-dark pt-4"><h4 class="font-semibold text-white">Latest Submission:</h4><p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${lastSubmission.note || 'No note provided.'}"</p>`;
+                if (lastSubmission.screenshotUrl) {
+                    workHTML += `<a href="${lastSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Submission Proof</a>`;
+                }
+                if (work.status === 'submitted-for-review') {
+                    console.log("DEBUG: displayWorkDetails -> Status is 'submitted-for-review'. Showing Approve button.");
+                    workHTML += `<div class="mt-4"><button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button></div>`;
+                }
+                workHTML += `</div>`;
+            } 
+            else if (work.status === 'in-progress') {
+                 workHTML += `<p class="mt-4 text-yellow-400">Waiting for the influencer to make their first submission.</p>`;
             }
-            workHTML += '</div>';
-            
-            // Action button area
-            if (work.status === 'submitted-for-review') {
-                workHTML += `
-                    <div class="mt-6 border-t border-dark pt-6">
-                        <h4 class="font-semibold text-lg">Action Required</h4>
-                        <p class="text-sm text-gray-400 mb-3">The influencer has submitted the final work. Please review and approve to release payment.</p>
-                        <button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button>
-                        <!-- You can add a "Request Revision" button here in the future -->
-                    </div>`;
-            } else if (work.status === 'completed') {
-                workHTML += `<p class="mt-6 border-t border-dark pt-6 text-green-400 font-semibold">This collaboration is complete.</p>`;
+            if (work.status === 'completed') {
+                 workHTML += `<p class="mt-4 text-green-400 font-semibold">This collaboration is complete. Payment has been released.</p>`;
             }
             
             detailsContent.innerHTML = workHTML;
         } catch (error) {
-            console.error("Error displaying work details:", error);
+            console.error("DEBUG: displayWorkDetails -> CRITICAL ERROR:", error);
             detailsContent.innerHTML = `<p class="text-red-500">Could not load work details.</p>`;
         }
     }
@@ -165,21 +198,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // SECTION C: ACTION FUNCTIONS & EVENT LISTENERS
     // =================================================================
 
-    // Event Delegation for Job Post Clicks
     jobPostsList.addEventListener('click', (e) => {
         const jobItem = e.target.closest('.job-item');
         if (jobItem) {
             const postId = jobItem.dataset.postId;
-            if (postId) selectJob(postId);
+            const status = jobItem.dataset.status;
+            if (postId && status) {
+                selectJob(postId, status);
+            }
         }
     });
 
-
-    /**
-     * Hires an influencer. Attached to the window object to be globally accessible from dynamic HTML.
-     */
     window.hireInfluencer = async (proposalId, influencerId, postId) => {
-        console.log(`DEBUG: hireInfluencer -> Attempting to hire. ProposalID: ${proposalId}`);
         if (!confirm('Are you sure you want to hire this influencer?')) return;
         
         const postRef = doc(db, 'posts', postId);
@@ -209,11 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    /**
-     * Approves a completed work. Attached to the window object.
-     */
     window.approveWork = async (workId) => {
-        console.log(`DEBUG: approveWork -> Attempting to approve. WorkID: ${workId}`);
         if (!confirm('Are you sure you want to approve this submission and release payment?')) return;
         
         const workRef = doc(db, 'works', workId);
@@ -230,4 +256,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-}); // End of DOMContentLoaded
+});
