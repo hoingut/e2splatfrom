@@ -137,9 +137,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+// static/pf_home.js -> applyFiltersAndFetch()
 
-            const finalQuery = query(q, orderBy(isJobSearch ? 'createdAt' : 'influencerProfile.reach', 'desc'), limit(12));
-            const querySnapshot = await getDocs(finalQuery);
+// ... (ফাইলের উপরের অংশ এবং কোয়েরি বিল্ড করার লজিক আগের মতোই থাকবে)
+
+let finalQuery;
+
+if (isJobSearch) {
+    // **THIS IS THE FIX for Job Search**
+    if (criteria.budget) {
+        // If there's a budget filter, it MUST be the first orderBy
+        finalQuery = query(q, orderBy('budget', 'desc'), orderBy('createdAt', 'desc'), limit(12));
+    } else {
+        // If no budget filter, the original query is fine
+        finalQuery = query(q, orderBy('createdAt', 'desc'), limit(12));
+    }
+} else { // 'influencer'
+    // **THIS IS THE FIX for Influencer Search**
+    if (criteria['influencerProfile.reach']) {
+        // If there's a reach filter, it MUST be the first orderBy
+        finalQuery = query(q, orderBy('influencerProfile.reach', 'desc'), limit(12));
+    } else {
+        // If no reach filter, we can order by something else, or just limit
+        finalQuery = query(q, orderBy('influencerProfile.followers', 'desc'), limit(12)); // Example: order by followers by default
+    }
+}
+
+const querySnapshot = await getDocs(finalQuery);
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে
 
             if (querySnapshot.empty) {
                 noResults.classList.remove('hidden');
