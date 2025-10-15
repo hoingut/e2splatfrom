@@ -7,7 +7,7 @@ import { doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gs
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration ---
-    const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY';
+    const IMGBB_API_KEY = '5e7311818264c98ebf4a79dbb58b55aa';
 
     // --- DOM References ---
     const getElement = (id) => document.getElementById(id);
