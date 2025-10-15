@@ -16,6 +16,12 @@ def inject_global_variables():
 def home():
     return render_template('index.html')
 
+# app.py
+@app.route('/admin/post-approvals')
+def admin_post_approvals():
+    """Renders the page for managing pending job post approvals."""
+    return render_template('admin_post_approvals.html', title="Job Post Approvals")
+    
 @app.route('/pf')
 def pf_home():
     """Renders the PROFITFLUENCE homepage."""
