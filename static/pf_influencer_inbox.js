@@ -4,10 +4,19 @@
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
-    doc, getDoc, collection, query, where, getDocs, 
-    updateDoc, serverTimestamp, arrayUnion 
+    doc, 
+    getDoc, 
+    collection, 
+    query, 
+    where, 
+    getDocs, 
+    updateDoc, 
+    serverTimestamp, 
+    arrayUnion,
+    orderBy // <--- এই লাইনটি যোগ করা হয়েছে
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+// ... (আপনার বাকি সব কোড আগের মতোই থাকবে)
 document.addEventListener('DOMContentLoaded', () => {
     // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
