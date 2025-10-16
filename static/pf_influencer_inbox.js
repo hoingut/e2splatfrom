@@ -4,19 +4,10 @@
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
-    doc, 
-    getDoc, 
-    collection, 
-    query, 
-    where, 
-    getDocs, 
-    updateDoc, 
-    serverTimestamp, 
-    arrayUnion,
-    orderBy // <--- এই লাইনটি যোগ করা হয়েছে
+    doc, getDoc, collection, query, where, getDocs, 
+    updateDoc, serverTimestamp, arrayUnion, orderBy 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// ... (আপনার বাকি সব কোড আগের মতোই থাকবে)
 document.addEventListener('DOMContentLoaded', () => {
     // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
@@ -25,12 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.tab-btn');
     const modal = getElement('work-modal');
     const closeModalBtn = getElement('close-modal-btn');
-    const logoutBtn = getElement('logout-btn');
-
+    
     // --- State Management ---
     let currentUser = null;
     let allWorks = [];
-    let currentStatusFilter = 'pending'; // Default tab
+    let currentStatusFilter = 'pending';
 
     // =================================================================
     // SECTION A: INITIALIZATION & CORE LOGIC
@@ -67,14 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
             renderWorksByStatus(currentStatusFilter);
         } catch (error) {
             console.error("Error fetching works:", error);
-            workListContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load your works.</p>`;
+            workListContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load works. Ensure Firestore indexes are created.</p>`;
         } finally {
             loadingSpinner.style.display = 'none';
         }
     }
 
     // =================================================================
-    // SECTION B: UI RENDERING FUNCTIONS
+    // SECTION B: UI RENDERING & MODAL FUNCTIONS
     // =================================================================
 
     function renderWorksByStatus(status) {
@@ -90,22 +80,15 @@ document.addEventListener('DOMContentLoaded', () => {
             workListContainer.innerHTML = `<p class="text-gray-500 text-center py-8">No works found in this category.</p>`;
             return;
         }
-
         workListContainer.innerHTML = filteredWorks.map(work => createWorkCard(work)).join('');
     }
 
     function createWorkCard(work) {
         return `
             <div class="bg-dark-card border border-dark rounded-lg p-4 flex justify-between items-center">
-                <div>
-                    <p class="font-bold text-lg">${work.title}</p>
-                    <p class="text-sm text-gray-400">From: ${work.brandName} | Budget: ৳${work.budget}</p>
-                </div>
-                <button data-work-id="${work.id}" data-action="open-modal" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-4 rounded-md text-sm">
-                    Manage
-                </button>
-            </div>
-        `;
+                <div><p class="font-bold text-lg">${work.title}</p><p class="text-sm text-gray-400">From: ${work.brandName} | Budget: ৳${work.budget}</p></div>
+                <button data-work-id="${work.id}" data-action="open-modal" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-4 rounded-md text-sm">Manage</button>
+            </div>`;
     }
     
     function openWorkModal(workId) {
@@ -114,24 +97,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getElement('modal-title').textContent = work.title;
         const modalBody = getElement('modal-body');
-        
         let content = `<p class="text-gray-400 mb-4">${work.description}</p><p><strong>Budget:</strong> ৳${work.budget}</p><hr class="border-dark my-4">`;
         
         switch (work.status) {
             case 'pending':
-                content += `<p class="font-semibold mb-2">Do you want to accept this job?</p><div class="flex space-x-3"><button data-action="update-status" data-work-id="${work.id}" data-new-status="in-progress" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Accept Job</button><button data-action="update-status" data-work-id="${work.id}" data-new-status="rejected-by-influencer" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Reject</button></div>`;
+                content += `<p class="font-semibold mb-2">Do you want to accept this job?</p><div class="flex space-x-3"><button data-action="update-status" data-work-id="${work.id}" data-new-status="in-progress" class="bg-green-600 ...">Accept Job</button><button data-action="update-status" data-work-id="${work.id}" data-new-status="rejected-by-influencer" class="bg-red-600 ...">Reject</button></div>`;
                 break;
             case 'in-progress':
-                content += `<p class="font-semibold mb-2">Confirm you have started the work:</p><textarea class="js-note-input w-full p-2 bg-gray-800 border border-gray-600 rounded mb-2" placeholder="Any initial notes? (optional)"></textarea><label class="block text-sm mb-2">Add a screenshot (optional):<input type="file" class="js-screenshot-input mt-1 block w-full text-sm"></label><button data-action="submit-update" data-work-id="${work.id}" data-type="started" class="bg-mulberry hover:bg-mulberry-dark text-white py-2 px-4 rounded">Mark as Started</button>`;
+                content += `<p class="font-semibold mb-2">Confirm start:</p><textarea class="js-note-input w-full p-2 bg-gray-800 ..."></textarea><input type="file" class="js-screenshot-input mt-1 ..."><button data-action="submit-update" data-work-id="${work.id}" data-type="started" class="bg-mulberry ...">Mark as Started</button>`;
                 break;
             case 'started-confirmation':
-                content += `<p class="font-semibold mb-2">Submit your final work for approval:</p><textarea class="js-note-input w-full p-2 bg-gray-800 border border-gray-600 rounded mb-2" placeholder="Final delivery notes and links..."></textarea><label class="block text-sm mb-2">Add final screenshot/proof (required):<input type="file" class="js-screenshot-input mt-1 block w-full text-sm"></label><button data-action="submit-update" data-work-id="${work.id}" data-type="completed" class="bg-mulberry hover:bg-mulberry-dark text-white py-2 px-4 rounded">Mark as Complete</button>`;
+                content += `<p class="font-semibold mb-2">Submit final work:</p><textarea class="js-note-input w-full p-2 bg-gray-800 ..."></textarea><input type="file" class="js-screenshot-input mt-1 ..."><button data-action="submit-update" data-work-id="${work.id}" data-type="completed" class="bg-mulberry ...">Mark as Complete</button>`;
                 break;
             case 'submitted-for-review':
-                content += `<p class="text-yellow-400 font-semibold">Your work is under review by the brand. Please wait for confirmation.</p>`;
+                content += `<p class="text-yellow-400 font-semibold">Work is under review.</p>`;
                 break;
             case 'completed':
-                content += `<p class="text-green-400 font-semibold">This work has been successfully completed and approved!</p>`;
+                content += `<p class="text-green-400 font-semibold">Work completed!</p>`;
                 break;
             default:
                 content += `<p class="text-gray-400">Status: ${work.status}</p>`;
@@ -152,11 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
 
     async function updateWorkStatus(workId, newStatus) {
-        if (!confirm(`Are you sure you want to update the status to: ${newStatus}?`)) return;
+        if (!confirm(`Are you sure you want to update status to: ${newStatus}?`)) return;
         const workRef = doc(db, 'works', workId);
         try {
             await updateDoc(workRef, { status: newStatus });
-            alert(`Work status updated successfully!`);
+            alert(`Work status updated!`);
             closeModal();
             await fetchAllWorks();
         } catch (error) {
@@ -171,13 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const screenshotInput = modalBody.querySelector('.js-screenshot-input');
         
         if (!noteInput || !screenshotInput) {
-            
+            alert("Submission failed: UI components are missing."); return;
         }
         
         const note = noteInput.value.trim();
         const file = screenshotInput.files[0];
         
         if (type === 'completed' && !file && !note) {
+            alert("Please provide a submission link/note or upload a screenshot."); return;
         }
 
         submitButton.disabled = true;
@@ -189,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 screenshotUrl = await uploadImage(file);
             }
             
-            const submission = { type, note, screenshotUrl, timestamp: serverTimestamp() };
+            const submission = { type, note, screenshotUrl, timestamp: new Date() }; // Using client time
             const workRef = doc(db, 'works', workId);
             await updateDoc(workRef, {
                 submissions: arrayUnion(submission),
@@ -209,75 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-// static/pf_influencer_inbox.js
-
-// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
-
-/**
- * Submits an update with notes and screenshots.
- * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
- */
-window.submitUpdate = async (workId, type, submitButton) => {
-    const modalBody = getElement('modal-body');
-    const noteInput = modalBody.querySelector('.js-note-input');
-    const screenshotInput = modalBody.querySelector('.js-screenshot-input');
-    
-    // ... (Validation and button disabling logic from previous answer) ...
-    if (!noteInput || !screenshotInput) {
-        alert("Submission failed: UI components are missing."); return;
-    }
-    const note = noteInput.value.trim();
-    const file = screenshotInput.files[0];
-    if (type === 'completed' && !file && !note) {
-        alert("Please provide a submission link/note or upload a screenshot."); return;
-    }
-    submitButton.disabled = true;
-    submitButton.textContent = 'Submitting...';
-
-
-    try {
-        let screenshotUrl = null;
-        if (file) {
-            screenshotUrl = await uploadImage(file);
-        }
-        
-        // --- THIS IS THE KEY FIX ---
-        // Replace serverTimestamp() with a client-side JavaScript Date object.
-        const submission = { 
-            type: type, 
-            note: note, 
-            screenshotUrl: screenshotUrl, 
-            timestamp: new Date() // Use client's current time
-        };
-        // -------------------------
-
-        const workRef = doc(db, 'works', workId);
-        await updateDoc(workRef, {
-            submissions: arrayUnion(submission),
-            status: type === 'started' ? 'started-confirmation' : 'submitted-for-review'
-        });
-
-        alert('Update submitted successfully!');
-        closeModal();
-        await fetchAllWorks();
-
-    } catch (error) {
-        console.error("Error submitting update:", error);
-        alert(`Submission failed: ${error.message}`);
-    } finally {
-        if (submitButton) {
-            submitButton.disabled = false;
-            // Re-enable the button with the correct text
-            const buttonText = type === 'started' ? 'Mark as Started' : 'Mark as Complete';
-            submitButton.textContent = buttonText;
-        }
-    }
-};
-
-// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
     
     async function uploadImage(file) {
-        const IMGBB_API_KEY = '5e7311818264c98ebf4a79dbb58b55aa'; // Ensure this is correct
+        const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY'; // Ensure this is correct
         const formData = new FormData();
         formData.append('image', file);
         const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
@@ -290,25 +207,21 @@ window.submitUpdate = async (workId, type, submitButton) => {
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         
-        // --- Tab Switching ---
         if (target.matches('.tab-btn')) {
             tabs.forEach(t => t.classList.remove('active'));
             target.classList.add('active');
             renderWorksByStatus(target.dataset.status);
         }
 
-        // --- Open Modal ---
         const openModalBtn = target.closest('[data-action="open-modal"]');
         if (openModalBtn) {
             openWorkModal(openModalBtn.dataset.workId);
         }
         
-        // --- Close Modal ---
         if (target.id === 'close-modal-btn' || target.closest('#close-modal-btn')) {
             closeModal();
         }
 
-        // --- Actions inside Modal ---
         const actionButton = target.closest('button[data-action]');
         if (actionButton) {
             const { action, workId, newStatus, type } = actionButton.dataset;
@@ -320,8 +233,8 @@ window.submitUpdate = async (workId, type, submitButton) => {
             }
         }
 
-        // --- Logout Button ---
-        if (target.id === 'logout-btn' || target.closest('#logout-btn')) {
+        const logoutBtn = getElement('logout-btn');
+        if (logoutBtn && (target.id === 'logout-btn' || target.closest('#logout-btn'))) {
             signOut(auth);
         }
     });
