@@ -87,40 +87,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function displayProposals(postId) {
-        console.log(`DEBUG: displayProposals -> Fetching for PostID: ${postId}`);
-        try {
-            const proposalsRef = collection(db, 'proposals');
-            const q = query(proposalsRef, where("brandId", "==", currentUser.uid), where("postId", "==", postId), where("status", "==", "pending"));
-            const snapshot = await getDocs(q);
-            console.log(`DEBUG: displayProposals -> Found ${snapshot.size} proposals.`);
+    // static/pf_brand_inbox.js
 
-            if (snapshot.empty) {
-                detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Proposals</h3><p class="text-gray-500">No pending proposals for this job yet.</p>`;
-                return;
-            }
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
 
-            const proposalPromises = snapshot.docs.map(async (propDoc) => {
-                const proposal = { id: propDoc.id, ...propDoc.data() };
-                const userRef = doc(db, 'users', proposal.influencerId);
-                const userSnap = await getDoc(userRef);
-                proposal.influencerData = userSnap.exists() ? userSnap.data() : null;
-                return proposal;
-            });
+/**
+ * Fetches and displays proposals for a selected job post.
+ * THIS IS THE UPDATED AND BUG-FREE FUNCTION WITH CORRECT ORDER.
+ */
+async function displayProposals(postId) {
+    console.log(`DEBUG: displayProposals -> Fetching for PostID: ${postId}`);
+    try {
+        const proposalsRef = collection(db, 'proposals');
+        const q = query(proposalsRef, where("brandId", "==", currentUser.uid), where("postId", "==", postId), where("status", "==", "pending"));
+        const snapshot = await getDocs(q);
 
-            const proposals = await Promise.all(proposals);
+        console.log(`DEBUG: displayProposals -> Found ${snapshot.size} pending proposals.`);
 
-            detailsContent.innerHTML = `
-                <h3 class="text-xl font-semibold mb-4">Proposals Received (${proposals.length})</h3>
-                <div class="space-y-4">
-                    ${proposals.map(p => createProposalCard(p, postId)).join('')}
-                </div>`;
-        } catch (error) {
-            console.error("DEBUG: displayProposals -> CRITICAL ERROR:", error);
-            detailsContent.innerHTML = `<p class="text-red-500">Could not load proposals. Error: ${error.message}</p>`;
+        if (snapshot.empty) {
+            detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Proposals</h3><p class="text-gray-500">No pending proposals for this job yet.</p>`;
+            return;
         }
+
+        // --- THIS IS THE KEY FIX: DECLARE AND INITIALIZE BEFORE USE ---
+
+        // Step 1: Create promises to fetch influencer data for each proposal.
+        const proposalPromises = snapshot.docs.map(async (propDoc) => {
+            const proposal = { id: propDoc.id, ...propDoc.data() };
+            const userRef = doc(db, 'users', proposal.influencerId);
+            const userSnap = await getDoc(userRef);
+            proposal.influencerData = userSnap.exists() ? userSnap.data() : null;
+            return proposal;
+        });
+
+        // Step 2: Wait for all promises to resolve. Now the 'proposals' variable is ready.
+        const proposals = await Promise.all(proposalPromises);
+        console.log(`DEBUG: displayProposals -> Successfully fetched data for ${proposals.length} proposals.`);
+
+        // Step 3: Now that 'proposals' is initialized, we can safely use it.
+        let proposalsHTML = `<h3 class="text-xl font-semibold mb-4">Proposals Received (${proposals.length})</h3><div class="space-y-4">`;
+        proposalsHTML += proposals.map(p => createProposalCard(p, postId)).join('');
+        proposalsHTML += `</div>`;
+        
+        detailsContent.innerHTML = proposalsHTML;
+
+    } catch (error) {
+        console.error("DEBUG: displayProposals -> CRITICAL ERROR:", error);
+        detailsContent.innerHTML = `<p class="text-red-500">Could not load proposals. Error: ${error.message}</p>`;
     }
-    
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে, যেমন createProposalCard, displayWorkDetails ইত্যাদি)
     function createProposalCard(proposal, postId) {
         const influencerId = proposal.influencerId;
         const profile = proposal.influencerData?.influencerApplication?.page;
