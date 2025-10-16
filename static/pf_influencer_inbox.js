@@ -171,14 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const screenshotInput = modalBody.querySelector('.js-screenshot-input');
         
         if (!noteInput || !screenshotInput) {
-            alert("Submission failed: UI components are missing."); return;
+            
         }
         
         const note = noteInput.value.trim();
         const file = screenshotInput.files[0];
         
         if (type === 'completed' && !file && !note) {
-            alert("Please provide a submission link/note or upload a screenshot."); return;
         }
 
         submitButton.disabled = true;
@@ -210,7 +209,73 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+// static/pf_influencer_inbox.js
 
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Submits an update with notes and screenshots.
+ * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
+ */
+window.submitUpdate = async (workId, type, submitButton) => {
+    const modalBody = getElement('modal-body');
+    const noteInput = modalBody.querySelector('.js-note-input');
+    const screenshotInput = modalBody.querySelector('.js-screenshot-input');
+    
+    // ... (Validation and button disabling logic from previous answer) ...
+    if (!noteInput || !screenshotInput) {
+        alert("Submission failed: UI components are missing."); return;
+    }
+    const note = noteInput.value.trim();
+    const file = screenshotInput.files[0];
+    if (type === 'completed' && !file && !note) {
+        alert("Please provide a submission link/note or upload a screenshot."); return;
+    }
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+
+
+    try {
+        let screenshotUrl = null;
+        if (file) {
+            screenshotUrl = await uploadImage(file);
+        }
+        
+        // --- THIS IS THE KEY FIX ---
+        // Replace serverTimestamp() with a client-side JavaScript Date object.
+        const submission = { 
+            type: type, 
+            note: note, 
+            screenshotUrl: screenshotUrl, 
+            timestamp: new Date() // Use client's current time
+        };
+        // -------------------------
+
+        const workRef = doc(db, 'works', workId);
+        await updateDoc(workRef, {
+            submissions: arrayUnion(submission),
+            status: type === 'started' ? 'started-confirmation' : 'submitted-for-review'
+        });
+
+        alert('Update submitted successfully!');
+        closeModal();
+        await fetchAllWorks();
+
+    } catch (error) {
+        console.error("Error submitting update:", error);
+        alert(`Submission failed: ${error.message}`);
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            // Re-enable the button with the correct text
+            const buttonText = type === 'started' ? 'Mark as Started' : 'Mark as Complete';
+            submitButton.textContent = buttonText;
+        }
+    }
+};
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
+    
     async function uploadImage(file) {
         const IMGBB_API_KEY = '5e7311818264c98ebf4a79dbb58b55aa'; // Ensure this is correct
         const formData = new FormData();
