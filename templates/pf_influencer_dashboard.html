@@ -3,46 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Balance - AnyShop/PROFITFLUENCE</title>
+    <title>Dashboard - PROFITFLUENCE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        body {
-            background-color: #f3f4f6; /* light gray */
-            font-family: 'Raleway', sans-serif;
-        }
-        .balance-card {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed); /* indigo to purple */
-        }
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; }
+        .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .bg-dark-card { background-color: #111827; }
+        .border-dark { border-color: #374151; }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body class="antialiased">
 
-    <div id="loading-container" class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
-        <p class="mt-4 text-gray-600">Loading your details...</p>
-    </div>
+    <!-- Simple Header -->
+    <header class="bg-black border-b border-dark p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/pf" class="text-xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <button id="logout-btn" class="text-sm font-semibold text-red-400 hover:text-red-300 flex items-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </div>
+    </header>
 
-    <!-- Main Content (Initially Hidden) -->
-    <div id="content-container" class="hidden w-full max-w-md p-8">
-        <div class="balance-card text-white p-8 rounded-xl shadow-2xl">
-            <p class="text-lg opacity-80">Welcome back,</p>
-            <h1 id="user-name" class="text-3xl font-bold mt-1">User</h1>
+    <main class="container mx-auto p-6 max-w-2xl">
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center py-20">
+            <div id="loading-spinner" class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
+            <p id="loading-text" class="mt-4 text-gray-400">Loading your dashboard...</p>
+        </div>
+
+        <!-- Main Content (Initially Hidden) -->
+        <div id="dashboard-content" class="hidden space-y-8">
             
-            <hr class="my-6 border-white/20">
+            <!-- Welcome Header -->
+            <header class="flex items-center space-x-4">
+                <img id="profile-pic" src="https://via.placeholder.com/64" alt="Profile" class="w-16 h-16 rounded-full object-cover border-2 border-mulberry">
+                <div>
+                    <p class="text-gray-400">Welcome back,</p>
+                    <h1 id="user-name" class="text-2xl font-bold">Influencer</h1>
+                </div>
+            </header>
 
-            <p class="text-lg opacity-80">Your Available Wallet Balance</p>
-            <p id="wallet-balance" class="text-5xl font-extrabold mt-2">৳0.00</p>
+            <!-- Balance Card -->
+            <div class="bg-mulberry text-white p-6 rounded-lg shadow-lg">
+                <h3 class="font-semibold opacity-80">Available Balance</h3>
+                <p id="balance" class="text-4xl font-bold mt-2">৳0.00</p>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-dark-card border border-dark p-4 rounded-lg text-center">
+                    <h3 class="text-sm font-semibold text-gray-400">Works in Progress</h3>
+                    <p id="pending-works" class="text-3xl font-bold mt-2 text-yellow-400">0</p>
+                </div>
+                <div class="bg-dark-card border border-dark p-4 rounded-lg text-center">
+                    <h3 class="text-sm font-semibold text-gray-400">Works Completed</h3>
+                    <p id="works-completed" class="text-3xl font-bold mt-2 text-green-400">0</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="grid grid-cols-2 gap-4">
+                <a href="/pf/dashboard/withdraw" class="bg-green-600 hover:bg-green-700 text-white font-bold p-4 rounded-lg text-center transition">
+                    <i class="fas fa-wallet block mb-1"></i> Withdraw
+                </a>
+                <a href="/pf/influencer/inbox" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-4 rounded-lg text-center transition">
+                    <i class="fas fa-inbox block mb-1"></i> My Works
+                </a>
+                <a href="/pf/dashboard/i/ad" class="bg-gray-700 hover:bg-gray-600 text-white font-bold p-4 rounded-lg text-center transition col-span-2">
+                    <i class="fas fa-plus-circle block mb-1"></i> Post a New Service
+                </a>
+            </div>
         </div>
-        <div class="text-center mt-6">
-            <a href="/account" class="text-indigo-600 hover:underline font-semibold">Go to Full Dashboard</a>
-             <span class="mx-2 text-gray-400">|</span>
-            <button id="logout-btn" class="text-red-500 hover:underline font-semibold">Logout</button>
-        </div>
-    </div>
+    </main>
     
-    <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_influencer_dashboard.js"></script>
 </body>
 </html>
