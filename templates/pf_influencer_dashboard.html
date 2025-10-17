@@ -40,17 +40,22 @@
 
             <!-- Dashboard Content (Initially Hidden) -->
             <div id="dashboard-content" class="hidden">
-                <!-- Header -->
-                <header class="flex justify-between items-center mb-10">
-                    <div>
-                        <h1 class="text-3xl font-bold">Dashboard</h1>
-                        <p class="text-gray-400">Welcome back, <span id="user-name" class="font-semibold"></span>!</p>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <a href="/pf/influencer/your_id" id="view-profile-link" target="_blank" class="text-sm font-semibold hover:text-mulberry">View Public Profile</a>
-                        <img id="profile-pic-header" src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full object-cover">
-                    </div>
-                </header>
+               <!-- templates/pf_influencer_dashboard.html (হেডার সেকশন আপডেট করুন) -->
+
+<!-- Header -->
+<header class="flex justify-between items-center mb-10">
+    <div>
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <!-- **FIX**: Added id="user-name" -->
+        <p class="text-gray-400">Welcome back, <span id="user-name" class="font-semibold">User</span>!</p>
+    </div>
+    <div class="flex items-center space-x-4">
+        <!-- **FIX**: Added id="view-profile-link" -->
+        <a href="#" id="view-profile-link" target="_blank" class="text-sm font-semibold hover:text-mulberry">View Public Profile</a>
+        <!-- **FIX**: Added id="profile-pic-header" -->
+        <img id="profile-pic-header" src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+    </div>
+</header>
                 
                 <!-- Main Grid Layout -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
