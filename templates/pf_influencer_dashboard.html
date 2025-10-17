@@ -6,102 +6,54 @@
     <title>Dashboard - PROFITFLUENCE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
-        .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
-        .bg-dark-card { background-color: #111827; } .border-dark { border-color: #374151; }
-        .sidebar-link.active { background-color: #7d285d; color: white; }
+        .bg-mulberry { background-color: #7d285d; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div class="flex min-h-screen">
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-black border-r border-dark p-6 hidden md:flex flex-col">
-            <a href="/pf" class="text-2xl font-black tracking-wider uppercase mb-10">PROFITFLUENCE</a>
-            <nav class="flex flex-col space-y-3 font-semibold">
-                <a href="/pf/dashboard/i" class="sidebar-link active flex items-center p-3 rounded-md"><i class="fas fa-tachometer-alt fa-fw w-6 mr-2"></i><span>Dashboard</span></a>
-                <a href="/pf/dashboard/i/ad" class="sidebar-link flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-plus-circle fa-fw w-6 mr-2"></i><span>Post Service</span></a>
-                <a href="/pf/influencer/inbox" class="sidebar-link flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-inbox fa-fw w-6 mr-2"></i><span>My Works</span></a>
-                <a href="/pf/dashboard/withdraw" class="sidebar-link flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-wallet fa-fw w-6 mr-2"></i><span>Withdraw</span></a>
-                <a href="/pf/dashboard/settings" class="sidebar-link flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-cog fa-fw w-6 mr-2"></i><span>Settings</span></a>
-            </nav>
-            <div class="mt-auto"><button id="logout-btn" class="w-full sidebar-link flex items-center p-3 rounded-md text-red-400 hover:bg-red-900/50"><i class="fas fa-sign-out-alt fa-fw w-6 mr-2"></i><span>Logout</span></button></div>
-        </aside>
+    <!-- Simple Header -->
+    <header class="bg-gray-900 border-b border-gray-700 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <span class="text-xl font-bold">Influencer Dashboard</span>
+            <button id="logout-btn" class="text-sm text-red-400 hover:text-red-300">Logout</button>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-6 md:p-10 bg-gray-900/50">
-            <!-- Loading State -->
-            <div id="loading-container" class="flex justify-center items-center h-full">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-mulberry"></div>
+    <main class="container mx-auto p-6">
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center py-20">
+            <p id="loading-text">Loading Dashboard...</p>
+        </div>
+
+        <!-- Main Content (Initially Hidden) -->
+        <div id="dashboard-content" class="hidden space-y-8">
+            <!-- Welcome Header -->
+            <div>
+                <h1 class="text-3xl font-bold">Welcome, <span id="user-name">User</span>!</h1>
+                <p class="text-gray-400">Here is a summary of your account.</p>
             </div>
 
-            <!-- Dashboard Content (Initially Hidden) -->
-            <div id="dashboard-content" class="hidden">
-               <!-- templates/pf_influencer_dashboard.html (হেডার সেকশন আপডেট করুন) -->
-<!-- templates/pf_influencer_dashboard.html (হেডার সেকশন আপডেট করুন) -->
-
-<!-- Header -->
-<header class="flex justify-between items-center mb-10">
-    <div>
-        <h1 class="text-3xl font-bold">Dashboard</h1>
-        <!-- **FIX**: Added id="user-name" -->
-        <p class="text-gray-400">Welcome back, <span id="user-name" class="font-semibold">User</span>!</p>
-    </div>
-    <div class="flex items-center space-x-4">
-        <!-- **FIX**: Added id="view-profile-link" -->
-        <a href="#" id="view-profile-link" target="_blank" class="text-sm font-semibold hover:text-mulberry">View Public Profile</a>
-        <!-- **FIX**: Added id="profile-pic-header" -->
-        <img id="profile-pic-header" src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full object-cover">
-    </div>
-</header>
-                <!-- Main Grid Layout -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left Column -->
-                    <div class="lg:col-span-2 space-y-8">
-                        <!-- Stats Cards -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div class="bg-dark-card border border-dark p-6 rounded-xl"><h3 class="text-sm font-semibold text-gray-400">Available Balance</h3><p id="balance" class="text-3xl font-bold mt-2">৳0.00</p></div>
-                            <div class="bg-dark-card border border-dark p-6 rounded-xl"><h3 class="text-sm font-semibold text-gray-400">Works in Progress</h3><p id="pending-works" class="text-3xl font-bold mt-2">0</p></div>
-                            <div class="bg-dark-card border border-dark p-6 rounded-xl"><h3 class="text-sm font-semibold text-gray-400">Total Works Done</h3><p id="works-completed" class="text-3xl font-bold mt-2">0</p></div>
-                        </div>
-
-                        <!-- Earnings Chart -->
-                        <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                            <h2 class="text-xl font-semibold mb-4">Earnings Overview (Last 6 Months)</h2>
-                            <canvas id="earnings-chart" class="w-full"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column -->
-                    <div class="lg:col-span-1 space-y-8">
-                        <!-- Quick Actions -->
-                        <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                            <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
-                            <div class="space-y-3">
-                                <a href="/pf/dashboard/withdraw" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-md transition">Withdraw Balance</a>
-                                <a href="/pf/dashboard/i/ad" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md transition">Post a New Service</a>
-                            </div>
-                        </div>
-                        
-                        <!-- Recent Activity/Notifications -->
-                        <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                            <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
-                            <div id="recent-activity-list" class="space-y-4 max-h-80 overflow-y-auto">
-                                <p class="text-gray-500">No recent activity.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Balance Card -->
+            <div class="bg-mulberry text-white p-6 rounded-lg shadow-lg">
+                <h3 class="font-semibold">Available Balance</h3>
+                <p id="balance" class="text-4xl font-bold mt-2">৳0.00</p>
+                <a href="/pf/dashboard/withdraw" class="inline-block mt-4 bg-white text-mulberry font-bold py-2 px-4 rounded-md text-sm">Withdraw Funds</a>
             </div>
-        </main>
-    </div>
+
+            <!-- Links to other pages -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <a href="/pf/dashboard/i/ad" class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700"><i class="fas fa-plus-circle block mb-2"></i>Post a Service</a>
+                <a href="/pf/influencer/inbox" class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700"><i class="fas fa-inbox block mb-2"></i>My Works</a>
+                <a href="/pf/dashboard/settings" class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700"><i class="fas fa-cog block mb-2"></i>Settings</a>
+                <a href="/pf" class="bg-gray-800 p-4 rounded-lg hover:bg-gray-700"><i class="fas fa-home block mb-2"></i>Home</a>
+            </div>
+        </div>
+    </main>
     
-    <!-- Chart.js for the earnings chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="/static/firebaseConfig.js"></script>
-    <script type="module" src="/static/pf_influencer_dashboard.js"></script>
+    <script type="module" src="/static/pf_influencer_dashboard_simple.js"></script>
 </body>
 </html>
