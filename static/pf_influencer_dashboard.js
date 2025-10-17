@@ -1,13 +1,18 @@
-// static/pf_influencer_dashboard_simple.js
+// static/pf_influencer_dashboard.js
 
-// --- Imports ---
+// --- Step 1: Import services FROM your firebaseConfig.js file ---
 import { auth, db } from './firebaseConfig.js';
+
+// --- Step 2: Import functions you need FROM the SDKs ---
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// This is the starting point of our script.
+// This log will only appear if the import from firebaseConfig.js was successful.
+console.log("--- DEBUG: pf_influencer_dashboard.js -> Script started, imports successful. ---");
+
+// --- Step 3: Main script execution block ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("--- Simple Dashboard Script Started ---");
+    console.log("--- DEBUG: pf_influencer_dashboard.js -> DOMContentLoaded Fired. ---");
 
     // --- DOM References ---
     const getElement = (id) => document.getElementById(id);
@@ -18,88 +23,69 @@ document.addEventListener('DOMContentLoaded', () => {
     const balanceEl = getElement('balance');
     const logoutBtn = getElement('logout-btn');
 
-    let unsubscribe = null; // To hold the listener cleanup function
+    if (!loadingContainer || !dashboardContent) {
+        console.error("CRITICAL: Loading or Dashboard container not found in HTML. Script cannot proceed.");
+        return;
+    }
+
+    let unsubscribe = null;
 
     // --- Authentication Check ---
     onAuthStateChanged(auth, (user) => {
-        console.log("--- Auth state changed. User object:", user);
+        console.log("--- DEBUG: Auth state changed. User:", user ? user.uid : "No user");
         
-        // Clean up any previous listener
-        if (unsubscribe) {
-            console.log("--- Cleaning up old listener.");
-            unsubscribe();
-        }
+        if (unsubscribe) unsubscribe();
 
         if (user) {
-            loadingText.textContent = "Authenticating user...";
+            loadingText.textContent = "Checking permissions...";
             const userRef = doc(db, 'users', user.uid);
 
-            // Use onSnapshot for REALTIME updates to the user's document
             unsubscribe = onSnapshot(userRef, (docSnap) => {
-                console.log("--- onSnapshot triggered. Document data received.");
+                console.log("--- DEBUG: onSnapshot triggered for user document.");
                 
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    console.log("--- User data:", userData);
+                    console.log("--- DEBUG: User data received:", userData);
 
-                    // --- Authorization Check ---
                     if (userData.role === 'influencer') {
-                        console.log("--- User is an influencer. Rendering dashboard.");
-                        // If the role is correct, update the UI
+                        console.log("--- DEBUG: Role is 'influencer'. Rendering dashboard.");
                         renderDashboard(userData);
                     } else {
-                        console.error("--- Access Denied: User is not an influencer.");
                         handleAccessDenied('You are not an approved influencer.');
                     }
                 } else {
-                    console.error("--- Access Denied: User document not found in Firestore.");
                     handleAccessDenied("Your user profile could not be found.");
                 }
             }, (error) => {
-                // This function handles errors from the listener itself (e.g., permissions)
-                console.error("--- onSnapshot ERROR:", error);
-                handleAccessDenied(`Error fetching your profile: ${error.message}`);
+                console.error("--- DEBUG: onSnapshot ERROR:", error);
+                handleAccessDenied(`Permission Error: ${error.message}`);
             });
 
         } else {
-            console.log("--- No user logged in. Redirecting to login page.");
             window.location.href = `/login?redirect=/pf/dashboard/i`;
         }
     });
 
-    /**
-     * Renders the dashboard with the provided user data.
-     * @param {object} userData - The real-time data of the influencer.
-     */
     function renderDashboard(userData) {
-        // Populate the UI
         if (userNameEl) userNameEl.textContent = userData.name || 'Influencer';
-        
-        // Safely get and format the balance
         if (balanceEl) {
             const balance = Number(userData.influencerBalance) || 0;
             balanceEl.textContent = `৳${balance.toFixed(2)}`;
-            console.log(`--- UI Updated. Balance set to: ৳${balance.toFixed(2)}`);
         }
-
-        // Show the dashboard and hide the loader
-        if (loadingContainer) loadingContainer.classList.add('hidden');
-        if (dashboardContent) dashboardContent.classList.remove('hidden');
+        loadingContainer.classList.add('hidden');
+        dashboardContent.classList.remove('hidden');
+        console.log("--- DEBUG: Dashboard UI Rendered Successfully! ---");
     }
 
-    /**
-     * Handles access denial by showing an error message.
-     */
     function handleAccessDenied(message) {
         if (unsubscribe) unsubscribe();
         document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-2xl text-red-500 font-bold">Access Denied</h1><p>${message}</p></div>`;
     }
 
-    // --- Logout Button ---
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if (unsubscribe) unsubscribe();
-            signOut(auth).catch(error => console.error('Logout Error:', error));
+            signOut(auth);
         });
     }
 });
