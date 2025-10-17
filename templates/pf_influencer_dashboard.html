@@ -22,15 +22,15 @@
         <!-- Sidebar Navigation -->
         <aside class="w-64 bg-black border-r border-dark p-6 hidden md:flex flex-col">
             <a href="/pf" class="text-2xl font-black tracking-wider uppercase mb-10">PROFITFLUENCE</a>
-            <nav class="flex flex-col space-y-3">
-                <a href="/pf/dashboard/i" class="flex items-center p-3 rounded-md bg-mulberry text-white"><i class="fas fa-tachometer-alt w-6"></i><span>Dashboard</span></a>
-                <a href="/pf/dashboard/i/ad" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-plus-circle w-6"></i><span>Post a Service</span></a>
-                <a href="/pf/dashboard/inbox" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-inbox w-6"></i><span>Inbox</span></a>
-                <a href="/pf/dashboard/withdraw" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-wallet w-6"></i><span>Withdraw</span></a>
-                <a href="/pf/dashboard/settings" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-cog w-6"></i><span>Settings</span></a>
+            <nav class="flex flex-col space-y-3 font-semibold">
+                <a href="/pf/dashboard/i" class="flex items-center p-3 rounded-md bg-mulberry text-white"><i class="fas fa-tachometer-alt fa-fw w-6 mr-2"></i><span>Dashboard</span></a>
+                <a href="/pf/dashboard/i/ad" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-plus-circle fa-fw w-6 mr-2"></i><span>Post a Service</span></a>
+                <a href="/pf/influencer/inbox" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-inbox fa-fw w-6 mr-2"></i><span>Inbox</span></a>
+                <a href="/pf/dashboard/withdraw" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-wallet fa-fw w-6 mr-2"></i><span>Withdraw</span></a>
+                <a href="/pf/dashboard/settings" class="flex items-center p-3 rounded-md hover:bg-dark-card"><i class="fas fa-cog fa-fw w-6 mr-2"></i><span>Settings</span></a>
             </nav>
             <div class="mt-auto">
-                <button id="logout-btn" class="w-full flex items-center p-3 rounded-md text-red-400 hover:bg-red-900/50"><i class="fas fa-sign-out-alt w-6"></i><span>Logout</span></button>
+                <button id="logout-btn" class="w-full flex items-center p-3 rounded-md text-red-400 hover:bg-red-900/50 font-semibold"><i class="fas fa-sign-out-alt fa-fw w-6 mr-2"></i><span>Logout</span></button>
             </div>
         </aside>
 
@@ -44,12 +44,12 @@
             <!-- Dashboard Content (Initially Hidden) -->
             <div id="dashboard-content" class="hidden">
                 <!-- Profile Header -->
-                <header class="flex items-center space-x-6 mb-10">
-                    <img id="profile-pic" src="https://via.placeholder.com/100" alt="Profile Picture" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-mulberry">
+                <header class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
+                    <img id="profile-pic" src="https://via.placeholder.com/120" alt="Profile Picture" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-mulberry">
                     <div>
-                        <h1 id="page-name" class="text-3xl md:text-4xl font-bold flex items-center">Page Name <i class="fas fa-check-circle text-blue-500 text-xl ml-3"></i></h1>
-                        <p id="category" class="text-gray-400 mt-1">Category</p>
-                        <p id="username" class="text-sm text-gray-500">@username</p>
+                        <h1 id="page-name" class="text-3xl md:text-4xl font-bold flex items-center text-center sm:text-left">Page Name <i class="fas fa-check-circle text-blue-500 text-xl ml-3"></i></h1>
+                        <p id="category" class="text-gray-400 mt-1 text-center sm:text-left">Category</p>
+                        <p id="username" class="text-sm text-gray-500 text-center sm:text-left">@username</p>
                         <button id="copy-profile-link" class="mt-3 text-xs bg-dark-card border border-dark px-3 py-1 rounded-full hover:border-mulberry">
                             <i class="fas fa-copy mr-2"></i>Copy Profile Link
                         </button>
@@ -78,26 +78,8 @@
 
                 <!-- Notice & Post List -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Notice Section -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                            <h2 class="text-xl font-semibold mb-4">Notice Board</h2>
-                            <div id="notice-list" class="space-y-3 text-sm text-gray-300">
-                                <p>Welcome to the new dashboard! Explore the features.</p>
-                                <p class="border-t border-dark pt-3">Withdrawal requests are processed every Thursday.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Post List -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-dark-card border border-dark p-6 rounded-xl">
-                            <h2 class="text-xl font-semibold mb-4">Your Recent Job Posts / Services</h2>
-                            <div id="post-list" class="space-y-4">
-                                <!-- JS will populate this -->
-                                <p class="text-gray-500">You haven't posted any services yet.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="lg:col-span-1"><div class="bg-dark-card border border-dark p-6 rounded-xl"><h2 class="text-xl font-semibold mb-4">Notice Board</h2><div id="notice-list" class="space-y-3 text-sm text-gray-300"><p>Welcome to your new dashboard!</p><p class="border-t border-dark pt-3">Withdrawal requests are processed every Thursday.</p></div></div></div>
+                    <div class="lg:col-span-2"><div class="bg-dark-card border border-dark p-6 rounded-xl"><h2 class="text-xl font-semibold mb-4">Your Recent Services</h2><div id="post-list" class="space-y-4"></div></div></div>
                 </div>
             </div>
         </main>
@@ -106,4 +88,4 @@
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_influencer_dashboard.js"></script>
 </body>
-</html>
+                </html>
