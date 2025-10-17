@@ -88,25 +88,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    /**
-     * Populates the profile header section.
-     */
-    function populateProfileHeader(userData) {
-        const profile = userData.influencerApplication?.page;
-        if (!profile) return;
-        
-        profilePic.src = profile.pageProfilePicUrl || 'https://via.placeholder.com/100';
-        pageName.textContent = profile.pageName || 'No Name';
-        categoryEl.textContent = profile.category || 'No Category';
-        usernameEl.textContent = `@${userData.name || 'username'}`;
+   // static/pf_influencer_dashboard.js
 
-        copyLinkBtn.onclick = () => {
-            const profileUrl = `${window.location.origin}/pf/influencer/${userData.id}`;
-            navigator.clipboard.writeText(profileUrl).then(() => {
-                alert('Profile link copied!');
-            });
-        };
-    }
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Populates the main stats cards with data.
+ * THIS IS THE UPDATED AND BULLETPROOF FUNCTION.
+ */
+function populateStatsCards(influencerData, stats) {
+    console.log("DEBUG: Populating stats cards with data:", { influencerData, stats });
+
+    // --- THIS IS THE KEY FIX ---
+    // Safely get and format each value, providing a default of 0 if undefined or not a number.
+    
+    // Fix for Available Balance
+    const balance = Number(influencerData.influencerBalance) || 0;
+    balanceEl.textContent = `৳${balance.toFixed(2)}`;
+    console.log(`DEBUG: Available Balance set to: ৳${balance.toFixed(2)}`);
+
+    // Fix for Works Completed
+    const completed = Number(stats?.completed) || 0; // Use optional chaining for safety
+    getElement('works-completed').textContent = completed;
+    console.log(`DEBUG: Works Completed set to: ${completed}`);
+
+    // Fix for Total Earned
+    const earned = Number(stats?.totalEarned) || 0;
+    totalEarnedEl.textContent = `৳${earned.toFixed(2)}`;
+    console.log(`DEBUG: Total Earned set to: ৳${earned.toFixed(2)}`);
+
+    // Fix for Pending Works
+    const pending = Number(stats?.pending) || 0;
+    pendingWorksEl.textContent = pending;
+    console.log(`DEBUG: Pending Works set to: ${pending}`);
+}
+
+// ... (ফাইলের বাকি অংশ আগের মতোই থাকবে)
     
     /**
      * Populates the main stats cards.
