@@ -1,179 +1,104 @@
-// static/pf_influencer_dashboard.js
+// static/pf_influencer_dashboard_simple.js
 
-// --- Step 1: Import all necessary functions and services from Firebase ---
+// --- Imports ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { 
-    doc, getDoc, collection, query, where, getDocs, orderBy, limit, 
-    onSnapshot // Realtime listener import
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
+// This is the starting point of our script.
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Step 2: DOM Element References ---
+    console.log("--- Simple Dashboard Script Started ---");
+
+    // --- DOM References ---
     const getElement = (id) => document.getElementById(id);
     const loadingContainer = getElement('loading-container');
+    const loadingText = getElement('loading-text');
     const dashboardContent = getElement('dashboard-content');
-    const profilePic = getElement('profile-pic');
-    const pageName = getElement('page-name');
-    const categoryEl = getElement('category');
-    const usernameEl = getElement('username');
-    const copyLinkBtn = getElement('copy-profile-link');
+    const userNameEl = getElement('user-name');
     const balanceEl = getElement('balance');
-    const worksCompletedEl = getElement('works-completed');
-    const totalEarnedEl = getElement('total-earned');
-    const pendingWorksEl = getElement('pending-works');
-    const postList = getElement('post-list');
     const logoutBtn = getElement('logout-btn');
 
-    let unsubscribeUserListener = null; // To hold the cleanup function for the listener
+    let unsubscribe = null; // To hold the listener cleanup function
 
-    // --- Step 3: Authentication and Authorization Check with Realtime Listener ---
+    // --- Authentication Check ---
     onAuthStateChanged(auth, (user) => {
-        if (unsubscribeUserListener) unsubscribeUserListener(); // Clean up previous listener
+        console.log("--- Auth state changed. User object:", user);
+        
+        // Clean up any previous listener
+        if (unsubscribe) {
+            console.log("--- Cleaning up old listener.");
+            unsubscribe();
+        }
 
         if (user) {
+            loadingText.textContent = "Authenticating user...";
             const userRef = doc(db, 'users', user.uid);
-            
-            // onSnapshot listens for any changes to the user's document in realtime
-            unsubscribeUserListener = onSnapshot(userRef, (docSnap) => {
-                console.log("DEBUG: Realtime user data updated.");
+
+            // Use onSnapshot for REALTIME updates to the user's document
+            unsubscribe = onSnapshot(userRef, (docSnap) => {
+                console.log("--- onSnapshot triggered. Document data received.");
+                
                 if (docSnap.exists()) {
-                    const userData = { id: docSnap.id, ...docSnap.data() };
+                    const userData = docSnap.data();
+                    console.log("--- User data:", userData);
+
+                    // --- Authorization Check ---
                     if (userData.role === 'influencer') {
-                        // If role is correct, load/update the entire dashboard
-                        loadDashboard(userData);
+                        console.log("--- User is an influencer. Rendering dashboard.");
+                        // If the role is correct, update the UI
+                        renderDashboard(userData);
                     } else {
+                        console.error("--- Access Denied: User is not an influencer.");
                         handleAccessDenied('You are not an approved influencer.');
                     }
                 } else {
+                    console.error("--- Access Denied: User document not found in Firestore.");
                     handleAccessDenied("Your user profile could not be found.");
                 }
             }, (error) => {
-                console.error("DEBUG: Error listening to user document:", error);
-                handleAccessDenied(error.message);
+                // This function handles errors from the listener itself (e.g., permissions)
+                console.error("--- onSnapshot ERROR:", error);
+                handleAccessDenied(`Error fetching your profile: ${error.message}`);
             });
+
         } else {
+            console.log("--- No user logged in. Redirecting to login page.");
             window.location.href = `/login?redirect=/pf/dashboard/i`;
         }
     });
-    
+
+    /**
+     * Renders the dashboard with the provided user data.
+     * @param {object} userData - The real-time data of the influencer.
+     */
+    function renderDashboard(userData) {
+        // Populate the UI
+        if (userNameEl) userNameEl.textContent = userData.name || 'Influencer';
+        
+        // Safely get and format the balance
+        if (balanceEl) {
+            const balance = Number(userData.influencerBalance) || 0;
+            balanceEl.textContent = `৳${balance.toFixed(2)}`;
+            console.log(`--- UI Updated. Balance set to: ৳${balance.toFixed(2)}`);
+        }
+
+        // Show the dashboard and hide the loader
+        if (loadingContainer) loadingContainer.classList.add('hidden');
+        if (dashboardContent) dashboardContent.classList.remove('hidden');
+    }
+
+    /**
+     * Handles access denial by showing an error message.
+     */
     function handleAccessDenied(message) {
-        if (unsubscribeUserListener) unsubscribeUserListener();
+        if (unsubscribe) unsubscribe();
         document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-2xl text-red-500 font-bold">Access Denied</h1><p>${message}</p></div>`;
     }
 
-    /**
-     * Main function to load/update all dashboard data.
-     * @param {object} influencerData - The influencer's real-time data from the 'users' document.
-     */
-    async function loadDashboard(influencerData) {
-        try {
-            // Populate profile header and balance from REALTIME data
-            populateProfileHeader(influencerData);
-            
-            // Fetch stats and posts, which don't need to be realtime for now
-            const [stats, posts] = await Promise.all([
-                fetchInfluencerStats(influencerData.id),
-                fetchInfluencerPosts(influencerData.id)
-            ]);
-            
-            populateStatsCards(influencerData, stats);
-            displayPosts(posts);
-
-            loadingContainer.classList.add('hidden');
-            dashboardContent.classList.remove('hidden');
-        } catch(error) {
-            console.error("Error loading dashboard components:", error);
-            dashboardContent.innerHTML = `<p class="text-red-500">${error.message}</p>`;
-        }
-    }
-    
-    /**
-     * Populates the profile header section.
-     */
-    function populateProfileHeader(userData) {
-        const profile = userData.influencerApplication?.page;
-        if (!profile) return;
-        
-        profilePic.src = profile.pageProfilePicUrl || 'https://via.placeholder.com/100';
-        pageName.textContent = profile.pageName || 'No Name';
-        categoryEl.textContent = profile.category || 'No Category';
-        usernameEl.textContent = `@${userData.name || 'username'}`;
-
-        copyLinkBtn.onclick = () => {
-            const profileUrl = `${window.location.origin}/pf/influencer/${userData.id}`;
-            navigator.clipboard.writeText(profileUrl).then(() => {
-                alert('Profile link copied!');
-            });
-        };
-    }
-    
-    /**
-     * Populates the main stats cards.
-     */
-    function populateStatsCards(influencerData, stats) {
-        // **THE FIX**: This now uses the real-time 'influencerData' from the listener
-        balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
-        
-        // These stats are still fetched once on load
-        worksCompletedEl.textContent = stats.completed;
-        totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
-        pendingWorksEl.textContent = stats.pending;
-    }
-
-    /**
-     * Fetches statistics about the influencer's work from the 'works' collection.
-     */
-    async function fetchInfluencerStats(userId) {
-        const worksRef = collection(db, 'works');
-        const q = query(worksRef, where("influencerId", "==", userId));
-        const snapshot = await getDocs(q);
-
-        let completed = 0, pending = 0, totalEarned = 0;
-        snapshot.forEach(doc => {
-            const work = doc.data();
-            if (work.status === 'completed') {
-                completed++;
-                // Calculate profit based on 90% of the budget
-                totalEarned += (Number(work.budget) || 0) * 0.90;
-            } else if (['pending', 'in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
-                pending++;
-            }
-        });
-        return { completed, pending, totalEarned };
-    }
-
-    /**
-     * Fetches the influencer's own service posts from the 'posts' collection.
-     */
-    async function fetchInfluencerPosts(userId) {
-        const postsRef = collection(db, 'posts');
-        const q = query(postsRef, where("authorId", "==", userId), where("type", "==", "service"), orderBy("createdAt", "desc"), limit(5));
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    /**
-     * Displays the influencer's posts in the list.
-     */
-    function displayPosts(posts) {
-        if (!posts || posts.length === 0) {
-            postList.innerHTML = `<p class="text-gray-500">You haven't posted any services yet. <a href="/pf/dashboard/i/ad" class="text-mulberry">Post one now!</a></p>`;
-            return;
-        }
-
-        postList.innerHTML = posts.map(post => `
-            <div class="border-b border-dark pb-3">
-                <a href="/pf/work/${post.id}" class="font-semibold hover:text-mulberry">${post.title}</a>
-                <p class="text-xs text-gray-400">Budget: ৳${post.budget} - Status: <span class="capitalize">${post.status || 'Active'}</span></p>
-            </div>
-        `).join('');
-    }
-
-    // --- Logout Button Event Listener ---
+    // --- Logout Button ---
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            if (unsubscribeUserListener) unsubscribeUserListener(); // Clean up listener on logout
+            if (unsubscribe) unsubscribe();
             signOut(auth).catch(error => console.error('Logout Error:', error));
         });
     }
