@@ -111,38 +111,61 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Populates the main stats cards.
      */
-    function populateStatsCards(influencerData, stats) {
-        // **THE FIX**: This now uses the real-time 'influencerData' from the listener
-        balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
-        
-        // These stats are still fetched once on load
-        worksCompletedEl.textContent = stats.completed;
-        totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
-        pendingWorksEl.textContent = stats.pending;
-    }
+// static/pf_influencer_dashboard.js
 
-    /**
-     * Fetches statistics about the influencer's work from the 'works' collection.
-     */
-    async function fetchInfluencerStats(userId) {
-        const worksRef = collection(db, 'works');
-        const q = query(worksRef, where("influencerId", "==", userId));
-        const snapshot = await getDocs(q);
+// ...
 
-        let completed = 0, pending = 0, totalEarned = 0;
-        snapshot.forEach(doc => {
-            const work = doc.data();
-            if (work.status === 'completed') {
-                completed++;
-                // Calculate profit based on 90% of the budget
-                totalEarned += (Number(work.budget) || 0) * 0.90;
-            } else if (['pending', 'in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
-                pending++;
-            }
-        });
-        return { completed, pending, totalEarned };
-    }
+/**
+ * Populates the main stats cards.
+ */
+function populateStatsCards(influencerData, stats) {
+    // Available Balance comes directly from the user's document (real-time)
+    balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
+    
+    // These stats are calculated from the 'works' collection
+    worksCompletedEl.textContent = stats.completed;
+    totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
+    pendingWorksEl.textContent = stats.pending;
+}
 
+/**
+ * Fetches statistics about the influencer's work from the 'works' collection.
+ */
+async function fetchInfluencerStats(userId) {
+    const worksRef = collection(db, 'works');
+    const q = query(worksRef, where("influencerId", "==", userId));
+    const snapshot = await getDocs(q);
+
+    let completed = 0;
+    let pending = 0;
+    let totalEarned = 0;
+
+    snapshot.forEach(doc => {
+        const work = doc.data();
+        // **FIX**: Only count profit for completed works towards total earned
+        if (work.status === 'completed') {
+            completed++;
+            // Calculate profit based on 90% of the budget
+            totalEarned += (Number(work.budget) || 0) * 0.90;
+        } else if (['pending', 'in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
+            pending++;
+        }
+    });
+    
+    // Fetch total withdrawn amount to show a more accurate "Total Earned"
+    const withdrawalsRef = collection(db, 'withdrawals');
+    const wq = query(withdrawalsRef, where("userId", "==", userId), where("status", "==", "paid"));
+    const wSnapshot = await getDocs(wq);
+    const totalWithdrawn = wSnapshot.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
+    
+    // Total Earned can be seen as (current balance + what they've already taken out)
+    // This provides a lifetime earning stat.
+    const currentBalanceFromDB = (await getDoc(doc(db, 'users', userId))).data().influencerBalance || 0;
+    totalEarned = currentBalanceFromDB + totalWithdrawn;
+
+    return { completed, pending, totalEarned };
+}
+    
     /**
      * Fetches the influencer's own service posts from the 'posts' collection.
      */
