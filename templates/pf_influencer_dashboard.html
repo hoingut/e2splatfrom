@@ -17,16 +17,22 @@
 </head>
 <body class="antialiased">
 
-    <!-- Simple Header -->
-    <header class="bg-black border-b border-dark p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/pf" class="text-xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
-            <button id="logout-btn" class="text-sm font-semibold text-red-400 hover:text-red-300 flex items-center">
-                <i class="fas fa-sign-out-alt mr-2"></i> Logout
-            </button>
-        </div>
-    </header>
+<!-- templates/pf_influencer_dashboard.html (হেডার সেকশন আপডেট করুন) -->
 
+<!-- Header -->
+<header class="flex justify-between items-center mb-10">
+    <div>
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <!-- **FIX**: Added id="user-name" -->
+        <p class="text-gray-400">Welcome back, <span id="user-name" class="font-semibold">User</span>!</p>
+    </div>
+    <div class="flex items-center space-x-4">
+        <!-- **FIX**: Added id="view-profile-link" -->
+        <a href="#" id="view-profile-link" target="_blank" class="text-sm font-semibold hover:text-mulberry">View Public Profile</a>
+        <!-- **FIX**: Added id="profile-pic-header" -->
+        <img id="profile-pic-header" src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+    </div>
+</header>
     <main class="container mx-auto p-6 max-w-2xl">
         <!-- Loading State -->
         <div id="loading-container" class="text-center py-20">
