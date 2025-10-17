@@ -13,29 +13,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const getElement = (id) => document.getElementById(id);
     const loadingContainer = getElement('loading-container');
     const dashboardContent = getElement('dashboard-content');
-    const affiliateName = getElement('affiliate-name');
-    const affiliateId = getElement('affiliate-id');
-    const affiliateBalance = getElement('affiliateBalancex');
-    const totalOrders = getElement('total-orders'); // Assuming this is works-completed
-    const totalEarned = getElement('total-earned');
-    const pendingWorks = getElement('pending-works');
-    const productsGrid = getElement('affiliate-products-grid'); // Assuming this is post-list
-    const logoutBtn = getElement('logout-btn');
-    const copyLinkBtn = getElement('copy-profile-link');
     const profilePic = getElement('profile-pic');
     const pageName = getElement('page-name');
     const categoryEl = getElement('category');
     const usernameEl = getElement('username');
+    const copyLinkBtn = getElement('copy-profile-link');
+    const balanceEl = getElement('balance');
+    const worksCompletedEl = getElement('works-completed');
+    const totalEarnedEl = getElement('total-earned');
+    const pendingWorksEl = getElement('pending-works');
     const postList = getElement('post-list');
+    const logoutBtn = getElement('logout-btn');
 
     let unsubscribeUserListener = null; // To hold the cleanup function for the listener
 
     // --- Step 3: Authentication and Authorization Check with Realtime Listener ---
     onAuthStateChanged(auth, (user) => {
-        // Cleanup previous listener if user logs out and logs back in without a page refresh
-        if (unsubscribeUserListener) {
-            unsubscribeUserListener();
-        }
+        if (unsubscribeUserListener) unsubscribeUserListener(); // Clean up previous listener
 
         if (user) {
             const userRef = doc(db, 'users', user.uid);
@@ -46,12 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (docSnap.exists()) {
                     const userData = { id: docSnap.id, ...docSnap.data() };
                     if (userData.role === 'influencer') {
+                        // If role is correct, load/update the entire dashboard
                         loadDashboard(userData);
                     } else {
                         handleAccessDenied('You are not an approved influencer.');
                     }
                 } else {
-                    handleAccessDenied("User document not found.");
+                    handleAccessDenied("Your user profile could not be found.");
                 }
             }, (error) => {
                 console.error("DEBUG: Error listening to user document:", error);
@@ -73,12 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     async function loadDashboard(influencerData) {
         try {
+            // Populate profile header and balance from REALTIME data
+            populateProfileHeader(influencerData);
+            
+            // Fetch stats and posts, which don't need to be realtime for now
             const [stats, posts] = await Promise.all([
                 fetchInfluencerStats(influencerData.id),
                 fetchInfluencerPosts(influencerData.id)
             ]);
             
-            populateProfileHeader(influencerData);
             populateStatsCards(influencerData, stats);
             displayPosts(posts);
 
@@ -102,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         categoryEl.textContent = profile.category || 'No Category';
         usernameEl.textContent = `@${userData.name || 'username'}`;
 
-        copyLinkBtn.onclick = () => { // Use onclick for simplicity here
+        copyLinkBtn.onclick = () => {
             const profileUrl = `${window.location.origin}/pf/influencer/${userData.id}`;
             navigator.clipboard.writeText(profileUrl).then(() => {
                 alert('Profile link copied!');
@@ -114,10 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * Populates the main stats cards.
      */
     function populateStatsCards(influencerData, stats) {
-        affiliateBalance.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
-        getElement('works-completed').textContent = stats.completed;
-        totalEarned.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
-        pendingWorks.textContent = stats.pending;
+        // **THE FIX**: This now uses the real-time 'influencerData' from the listener
+        balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
+        
+        // These stats are still fetched once on load
+        worksCompletedEl.textContent = stats.completed;
+        totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
+        pendingWorksEl.textContent = stats.pending;
     }
 
     /**
@@ -133,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const work = doc.data();
             if (work.status === 'completed') {
                 completed++;
-                totalEarned += Number(work.budget) * 0.90 || 0;
+                // Calculate profit based on 90% of the budget
+                totalEarned += (Number(work.budget) || 0) * 0.90;
             } else if (['pending', 'in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
                 pending++;
             }
