@@ -11,100 +11,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingContainer = getElement('loading-container');
     const dashboardContent = getElement('dashboard-content');
     const logoutBtn = getElement('logout-btn');
-
+    
     let unsubscribeUserListener = null;
+    let earningsChart = null; // To hold the chart instance
 
-    // --- Authentication and Authorization with Realtime Listener ---
+    // --- Authentication and Authorization Check ---
     onAuthStateChanged(auth, (user) => {
         if (unsubscribeUserListener) unsubscribeUserListener();
-
         if (user) {
             const userRef = doc(db, 'users', user.uid);
             unsubscribeUserListener = onSnapshot(userRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const userData = { id: docSnap.id, ...docSnap.data() };
-                    if (userData.role === 'influencer') {
-                        loadDashboard(userData);
-                    } else {
-                        handleAccessDenied('You are not an approved influencer.');
-                    }
+                if (docSnap.exists() && docSnap.data().role === 'influencer') {
+                    loadDashboard({ id: docSnap.id, ...docSnap.data() });
                 } else {
-                    handleAccessDenied("Your user profile could not be found.");
+                    handleAccessDenied('You are not an approved influencer.');
                 }
-            }, (error) => {
-                handleAccessDenied(error.message);
-            });
+            }, (error) => handleAccessDenied(error.message));
         } else {
             window.location.href = `/login?redirect=/pf/dashboard/i`;
         }
     });
-    
+
     function handleAccessDenied(message) {
         if (unsubscribeUserListener) unsubscribeUserListener();
-        document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-2xl text-red-500 font-bold">Access Denied</h1><p>${message}</p></div>`;
+        document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-red-500">${message}</h1></div>`;
     }
 
     /**
-     * Main function to load/update dashboard data.
-     * @param {object} influencerData - The influencer's real-time data.
+     * Main function to load/update all dashboard data.
      */
     async function loadDashboard(influencerData) {
         try {
-            // Fetch non-realtime data
-            const [stats, posts] = await Promise.all([
+            populateHeader(influencerData);
+            
+            const [stats, activities] = await Promise.all([
                 fetchInfluencerStats(influencerData.id),
-                fetchInfluencerPosts(influencerData.id)
+                fetchRecentActivity(influencerData.id)
             ]);
             
-            // Populate UI with both realtime and fetched data
-            populateProfileHeader(influencerData);
             populateStatsCards(influencerData, stats);
-            displayPosts(posts);
-
+            displayRecentActivity(activities);
+            renderEarningsChart(stats.monthlyEarnings);
+            
             loadingContainer.classList.add('hidden');
             dashboardContent.classList.remove('hidden');
         } catch(error) {
-            console.error("Error loading dashboard components:", error);
+            console.error("Error loading dashboard:", error);
             dashboardContent.innerHTML = `<p class="text-red-500">${error.message}</p>`;
         }
     }
     
-    /**
-     * Populates the profile header section.
-     */
-    function populateProfileHeader(userData) {
-        const profile = userData.influencerApplication?.page;
-        const profilePic = getElement('profile-pic');
-        const pageName = getElement('page-name');
-        const categoryEl = getElement('category');
-        const usernameEl = getElement('username');
-        const copyLinkBtn = getElement('copy-profile-link');
-        
-        if (profilePic) profilePic.src = profile?.pageProfilePicUrl || 'https://via.placeholder.com/120';
-        if (pageName) pageName.textContent = profile?.pageName || userData.name || 'No Page Name';
-        if (categoryEl) categoryEl.textContent = profile?.category || 'No Category';
-        if (usernameEl) usernameEl.textContent = `@${userData.name || 'username'}`;
-        if (copyLinkBtn) {
-            copyLinkBtn.onclick = () => {
-                const profileUrl = `${window.location.origin}/pf/influencer/${userData.id}`;
-                navigator.clipboard.writeText(profileUrl).then(() => alert('Profile link copied!'));
-            };
-        }
+    // --- UI Population Functions ---
+    function populateHeader(userData) {
+        getElement('user-name').textContent = userData.name || 'User';
+        getElement('profile-pic-header').src = userData.influencerApplication?.personal?.ownerPicUrl || 'https://via.placeholder.com/40';
+        getElement('view-profile-link').href = `/pf/influencer/${userData.id}`;
     }
     
-    /**
-     * Populates the main stats cards.
-     */
     function populateStatsCards(influencerData, stats) {
-        const balanceEl = getElement('balance');
-        const worksCompletedEl = getElement('works-completed');
-        const totalEarnedEl = getElement('total-earned');
-        const pendingWorksEl = getElement('pending-works');
-        
-        if (balanceEl) balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
-        if (worksCompletedEl) worksCompletedEl.textContent = stats.completed;
-        if (totalEarnedEl) totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
-        if (pendingWorksEl) pendingWorksEl.textContent = stats.pending;
+        getElement('balance').textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
+        getElement('pending-works').textContent = stats.pending;
+        getElement('works-completed').textContent = stats.completed;
     }
 
     /**
@@ -115,52 +82,91 @@ document.addEventListener('DOMContentLoaded', () => {
         const q = query(worksRef, where("influencerId", "==", userId));
         const snapshot = await getDocs(q);
 
-        let completed = 0, pending = 0, totalEarned = 0;
+        let completed = 0, pending = 0;
+        const monthlyEarnings = { Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0, Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0 };
+        const monthNames = Object.keys(monthlyEarnings);
+        
         snapshot.forEach(doc => {
             const work = doc.data();
-            if (work.status === 'completed') {
+            if (work.status === 'completed' && work.approvedAt) {
                 completed++;
-                totalEarned += (Number(work.budget) || 0) * 0.90;
-            } else if (['pending', 'in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
+                const profit = (Number(work.budget) || 0) * 0.90;
+                const approvalMonth = work.approvedAt.toDate().getMonth();
+                monthlyEarnings[monthNames[approvalMonth]] += profit;
+            } else if (['in-progress', 'started-confirmation', 'submitted-for-review'].includes(work.status)) {
                 pending++;
             }
         });
-        return { completed, pending, totalEarned };
+        return { completed, pending, monthlyEarnings };
     }
 
     /**
-     * Fetches the influencer's own service posts.
+     * Fetches recent activities (new works, completed works).
      */
-    async function fetchInfluencerPosts(userId) {
-        const postsRef = collection(db, 'posts');
-        const q = query(postsRef, where("authorId", "==", userId), where("type", "==", "service"), orderBy("createdAt", "desc"), limit(5));
+    async function fetchRecentActivity(userId) {
+        const worksRef = collection(db, 'works');
+        const q = query(worksRef, where("influencerId", "==", userId), orderBy("createdAt", "desc"), limit(5));
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return snapshot.docs.map(doc => doc.data());
     }
 
-    /**
-     * Displays the influencer's posts in the list.
-     */
-    function displayPosts(posts) {
-        const postList = getElement('post-list');
-        if (!postList) return;
-        if (!posts || posts.length === 0) {
-            postList.innerHTML = `<p class="text-gray-500">You haven't posted any services yet. <a href="/pf/dashboard/i/ad" class="text-mulberry">Post one now!</a></p>`;
+    function displayRecentActivity(activities) {
+        const listEl = getElement('recent-activity-list');
+        if (!activities || activities.length === 0) {
+            listEl.innerHTML = `<p class="text-gray-500">No recent activity.</p>`;
             return;
         }
-        postList.innerHTML = posts.map(post => `
-            <div class="border-b border-dark pb-3">
-                <a href="/pf/work/${post.id}" class="font-semibold hover:text-mulberry">${post.title}</a>
-                <p class="text-xs text-gray-400">Budget: ৳${post.budget} - Status: <span class="capitalize">${post.status || 'Active'}</span></p>
-            </div>
-        `).join('');
+        listEl.innerHTML = activities.map(act => {
+            const icon = act.status === 'completed' ? 'fa-check-circle text-green-400' : 'fa-hourglass-start text-yellow-400';
+            return `
+                <div class="flex items-start space-x-3">
+                    <i class="fas ${icon} mt-1"></i>
+                    <div>
+                        <p class="text-sm font-semibold">${act.title}</p>
+                        <p class="text-xs text-gray-400">Status: ${act.status.replace('-', ' ')}</p>
+                    </div>
+                </div>`;
+        }).join('');
     }
 
-    // --- Logout Button Event Listener ---
+    /**
+     * Renders the earnings chart using Chart.js.
+     */
+    function renderEarningsChart(monthlyEarnings) {
+        const ctx = getElement('earnings-chart').getContext('2d');
+        if (earningsChart) {
+            earningsChart.data.datasets[0].data = Object.values(monthlyEarnings);
+            earningsChart.update();
+            return;
+        }
+        earningsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(monthlyEarnings).slice(0, 6), // Show first 6 months
+                datasets: [{
+                    label: 'Earnings',
+                    data: Object.values(monthlyEarnings).slice(0, 6),
+                    backgroundColor: 'rgba(125, 40, 93, 0.6)', // Mulberry with opacity
+                    borderColor: '#7d285d',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: '#9CA3AF' } },
+                    x: { ticks: { color: '#9CA3AF' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Logout Button
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             if (unsubscribeUserListener) unsubscribeUserListener();
-            signOut(auth).catch(error => console.error('Logout Error:', error));
+            signOut(auth);
         });
     }
 });
