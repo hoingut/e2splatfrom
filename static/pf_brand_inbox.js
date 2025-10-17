@@ -255,22 +255,86 @@ async function displayProposals(postId) {
             alert("Failed to hire influencer.");
         }
     };
+
+/**
+ * Approves a completed work, updates its status, AND updates the influencer's balance.
+ * This function is now responsible for the payment release logic.
+ * It's attached to the 'window' object to be callable from inline HTML onclick.
+ */
+window.approveWork = async (workId) => {
+    if (!confirm('Are you sure you want to approve this submission and release payment? This action is final.')) return;
     
-    window.approveWork = async (workId) => {
-        if (!confirm('Are you sure you want to approve this submission and release payment?')) return;
-        
-        const workRef = doc(db, 'works', workId);
-        try {
-            await updateDoc(workRef, { status: 'completed', approvedAt: serverTimestamp() });
-            alert('Work approved! Payment will be released automatically by the server function.');
-            const workDoc = await getDoc(workRef);
-            if(workDoc.exists()) {
-                selectJob(workDoc.data().postId, 'completed');
-            }
-        } catch (error) {
-            console.error("DEBUG: approveWork -> CRITICAL ERROR:", error);
-            alert("Failed to approve work.");
+    const approveBtn = document.querySelector(`button[onclick="window.approveWork('${workId}')"]`);
+    if (approveBtn) {
+        approveBtn.disabled = true;
+        approveBtn.textContent = 'Processing...';
+    }
+
+    const workRef = doc(db, 'works', workId);
+
+    try {
+        // --- Step 1: Get the work details ---
+        const workDoc = await getDoc(workRef);
+        if (!workDoc.exists()) {
+            throw new Error("Work document not found. It may have been deleted.");
         }
-    };
+        const workData = workDoc.data();
+        
+        const influencerId = workData.influencerId;
+        const budget = Number(workData.budget) || 0;
+
+        if (!influencerId || budget <= 0) {
+            throw new Error("Work data is incomplete (missing influencerId or budget).");
+        }
+        
+        // --- Step 2: Calculate the profit ---
+        const profit = budget * 0.90; // 90% profit
+        console.log(`DEBUG: Calculated profit to add: ৳${profit}`);
+
+        // --- Step 3: Get the influencer's user document ---
+        const influencerRef = doc(db, 'users', influencerId);
+        const influencerDoc = await getDoc(influencerRef);
+
+        if (!influencerDoc.exists()) {
+            throw new Error(`Influencer with ID ${influencerId} not found.`);
+        }
+        
+        const currentBalance = Number(influencerDoc.data().influencerBalance) || 0;
+        const newBalance = currentBalance + profit;
+
+        // --- Step 4: Use a Batched Write to update everything at once ---
+        // This ensures that either both updates succeed, or both fail.
+        const batch = writeBatch(db);
+        
+        // Operation 1: Update the work status
+        batch.update(workRef, { 
+            status: 'completed', 
+            approvedAt: serverTimestamp() 
+        });
+
+        // Operation 2: Update the influencer's balance
+        batch.update(influencerRef, { 
+            influencerBalance: newBalance 
+        });
+        
+        // Commit the batch
+        await batch.commit();
+        
+        console.log(`SUCCESS: Balance updated for ${influencerId}. Old: ৳${currentBalance}, New: ৳${newBalance}`);
+        alert('Work approved! Influencer\'s balance has been updated.');
+        
+        // Refresh the UI
+        selectJob(workData.postId, 'completed');
+
+    } catch (error) {
+        console.error("Error approving work:", error);
+        alert(`Failed to approve work: ${error.message}`);
+        if (approveBtn) {
+            approveBtn.disabled = false;
+            approveBtn.textContent = 'Approve & Release Payment';
+        }
+    }
+};
+
 
 });
