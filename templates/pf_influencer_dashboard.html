@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PROFITFLUENCE</title>
-    <!-- Tailwind CSS for styling -->
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <!-- Google Fonts: Raleway -->
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
+
     <style>
         body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
         .bg-mulberry { background-color: #7d285d; }
         .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
-        .bg-dark-card { background-color: #111827; } /* gray-900 */
-        .border-dark { border-color: #374151; } /* gray-700 */
+        .bg-dark-card { background-color: #111827; }
+        .border-dark { border-color: #374151; }
         .sidebar-link {
             display: flex;
             align-items: center;
@@ -25,10 +28,10 @@
             transition: background-color 0.2s, color 0.2s;
         }
         .sidebar-link.active, .sidebar-link:hover {
-            background-color: #1F2937; /* gray-800 */
+            background-color: #1F2937;
         }
         .sidebar-link.active {
-            background-color: #7d285d; /* bg-mulberry for active link */
+            background-color: #7d285d;
             color: white;
         }
     </style>
@@ -36,16 +39,25 @@
 <body class="antialiased">
 
     <div class="flex min-h-screen">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <aside class="w-64 bg-black border-r border-dark p-6 hidden md:flex flex-col">
             <a href="/pf" class="text-2xl font-black tracking-wider uppercase mb-10">PROFITFLUENCE</a>
             <nav class="flex flex-col space-y-3 font-semibold">
-                <!-- Links for navigation -->
-                <a href="/pf/dashboard/i" class="sidebar-link active"><i class="fas fa-tachometer-alt fa-fw w-6 mr-2"></i><span>Dashboard</span></a>
-                <a href="/pf/dashboard/i/ad" class="sidebar-link"><i class="fas fa-plus-circle fa-fw w-6 mr-2"></i><span>Post a Service</span></a>
-                <a href="/pf/influencer/inbox" class="sidebar-link"><i class="fas fa-inbox fa-fw w-6 mr-2"></i><span>My Works</span></a>
-                <a href="/pf/dashboard/withdraw" class="sidebar-link"><i class="fas fa-wallet fa-fw w-6 mr-2"></i><span>Withdraw</span></a>
-                <a href="/pf/dashboard/settings" class="sidebar-link"><i class="fas fa-cog fa-fw w-6 mr-2"></i><span>Settings</span></a>
+                <a href="/pf/dashboard/i" class="sidebar-link active">
+                    <i class="fas fa-tachometer-alt fa-fw w-6 mr-2"></i><span>Dashboard</span>
+                </a>
+                <a href="/pf/dashboard/i/ad" class="sidebar-link">
+                    <i class="fas fa-plus-circle fa-fw w-6 mr-2"></i><span>Post a Service</span>
+                </a>
+                <a href="/pf/influencer/inbox" class="sidebar-link">
+                    <i class="fas fa-inbox fa-fw w-6 mr-2"></i><span>My Works</span>
+                </a>
+                <a href="/pf/dashboard/withdraw" class="sidebar-link">
+                    <i class="fas fa-wallet fa-fw w-6 mr-2"></i><span>Withdraw</span>
+                </a>
+                <a href="/pf/dashboard/settings" class="sidebar-link">
+                    <i class="fas fa-cog fa-fw w-6 mr-2"></i><span>Settings</span>
+                </a>
             </nav>
             <div class="mt-auto">
                 <button id="logout-btn" class="w-full sidebar-link text-red-400 hover:bg-red-900/50 hover:text-white">
@@ -56,14 +68,13 @@
 
         <!-- Main Content -->
         <main class="flex-1 p-6 md:p-10 bg-gray-900/50">
-            <!-- Loading State -->
+            <!-- Loading Spinner -->
             <div id="loading-container" class="flex justify-center items-center h-full">
                 <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-mulberry"></div>
             </div>
 
-            <!-- Dashboard Content (Initially Hidden) -->
+            <!-- Dashboard -->
             <div id="dashboard-content" class="hidden">
-                <!-- Header -->
                 <header class="flex justify-between items-center mb-10">
                     <div>
                         <h1 class="text-3xl font-bold">Dashboard</h1>
@@ -74,12 +85,11 @@
                         <img id="profile-pic-header" src="https://via.placeholder.com/40" alt="Profile" class="w-10 h-10 rounded-full object-cover">
                     </div>
                 </header>
-                
-                <!-- Main Grid Layout -->
+
+                <!-- Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left Column -->
                     <div class="lg:col-span-2 space-y-8">
-                        <!-- Stats Cards -->
+                        <!-- Stats -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div class="bg-dark-card border border-dark p-6 rounded-xl">
                                 <h3 class="text-sm font-semibold text-gray-400">Available Balance</h3>
@@ -95,7 +105,7 @@
                             </div>
                         </div>
 
-                        <!-- Earnings Chart -->
+                        <!-- Chart -->
                         <div class="bg-dark-card border border-dark p-6 rounded-xl">
                             <h2 class="text-xl font-semibold mb-4">Earnings Overview</h2>
                             <div class="h-64">
@@ -103,8 +113,7 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Column -->
+
                     <div class="lg:col-span-1 space-y-8">
                         <!-- Quick Actions -->
                         <div class="bg-dark-card border border-dark p-6 rounded-xl">
@@ -114,8 +123,8 @@
                                 <a href="/pf/dashboard/i/ad" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md transition">Post a New Service</a>
                             </div>
                         </div>
-                        
-                        <!-- Recent Activity/Notifications -->
+
+                        <!-- Recent Activity -->
                         <div class="bg-dark-card border border-dark p-6 rounded-xl">
                             <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
                             <div id="recent-activity-list" class="space-y-4 max-h-80 overflow-y-auto">
@@ -127,11 +136,10 @@
             </div>
         </main>
     </div>
-    
-    <!-- Chart.js for the earnings chart -->
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Script loading section -->
-    <script type="module" src="/static/firebaseConfig.js"></script>
+    <!-- Firebase Dashboard Logic -->
     <script type="module" src="/static/pf_influencer_dashboard.js"></script>
 </body>
-</html>
+    </html>
