@@ -66,27 +66,51 @@ document.addEventListener('DOMContentLoaded', () => {
      * Main function to load/update all dashboard data.
      * @param {object} influencerData - The influencer's real-time data from the 'users' document.
      */
-    async function loadDashboard(influencerData) {
-        try {
-            // Populate profile header and balance from REALTIME data
-            populateProfileHeader(influencerData);
-            
-            // Fetch stats and posts, which don't need to be realtime for now
-            const [stats, posts] = await Promise.all([
-                fetchInfluencerStats(influencerData.id),
-                fetchInfluencerPosts(influencerData.id)
-            ]);
-            
-            populateStatsCards(influencerData, stats);
-            displayPosts(posts);
+    // static/pf_influencer_dashboard.js
 
-            loadingContainer.classList.add('hidden');
-            dashboardContent.classList.remove('hidden');
-        } catch(error) {
-            console.error("Error loading dashboard components:", error);
+// ... (ফাইলের উপরের অংশ এবং onSnapshot আগের মতোই থাকবে)
+
+/**
+ * Main function to load/update all dashboard data.
+ * THIS IS THE UPDATED AND DEBUG-FOCUSED FUNCTION.
+ */
+async function loadDashboard(influencerData) {
+    console.log("--- DEBUG: 1. loadDashboard STARTED ---");
+    
+    try {
+        // We will fetch data sequentially to pinpoint the error.
+
+        // --- Step A: Fetch Stats ---
+        console.log("--- DEBUG: 2. Attempting to fetch stats...");
+        const stats = await fetchInfluencerStats(influencerData.id);
+        console.log("--- DEBUG: 3. Stats fetched SUCCESSFULLY:", stats);
+
+        // --- Step B: Fetch Posts ---
+        console.log("--- DEBUG: 4. Attempting to fetch posts...");
+        const posts = await fetchInfluencerPosts(influencerData.id);
+        console.log("--- DEBUG: 5. Posts fetched SUCCESSFULLY:", posts);
+        
+        // --- Step C: Populate UI ---
+        console.log("--- DEBUG: 6. Attempting to populate UI...");
+        populateProfileHeader(influencerData);
+        populateStatsCards(influencerData, stats); // This should be called now
+        displayPosts(posts);
+        console.log("--- DEBUG: 7. UI population COMPLETE.");
+
+    } catch(error) {
+        console.error("--- DEBUG: 8. CRITICAL ERROR caught inside loadDashboard:", error);
+        if (dashboardContent) {
             dashboardContent.innerHTML = `<p class="text-red-500">${error.message}</p>`;
         }
+    } finally {
+        // This block MUST run if the function executes.
+        console.log("--- DEBUG: 9. 'finally' block reached. Hiding spinner.");
+        if (loadingContainer) loadingContainer.classList.add('hidden');
+        if (dashboardContent) dashboardContent.classList.remove('hidden');
     }
+}
+
+// ... (ফাইলের বাকি অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
     
    // static/pf_influencer_dashboard.js
 
