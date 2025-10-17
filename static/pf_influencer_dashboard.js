@@ -120,6 +120,39 @@ async function loadDashboard(influencerData) {
  * Populates the main stats cards with data.
  * THIS IS THE UPDATED AND BULLETPROOF FUNCTION.
  */
+
+    function populateProfileHeader(userData) {
+        console.log("DEBUG: Populating profile header...");
+        
+        // Defensive check for the elements
+        const profilePic = getElement('profile-pic');
+        const pageName = getElement('page-name');
+        const categoryEl = getElement('category');
+        const usernameEl = getElement('username');
+        const copyLinkBtn = getElement('copy-profile-link');
+
+        if (!profilePic || !pageName || !categoryEl || !usernameEl || !copyLinkBtn) {
+            console.error("DEBUG: One or more profile header elements are missing from the HTML.");
+            return;
+        }
+
+        // Safely access nested data from the application form
+        const profileData = userData.influencerApplication?.page;
+        
+        profilePic.src = profileData?.pageProfilePicUrl || 'https://via.placeholder.com/120';
+        pageName.textContent = profileData?.pageName || userData.name || 'Unnamed Page';
+        categoryEl.textContent = profileData?.category || 'No Category';
+        usernameEl.textContent = `@${userData.name || 'username'}`;
+
+        copyLinkBtn.onclick = () => {
+            const profileUrl = `${window.location.origin}/pf/influencer/${userData.id}`;
+            navigator.clipboard.writeText(profileUrl).then(() => {
+                alert('Profile link copied to clipboard!');
+            });
+        };
+        console.log("DEBUG: Profile header populated successfully.");
+    }
+    
 function populateStatsCards(influencerData, stats) {
     console.log("DEBUG: Populating stats cards with data:", { influencerData, stats });
 
@@ -156,19 +189,23 @@ function populateStatsCards(influencerData, stats) {
 
 // ...
 
+    // static/pf_influencer_dashboard.js
+
+// ... (ফাইলের উপরের অংশ, onAuthStateChanged, loadDashboard ইত্যাদি আগের মতোই থাকবে)
+
+    // =================================================================
+    // SECTION: UI POPULATION FUNCTIONS
+    // =================================================================
+
+    /**
+     * Populates the profile header section with the influencer's data.
+     * THIS IS THE MISSING FUNCTION.
+     */
+    
+
 /**
  * Populates the main stats cards.
  */
-function populateStatsCards(influencerData, stats) {
-    // Available Balance comes directly from the user's document (real-time)
-    balanceEl.textContent = `৳${(influencerData.influencerBalance || 0).toFixed(2)}`;
-    
-    // These stats are calculated from the 'works' collection
-    worksCompletedEl.textContent = stats.completed;
-    totalEarnedEl.textContent = `৳${(stats.totalEarned || 0).toFixed(2)}`;
-    pendingWorksEl.textContent = stats.pending;
-}
-
 /**
  * Fetches statistics about the influencer's work from the 'works' collection.
  */
