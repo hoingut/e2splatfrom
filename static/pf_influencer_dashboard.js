@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dashboardContent = getElement('dashboard-content');
     const userNameEl = getElement('user-name');
     const balanceEl = getElement('balance');
-    const profilePicEl = getElement('profile-pic');
     const pendingWorksEl = getElement('pending-works');
     const worksCompletedEl = getElement('works-completed');
     const logoutBtn = getElement('logout-btn');
@@ -81,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         userNameEl.textContent = userData.name || 'Influencer';
         const balance = Number(userData.influencerBalance) || 0;
         balanceEl.textContent = `৳${balance.toFixed(2)}`;
-        profilePicEl.src = userData.influencerApplication?.personal?.ownerPicUrl || 'https://via.placeholder.com/64';
 
         // Show the dashboard content
         loadingContainer.classList.add('hidden');
