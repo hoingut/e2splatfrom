@@ -74,18 +74,50 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    async function selectJob(postId, status) {
-        console.log(`DEBUG: selectJob -> Selected PostID: ${postId}, Status: ${status}`);
-        document.querySelectorAll('.job-item').forEach(el => el.classList.remove('bg-mulberry', 'text-white'));
-        getElement(`job-${postId}`).classList.add('bg-mulberry', 'text-white');
-        detailsContent.innerHTML = `<p class="py-16 text-center text-gray-400">Loading details...</p>`;
+    // static/pf_brand_inbox.js
 
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
+
+/**
+ * Main handler for selecting a job.
+ * THIS IS THE UPDATED AND BUG-FREE FUNCTION.
+ */
+async function selectJob(postId, status) {
+    console.log(`DEBUG: selectJob -> Selected PostID: ${postId}, Status: ${status}`);
+    
+    // --- THIS IS THE KEY FIX ---
+    // Step 1: Visually update the selection immediately.
+    document.querySelectorAll('.job-item').forEach(el => el.classList.remove('bg-mulberry', 'text-white'));
+    const selectedJobElement = getElement(`job-${postId}`);
+    if (selectedJobElement) {
+        selectedJobElement.classList.add('bg-mulberry', 'text-white');
+    }
+
+    // Step 2: Immediately show a clean loading state in the details panel.
+    // This clears all old content (including previous submission pics).
+    detailsContent.innerHTML = `
+        <div class="flex flex-col justify-center items-center h-full text-center text-gray-500 py-16">
+            <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-mulberry"></div>
+            <p class="mt-4 font-semibold">Loading Details...</p>
+        </div>
+    `;
+    // -------------------------
+
+    // Step 3: Now, fetch and display the new content.
+    try {
         if (status === 'open-for-proposals') {
             await displayProposals(postId);
-        } else {
+        } else { // 'in-progress', 'completed', etc.
             await displayWorkDetails(postId);
         }
+        console.log(`DEBUG: selectJob -> Successfully displayed details for ${postId}`);
+    } catch (error) {
+        console.error(`DEBUG: selectJob -> Error while displaying details for ${postId}:`, error);
+        detailsContent.innerHTML = `<p class="text-red-500 text-center py-16">Failed to load details. Please try again.</p>`;
     }
+}
+
+// ... (ফাইলের বাকি অংশ এবং অন্যান্য ফাংশন, যেমন displayProposals, displayWorkDetails, আগের মতোই থাকবে)
 
     // static/pf_brand_inbox.js
 
