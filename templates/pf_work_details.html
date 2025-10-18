@@ -12,36 +12,42 @@
         body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
         .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
         .bg-dark-card { background-color: #111827; } .border-dark { border-color: #374151; }
-        .prose-dark { color: #D1D5DB; }
-        .prose-dark a { color: #7d285d; }
-        .prose-dark strong { color: #FFF; }
+        .prose-dark { color: #D1D5DB; } .prose-dark a { color: #7d285d; } .prose-dark strong { color: #FFF; }
+        .prose-dark ul > li::before { background-color: #7d285d; }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header -->
-    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-dark">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
             <a href="/pf" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Back to All Jobs</a>
         </div>
     </header>
 
-    <main class="container mx-auto px-6 py-12 max-w-4xl">
-        <!-- Loading State -->
+    <main class="container mx-auto px-6 py-12 max-w-5xl">
         <div id="loading-container" class="text-center py-20">
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
-            <p class="mt-4">Loading Work Details...</p>
         </div>
 
-        <!-- Main Content (Initially Hidden) -->
         <div id="work-details-content" class="hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 <!-- Left Column: Main Job Details -->
                 <div class="lg:col-span-2 bg-dark-card border border-dark p-8 rounded-xl">
-                    <h1 id="work-title" class="text-3xl font-bold mb-4"></h1>
-                    <div id="work-description" class="prose prose-dark max-w-none"></div>
+                    <!-- Cover Image -->
+                    <img id="work-cover-image" src="" alt="Campaign Image" class="w-full h-64 object-cover rounded-lg mb-6 hidden">
+                    
+                    <!-- Title -->
+                    <h1 id="work-title" class="text-3xl font-bold mb-6"></h1>
+                    
+                    <!-- Description -->
+                    <h2 class="text-xl font-semibold mb-2 text-white border-b border-dark pb-2">Job Description</h2>
+                    <div id="work-description" class="prose prose-dark max-w-none mt-4"></div>
+                    
+                    <!-- Requirements -->
+                    <h2 class="text-xl font-semibold mb-2 text-white border-b border-dark pb-2 mt-8">Requirements</h2>
+                    <div id="work-requirements" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 text-sm"></div>
                 </div>
 
                 <!-- Right Column: Summary and Action Area -->
@@ -55,31 +61,19 @@
 
                     <!-- Job Summary -->
                     <div class="bg-dark-card border border-dark p-6 rounded-xl space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-400">Budget</span>
-                            <span id="work-budget" class="font-bold text-xl text-white"></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-400">Category</span>
-                            <span id="work-category" class="font-semibold bg-gray-700 px-2 py-1 rounded text-xs"></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-400">Status</span>
-                            <span id="work-status" class="font-semibold capitalize"></span>
-                        </div>
+                        <div class="flex justify-between items-center"><span class="text-gray-400">Budget</span><span id="work-budget" class="font-bold text-xl text-white"></span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-400">Category</span><span id="work-category" class="font-semibold bg-gray-700 px-2 py-1 rounded text-xs"></span></div>
+                        <div class="flex justify-between items-center"><span class="text-gray-400">Status</span><span id="work-status" class="font-semibold capitalize"></span></div>
                     </div>
 
                     <!-- Action Area -->
-                    <div id="action-area" class="bg-dark-card border border-dark p-6 rounded-xl">
-                        <!-- Content will be populated by JS based on user role -->
-                    </div>
+                    <div id="action-area" class="bg-dark-card border border-dark p-6 rounded-xl"></div>
                 </div>
-
             </div>
         </div>
     </main>
-
+    
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_work_details.js"></script>
 </body>
-          </html>
+</html>
