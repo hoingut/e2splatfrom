@@ -6,8 +6,6 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/fir
 import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DEBUG: pf_work_details.js script started.");
-
     // --- Step 2: DOM Element References ---
     const getElement = (id) => document.getElementById(id);
     const loadingContainer = getElement('loading-container');
@@ -22,24 +20,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Step 3: Authentication and Page Load Initialization ---
     onAuthStateChanged(auth, async (user) => {
-        console.log("DEBUG: Auth state changed.");
         currentUser = user;
-        
         if (user) {
             try {
                 const userRef = doc(db, 'users', user.uid);
                 const docSnap = await getDoc(userRef);
                 currentUserRole = docSnap.exists() ? docSnap.data().role : 'customer';
-                console.log(`DEBUG: User is logged in. Role determined as: '${currentUserRole}'`);
             } catch (error) {
-                console.error("DEBUG: Error fetching user role:", error);
-                currentUserRole = 'customer'; // Default to customer on error
+                console.error("Error fetching user role:", error);
+                currentUserRole = 'customer';
             }
         } else {
             currentUserRole = null; // Guest user
-            console.log("DEBUG: User is not logged in (Guest).");
         }
-        
         await loadWorkDetails();
     });
 
@@ -47,21 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
      * Main function to fetch and display the work/job details.
      */
     async function loadWorkDetails() {
-        console.log("DEBUG: loadWorkDetails() called.");
         if (!workId) {
             displayError("Work ID not found in the URL.");
             return;
         }
-
         try {
             const workRef = doc(db, 'posts', workId);
             const docSnap = await getDoc(workRef);
 
             if (!docSnap.exists()) {
-                throw new Error("This work post does not exist or may have been deleted.");
+                throw new Error("This work post does not exist or has been removed.");
             }
             workData = docSnap.data();
-            console.log("DEBUG: Work data fetched successfully:", workData);
             
             populateStaticDetails(workData);
             populateActionArea();
@@ -69,73 +59,75 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingContainer.classList.add('hidden');
             contentContainer.classList.remove('hidden');
         } catch (error) {
-            console.error("DEBUG: Error in loadWorkDetails():", error);
+            console.error("Error loading work details:", error);
             displayError(error.message);
         }
     }
 
     /**
-     * Populates the static, non-interactive details of the job post.
+     * Populates all details of the job post into the respective HTML elements.
      */
     function populateStaticDetails(data) {
+        // Cover Image
+        const coverImage = getElement('work-cover-image');
+        if (data.coverImage) {
+            coverImage.src = data.coverImage;
+            coverImage.classList.remove('hidden');
+        }
+
+        // Main Details
         getElement('work-title').textContent = data.title;
-        getElement('work-description').innerHTML = `<p>${(data.description || '').replace(/\n/g, '<br>')}</p>`;
+        getElement('work-description').innerHTML = `<p>${(data.description || 'No description provided.').replace(/\n/g, '<br>')}</p>`;
+
+        // Brand Info
         getElement('brand-logo').src = data.brandLogo || 'https://via.placeholder.com/80';
         getElement('brand-name').textContent = data.brandName;
         getElement('post-date').textContent = data.createdAt?.toDate().toLocaleDateString() || 'N/A';
+        
+        // Summary
         getElement('work-budget').textContent = `৳${(data.budget || 0).toLocaleString()}`;
         getElement('work-category').textContent = data.category;
-
         const statusEl = getElement('work-status');
-        const statusText = (data.status || 'unknown').replace('-', ' ');
-        statusEl.textContent = statusText;
+        statusEl.textContent = (data.status || 'unknown').replace('-', ' ');
         const statusColors = {'open-for-proposals': 'text-green-400', 'in-progress': 'text-yellow-400', 'completed': 'text-blue-400'};
         statusEl.className = `font-semibold capitalize ${statusColors[data.status] || 'text-gray-400'}`;
-        console.log("DEBUG: Static details populated.");
+
+        // Requirements
+        const requirementsEl = getElement('work-requirements');
+        let requirementsHTML = `
+            <div><p class="text-gray-400">Platforms:</p><p class="font-semibold capitalize">${(data.platforms || []).join(', ')}</p></div>
+            <div><p class="text-gray-400">Content Types:</p><p class="font-semibold capitalize">${(data.contentTypes || []).join(', ')}</p></div>
+            <div><p class="text-gray-400">Mood:</p><p class="font-semibold capitalize">${data.mood || 'Any'}</p></div>
+        `;
+        if (data.requirements?.minReach > 0) {
+            requirementsHTML += `<div><p class="text-gray-400">Min. Followers:</p><p class="font-semibold">${(data.requirements.minReach).toLocaleString()}</p></div>`;
+        }
+        if (data.requirements?.minViews > 0) {
+            requirementsHTML += `<div><p class="text-gray-400">Min. Avg Views:</p><p class="font-semibold">${(data.requirements.minViews).toLocaleString()}</p></div>`;
+        }
+        requirementsEl.innerHTML = requirementsHTML;
     }
 
     /**
      * Populates the action area with relevant buttons based on user role and work status.
      */
     function populateActionArea() {
-        console.log(`DEBUG: Populating action area. User Role: '${currentUserRole}', Work Status: '${workData.status}'`);
-
-        // Case 1: The user is the author of the post (Brand Owner)
         if (currentUser && workData.authorId === currentUser.uid) {
-            console.log("DEBUG: Rendering UI for 'Post Author'.");
-            actionArea.innerHTML = `
-                <h3 class="font-semibold text-lg mb-2">My Post</h3>
-                <p class="text-sm text-gray-400 mb-3">You are the author of this job post.</p>
-                <a href="/pf/brand/inbox" class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-md mb-2">Manage Proposals</a>
-                <button id="delete-post-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-md">Delete Post</button>`;
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">My Post</h3><p class="text-sm text-gray-400 mb-3">You are the author of this post.</p><a href="/pf/brand/inbox" class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-md mb-2">Manage Proposals</a><button id="delete-post-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-md">Delete Post</button>`;
             getElement('delete-post-btn').addEventListener('click', deletePost);
         } 
-        // Case 2: The job is no longer open
-        else if (workData.status !== 'open-for-proposals') {
-            console.log("DEBUG: Rendering UI for 'Closed Job'.");
-            actionArea.innerHTML = `<p class="text-center text-yellow-400 font-semibold">This job is no longer accepting new applications.</p>`;
-        }
-        // Case 3: The user is an influencer and the job is open
-        else if (currentUserRole === 'influencer') {
-            console.log("DEBUG: Rendering UI for 'Influencer - Apply Now'.");
-            actionArea.innerHTML = `
-                <h3 class="font-semibold text-lg mb-2">Apply for this Job</h3>
-                <textarea id="cover-letter" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-md" rows="4" placeholder="Write a short proposal..."></textarea>
-                <button id="apply-btn" class="w-full mt-3 bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Submit Proposal</button>`;
+        else if (currentUserRole === 'influencer' && workData.status === 'open-for-proposals') {
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">Apply for this Job</h3><textarea id="cover-letter" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-md" rows="4" placeholder="Write a short proposal..."></textarea><button id="apply-btn" class="w-full mt-3 bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Submit Proposal</button>`;
             getElement('apply-btn').addEventListener('click', submitProposal);
         }
-        // Case 4: The user is not logged in (Guest)
-        else if (!currentUser) {
-            console.log("DEBUG: Rendering UI for 'Guest'.");
-            actionArea.innerHTML = `
-                <h3 class="font-semibold text-lg mb-2">Join to Apply</h3>
-                <p class="text-sm text-gray-400 mb-3">Log in or sign up as an influencer to apply.</p>
-                <a href="/login?redirect=${window.location.pathname}" class="w-full block text-center bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Login or Sign Up</a>`;
+        else if (currentUserRole === 'influencer' && workData.status !== 'open-for-proposals') {
+            actionArea.innerHTML = `<p class="text-center text-yellow-400 font-semibold">This job is no longer accepting new applications.</p>`;
         }
-        // Case 5: The user is a logged-in non-influencer (Only View)
+        else if (!currentUser) {
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">Join to Apply</h3><p class="text-sm text-gray-400 mb-3">Log in or sign up as an influencer to apply.</p><a href="/login?redirect=${window.location.pathname}" class="w-full block text-center bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Login or Sign Up</a>`;
+        }
         else {
-            console.log("DEBUG: Rendering UI for 'Other Logged-in User'.");
-            actionArea.innerHTML = `<p class="text-center text-gray-500">Only approved influencers can apply for jobs.</p>`;
+            actionArea.innerHTML = `<p class="text-center text-gray-500">This is a preview of the job post. Only influencers can apply.</p>`;
         }
     }
 
@@ -145,10 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function submitProposal() {
         const coverLetterInput = getElement('cover-letter');
         const coverLetter = coverLetterInput.value.trim();
-        if (!coverLetter) {
-            alert("Please write a proposal before applying.");
-            return;
-        }
+        if (!coverLetter) { alert("Please write a proposal."); return; }
 
         const applyBtn = getElement('apply-btn');
         applyBtn.disabled = true;
@@ -159,25 +148,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const q = query(proposalsRef, where("postId", "==", workId), where("influencerId", "==", currentUser.uid));
             const existingProposal = await getDocs(q);
 
-            if (!existingProposal.empty) {
-                throw new Error("You have already submitted a proposal for this job.");
-            }
+            if (!existingProposal.empty) throw new Error("You have already applied for this job.");
 
-    const proposalData = {
-        postId: workId,
-        postTitle: workData.title,
-        influencerId: currentUser.uid,
-        brandId: workData.authorId, // <-- এই লাইনটি যোগ করুন
-        coverLetter: coverLetter,
-        status: 'pending',
-        createdAt: serverTimestamp()
-    };
-    await addDoc(collection(db, 'proposals'), proposalData);
-    // ...
+            const proposalData = {
+                postId: workId,
+                postTitle: workData.title,
+                influencerId: currentUser.uid,
+                brandId: workData.authorId,
+                coverLetter: coverLetter,
+                status: 'pending',
+                createdAt: serverTimestamp()
+            };
+            await addDoc(proposalsRef, proposalData);
             
             alert('Your proposal has been submitted successfully!');
             actionArea.innerHTML = `<p class="text-center text-green-400 font-semibold">Application Submitted!</p>`;
-
         } catch (error) {
             alert(`Error: ${error.message}`);
             applyBtn.disabled = false;
@@ -197,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const workRef = doc(db, 'posts', workId);
-await deleteDoc(workRef);
+            await deleteDoc(workRef);
             alert("Job post deleted successfully.");
             window.location.href = '/pf/dashboard';
         } catch (error) {
