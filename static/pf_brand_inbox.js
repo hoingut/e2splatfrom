@@ -193,55 +193,103 @@ async function displayProposals(postId) {
             </div>`;
     }
 
-    async function displayWorkDetails(postId) {
-        console.log(`DEBUG: displayWorkDetails -> Fetching work details for PostID: ${postId}`);
-        try {
-            const worksRef = collection(db, 'works');
-            const q = query(worksRef, where("postId", "==", postId), limit(1));
-            const snapshot = await getDocs(q);
+    // static/pf_brand_inbox.js
 
-            if (snapshot.empty) {
-                detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not started for this post yet.</p>`;
-                return;
-            }
-            
-            const workDoc = snapshot.docs[0];
-            const work = { id: workDoc.id, ...workDoc.data() };
-            console.log("DEBUG: displayWorkDetails -> Found work document:", work);
-            
-            const influencerRef = doc(db, 'users', work.influencerId);
-            const influencerSnap = await getDoc(influencerRef);
-            const influencerName = influencerSnap.exists() ? influencerSnap.data().name : 'Unknown Influencer';
+// ... (ফাইলের উপরের অংশ এবং অন্যান্য ফাংশন আগের মতোই থাকবে)
 
-            let workHTML = `<h3 class="text-xl font-semibold mb-4">Work Progress</h3><p class="text-sm text-gray-400">Influencer: <strong class="text-white">${influencerName}</strong></p><p>Status: <span class="font-bold capitalize text-yellow-400">${work.status.replace('-', ' ')}</span></p>`;
-            
-            if (Array.isArray(work.submissions) && work.submissions.length > 0) {
-                console.log("DEBUG: displayWorkDetails -> Work has submissions. Processing...");
-                const lastSubmission = work.submissions[work.submissions.length - 1];
-                
-                workHTML += `<div class="mt-4 border-t border-dark pt-4"><h4 class="font-semibold text-white">Latest Submission:</h4><p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${lastSubmission.note || 'No note provided.'}"</p>`;
-                if (lastSubmission.screenshotUrl) {
-                    workHTML += `<a href="${lastSubmission.screenshotUrl}" target="_blank" class="text-blue-400 hover:underline">View Submission Proof</a>`;
-                }
-                if (work.status === 'submitted-for-review') {
-                    console.log("DEBUG: displayWorkDetails -> Status is 'submitted-for-review'. Showing Approve button.");
-                    workHTML += `<div class="mt-4"><button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button></div>`;
-                }
-                workHTML += `</div>`;
-            } 
-            else if (work.status === 'in-progress') {
-                 workHTML += `<p class="mt-4 text-yellow-400">Waiting for the influencer to make their first submission.</p>`;
-            }
-            if (work.status === 'completed') {
-                 workHTML += `<p class="mt-4 text-green-400 font-semibold">This collaboration is complete. Payment has been released.</p>`;
-            }
-            
-            detailsContent.innerHTML = workHTML;
-        } catch (error) {
-            console.error("DEBUG: displayWorkDetails -> CRITICAL ERROR:", error);
-            detailsContent.innerHTML = `<p class="text-red-500">Could not load work details.</p>`;
+/**
+ * Displays the details and a full timeline of a work that is in-progress or completed.
+ * THIS IS THE UPDATED AND ADVANCED FUNCTION.
+ */
+async function displayWorkDetails(postId) {
+    console.log(`DEBUG: displayWorkDetails -> Fetching work details for PostID: ${postId}`);
+    try {
+        const worksRef = collection(db, 'works');
+        const q = query(worksRef, where("postId", "==", postId), limit(1));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            detailsContent.innerHTML = `<h3 class="text-xl font-semibold mb-4">Work Details</h3><p class="text-gray-500">Work has not been started for this post yet.</p>`;
+            return;
         }
+        
+        const workDoc = snapshot.docs[0];
+        const work = { id: workDoc.id, ...workDoc.data() };
+        console.log("DEBUG: displayWorkDetails -> Found work document:", work);
+        
+        const influencerRef = doc(db, 'users', work.influencerId);
+        const influencerSnap = await getDoc(influencerRef);
+        const influencerName = influencerSnap.exists() ? influencerSnap.data().name : 'Unknown Influencer';
+
+        let workHTML = `
+            <h3 class="text-xl font-semibold mb-4">Work Progress: ${work.title}</h3>
+            <div class="flex items-center space-x-3 mb-6">
+                <img src="${influencerSnap.exists() ? influencerSnap.data().influencerApplication?.page.pageProfilePicUrl : 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                    <p class="text-sm text-gray-400">Working with:</p>
+                    <a href="/pf/influencer/${work.influencerId}" target="_blank" class="font-bold hover:underline">${influencerName}</a>
+                </div>
+            </div>
+            <p class="mb-4">Current Status: <span class="font-bold capitalize text-yellow-400">${work.status.replace('-', ' ')}</span></p>
+        `;
+        
+        // --- THIS IS THE KEY FIX: Create a full timeline from the 'submissions' array ---
+        workHTML += '<h4 class="font-semibold text-white mb-4 border-t border-dark pt-4">Collaboration History</h4>';
+        workHTML += '<div class="space-y-6 border-l-2 border-dark pl-6 relative">';
+
+        // Add the initial "Work Started" event to the timeline
+        workHTML += `
+            <div class="relative">
+                <div class="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-gray-500"></div>
+                <h5 class="font-semibold">Work Contract Created</h5>
+                <p class="text-xs text-gray-400">${work.createdAt?.toDate().toLocaleString() || 'N/A'}</p>
+            </div>`;
+
+        if (Array.isArray(work.submissions) && work.submissions.length > 0) {
+            console.log(`DEBUG: Found ${work.submissions.length} submissions to display.`);
+            
+            work.submissions.forEach(submission => {
+                const submissionType = submission.type === 'started' ? 'Work Started' : 'Final Submission';
+                const icon = submission.type === 'started' ? 'fa-play-circle text-blue-400' : 'fa-check-double text-green-400';
+
+                workHTML += `
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-mulberry flex items-center justify-center">
+                            <i class="fas ${icon} text-xs text-white"></i>
+                        </div>
+                        <h5 class="font-semibold">${submissionType} by Influencer</h5>
+                        <p class="text-xs text-gray-400">${submission.timestamp.toDate().toLocaleString()}</p>
+                        <p class="text-sm text-gray-300 my-2 bg-gray-800 p-3 rounded-md">Note: "${submission.note || 'No note provided.'}"</p>
+                        ${submission.screenshotUrl ? `<a href="${submission.screenshotUrl}" target="_blank" class="text-blue-400 text-sm hover:underline flex items-center"><i class="fas fa-paperclip mr-2"></i>View Proof</a>` : ''}
+                    </div>`;
+            });
+        } else {
+             workHTML += `<div class="relative"><div class="absolute -left-[31px] top-1 h-4 w-4 rounded-full bg-yellow-400"></div><p class="text-yellow-400">Waiting for influencer to start the work.</p></div>`;
+        }
+        
+        workHTML += '</div>'; // Close timeline div
+        
+        // Action button area
+        if (work.status === 'submitted-for-review') {
+            workHTML += `
+                <div class="mt-6 border-t border-dark pt-6">
+                    <h4 class="font-semibold text-lg">Action Required</h4>
+                    <p class="text-sm text-gray-400 mb-3">The influencer has submitted the final work. Please review and approve to release payment.</p>
+                    <button onclick="window.approveWork('${work.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Approve & Release Payment</button>
+                </div>`;
+        } else if (work.status === 'completed') {
+            workHTML += `<p class="mt-6 border-t border-dark pt-6 text-green-400 font-semibold flex items-center"><i class="fas fa-check-circle mr-2"></i>This collaboration is complete.</p>`;
+        }
+        
+        detailsContent.innerHTML = workHTML;
+
+    } catch (error) {
+        console.error("DEBUG: Error in displayWorkDetails():", error);
+        detailsContent.innerHTML = `<p class="text-red-500">Could not load work details.</p>`;
     }
+}
+
+// ... (ফাইলের বাকি অংশ এবং অন্যান্য ফাংশন, যেমন hireInfluencer, approveWork, আগের মতোই থাকবে)
 
     // =================================================================
     // SECTION C: ACTION FUNCTIONS & EVENT LISTENERS
