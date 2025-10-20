@@ -74,6 +74,16 @@
                 <input type="email" id="signup-email" class="input-field w-full p-3 border rounded-md" placeholder="Email Address" required>
                 <input type="password" id="signup-password" class="input-field w-full p-3 border rounded-md" placeholder="Password (min. 6 characters)" required>
                 <button type="submit" class="primary-btn w-full py-3 rounded-md font-semibold transition">Create Account</button>
+                <!-- templates/login.html (আপডেট করুন) -->
+
+    <!-- **THIS IS THE FIX**: Add Google button and OR divider to the signup form as well -->
+    <div class="my-6 flex items-center"><hr class="w-full border-gray-600"><span class="p-2 text-muted text-sm">OR</span><hr class="w-full border-gray-600"></div>
+    
+    <button id="google-btn-signup" class="secondary-btn w-full flex items-center justify-center py-3 rounded-md font-semibold transition">
+        <i class="fab fa-google text-red-500 mr-3"></i>
+        <span>Sign up with Google</span>
+    </button>
+    <!-- **END OF FIX** -->
             </form>
             <p class="text-center mt-6 text-sm text-muted">Already have an account? <a href="#" id="show-login" class="link font-semibold">Login here</a></p>
         </div>
