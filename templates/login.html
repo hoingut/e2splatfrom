@@ -1,101 +1,84 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login or Signup - AnyShop</title>
+    <title>Login / Signup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        /* A simple spinner for loading state */
-        .spinner {
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Style to disable button during submission */
-        button:disabled { opacity: 0.7; cursor: not-allowed; }
+        /* Base styles */
+        body { font-family: 'Raleway', sans-serif; transition: background-color 0.3s, color 0.3s; }
         
+        /* PROFITFLUENCE Dark Theme */
+        body.theme-pf { background-color: #000; color: #E5E7EB; }
+        .theme-pf .card { background-color: #111827; border-color: #374151; }
+        .theme-pf .brand-name { color: #fff; }
+        .theme-pf .input-field { background-color: #1F2937; border-color: #4B5563; color: #E5E7EB; }
+        .theme-pf .input-field:focus { border-color: #7d285d; --tw-ring-color: #7d285d; }
+        .theme-pf .primary-btn { background-color: #7d285d; color: white; }
+        .theme-pf .primary-btn:hover { background-color: #6a214f; }
+        .theme-pf .secondary-btn { background-color: #1F2937; color: white; border-color: #4B5563; }
+        .theme-pf .secondary-btn:hover { background-color: #374151; }
+        .theme-pf .link { color: #7d285d; }
+        .theme-pf .text-muted { color: #9CA3AF; }
+
+        /* AnyShop Light Theme */
+        body.theme-anyshop { background-color: #F3F4F6; color: #1F2937; }
+        .theme-anyshop .card { background-color: #fff; border-color: #E5E7EB; }
+        .theme-anyshop .brand-name { color: #4F46E5; } /* Indigo */
+        .theme-anyshop .input-field { background-color: #fff; border-color: #D1D5DB; color: #1F2937; }
+        .theme-anyshop .input-field:focus { border-color: #4F46E5; --tw-ring-color: #4F46E5; }
+        .theme-anyshop .primary-btn { background-color: #4F46E5; color: white; }
+        .theme-anyshop .primary-btn:hover { background-color: #4338CA; }
+        .theme-anyshop .secondary-btn { background-color: #fff; color: #374151; border-color: #D1D5DB; }
+        .theme-anyshop .secondary-btn:hover { background-color: #F9FAFB; }
+        .theme-anyshop .link { color: #4F46E5; }
+        .theme-anyshop .text-muted { color: #6B7280; }
+    </g>
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-lg transition-all duration-500">
-    
+    <!-- Main Card Container -->
+    <div class="card w-full max-w-md p-8 rounded-xl shadow-lg border">
+        
         <!-- Login Form Container -->
         <div id="login-container">
             <div class="text-center mb-8">
-                <a href="/" class="text-3xl font-bold text-indigo-600">AnyShop</a>
-                <h2 class="text-2xl mt-2 text-gray-800">Welcome Back!</h2>
-                <p class="text-gray-500">Login to continue to your account.</p>
+                <a href="#" id="login-brand-link" class="brand-name text-3xl font-black tracking-wider uppercase">BRAND</a>
+                <h2 class="text-2xl mt-2 font-bold">Welcome Back!</h2>
             </div>
-            
-            <div id="login-error" class="hidden text-red-500 text-sm mb-4 p-3 bg-red-100 rounded-md"></div>
-            
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" id="login-email" class="mt-1 w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="you@example.com" required>
-                </div>
-                <div class="mb-6">
-                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="login-password" class="mt-1 w-full p-3 border border-gray-300 rounded-md" placeholder="••••••••" required>
-                </div>
-                <button type="submit" id="login-submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 transition flex items-center justify-center">
-                    <span class="btn-text">Login</span>
-                    <div class="spinner hidden ml-2"></div>
-                </button>
+            <div id="login-error" class="hidden text-red-500 text-sm mb-4 p-3 bg-red-500/10 rounded-md"></div>
+            <form id="login-form" class="space-y-4">
+                <input type="email" id="login-email" class="input-field w-full p-3 border rounded-md" placeholder="Email Address" required>
+                <input type="password" id="login-password" class="input-field w-full p-3 border rounded-md" placeholder="Password" required>
+                <button type="submit" class="primary-btn w-full py-3 rounded-md font-semibold transition">Login</button>
             </form>
-
-            <div class="my-6 flex items-center"><hr class="w-full"><span class="p-2 text-gray-400 text-sm">OR</span><hr class="w-full"></div>
-
-            <button id="google-login-btn" class="w-full flex items-center justify-center bg-white border border-gray-300 text-gray-700 py-3 rounded-md font-semibold hover:bg-gray-50 transition">
-                <i class="fab fa-google text-red-500 mr-3"></i>
-                <span>Continue with Google</span>
-            </button>
-
-            <p class="text-center mt-6 text-sm text-gray-600">Don't have an account? <a href="#" id="show-signup" class="font-medium text-indigo-600 hover:underline">Sign up now</a></p>
+            <div class="my-6 flex items-center"><hr class="w-full border-gray-600"><span class="p-2 text-muted text-sm">OR</span><hr class="w-full border-gray-600"></div>
+            <button id="google-btn" class="secondary-btn w-full flex items-center justify-center py-3 rounded-md font-semibold transition"><i class="fab fa-google text-red-500 mr-3"></i><span>Continue with Google</span></button>
+            <p class="text-center mt-6 text-sm text-muted">Don't have an account? <a href="#" id="show-signup" class="link font-semibold">Sign up now</a></p>
         </div>
 
         <!-- Signup Form Container (Initially Hidden) -->
         <div id="signup-container" class="hidden">
-             <div class="text-center mb-8">
-                <a href="/" class="text-3xl font-bold text-indigo-600">AnyShop</a>
-                <h2 class="text-2xl mt-2 text-gray-800">Create Your Account</h2>
-                <p class="text-gray-500">It's free and only takes a minute.</p>
+            <div class="text-center mb-8">
+                <a href="#" id="signup-brand-link" class="brand-name text-3xl font-black tracking-wider uppercase">BRAND</a>
+                <h2 class="text-2xl mt-2 font-bold">Create Your Account</h2>
             </div>
-            
-            <div id="signup-error" class="hidden text-red-500 text-sm mb-4 p-3 bg-red-100 rounded-md"></div>
-            
-            <form id="signup-form">
-                <div class="mb-4">
-                    <label for="signup-name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input type="text" id="signup-name" class="mt-1 w-full p-3 border rounded-md" required>
-                </div>
-                 <div class="mb-4">
-                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" id="signup-email" class="mt-1 w-full p-3 border rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password (min. 6 characters)</label>
-                    <input type="password" id="signup-password" class="mt-1 w-full p-3 border rounded-md" required>
-                </div>
-                <button type="submit" id="signup-submit-btn" class="w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 transition flex items-center justify-center">
-                    <span class="btn-text">Create Account</span>
-                    <div class="spinner hidden ml-2"></div>
-                </button>
+            <div id="signup-error" class="hidden text-red-500 text-sm mb-4 p-3 bg-red-500/10 rounded-md"></div>
+            <form id="signup-form" class="space-y-4">
+                <input type="text" id="signup-name" class="input-field w-full p-3 border rounded-md" placeholder="Full Name" required>
+                <input type="email" id="signup-email" class="input-field w-full p-3 border rounded-md" placeholder="Email Address" required>
+                <input type="password" id="signup-password" class="input-field w-full p-3 border rounded-md" placeholder="Password (min. 6 characters)" required>
+                <button type="submit" class="primary-btn w-full py-3 rounded-md font-semibold transition">Create Account</button>
             </form>
-             <p class="text-center mt-6 text-sm text-gray-600">Already have an account? <a href="#" id="show-login" class="font-medium text-indigo-600 hover:underline">Login here</a></p>
+            <p class="text-center mt-6 text-sm text-muted">Already have an account? <a href="#" id="show-login" class="link font-semibold">Login here</a></p>
         </div>
     </div>
-
-    <!-- SCRIPT SECTION -->
-    <script type="module" src="/static/firebaseConfig.js"></script>
-    <script type="module" src="/static/auth.js"></script>
+    
+    <script type="module" src="/static/auth_universal.js"></script>
 </body>
-    </html>
+            </html>
