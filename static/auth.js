@@ -1,85 +1,68 @@
-// --- Step 1: Import necessary functions and services ---
-import { auth, db, googleProvider, doc, setDoc, getDoc, serverTimestamp } from './firebaseConfig.js';
-import { 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signInWithPopup, // Using Popup for a better user experience
-    getRedirectResult 
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+// static/auth_universal.js
+
+// --- Imports ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+// --- Firebase Configuration ---
+const firebaseConfig = { /* ... YOUR FIREBASE CONFIG KEYS ... */ };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// --- Theme and Brand Configuration ---
+const themes = {
+    anyshop: {
+        name: 'AnyShop',
+        className: 'theme-anyshop',
+        redirect: '/account',
+        home: '/'
+    },
+    profitfluence: {
+        name: 'PROFITFLUENCE',
+        className: 'theme-pf',
+        redirect: '/pf/dashboard',
+        home: '/pf'
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Step 2: DOM Element References ---
-    const getElement = (id) => document.getElementById(id);
+    // --- Determine Theme based on URL or Referrer ---
+    const currentPath = window.location.pathname;
+    const referrer = document.referrer;
+    let activeTheme = themes.anyshop; // Default theme
+
+    if (currentPath.startsWith('/pf') || referrer.includes('/pf')) {
+        activeTheme = themes.profitfluence;
+    }
     
+    document.body.classList.add(activeTheme.className);
+    document.getElementById('login-brand-link').textContent = activeTheme.name;
+    document.getElementById('login-brand-link').href = activeTheme.home;
+    document.getElementById('signup-brand-link').textContent = activeTheme.name;
+    document.getElementById('signup-brand-link').href = activeTheme.home;
+
+    // --- DOM References ---
+    const getElement = (id) => document.getElementById(id);
     const loginContainer = getElement('login-container');
     const signupContainer = getElement('signup-container');
     const showLoginLink = getElement('show-login');
     const showSignupLink = getElement('show-signup');
     const loginForm = getElement('login-form');
     const signupForm = getElement('signup-form');
-    const googleLoginBtn = getElement('google-login-btn');
-    const loginErrorDiv = getElement('login-error');
-    const signupErrorDiv = getElement('signup-error');
-    const loginSubmitBtn = getElement('login-submit-btn');
-    const signupSubmitBtn = getElement('signup-submit-btn');
+    const googleBtn = getElement('google-btn');
+    const loginError = getElement('login-error');
+    const signupError = getElement('signup-error');
 
-    // Guard clause: If essential elements aren't on this page, stop running the script.
-    if (!loginContainer || !signupContainer) {
-        console.warn("Auth script loaded on a page without login/signup forms. Halting execution.");
-        return; 
-    }
+    // --- Form Toggling ---
+    showSignupLink.addEventListener('click', (e) => { e.preventDefault(); loginContainer.classList.add('hidden'); signupContainer.classList.remove('hidden'); });
+    showLoginLink.addEventListener('click', (e) => { e.preventDefault(); signupContainer.classList.add('hidden'); loginContainer.classList.remove('hidden'); });
 
-    // --- Step 3: UI Helper Functions ---
-    const showLoading = (button) => {
-        button.disabled = true;
-        button.querySelector('.btn-text').classList.add('hidden');
-        button.querySelector('.spinner').classList.remove('hidden');
-    };
-
-    const hideLoading = (button, defaultText) => {
-        button.disabled = false;
-        const btnText = button.querySelector('.btn-text');
-        btnText.textContent = defaultText;
-        btnText.classList.remove('hidden');
-        button.querySelector('.spinner').classList.add('hidden');
-    };
-
-    const showError = (errorDiv, message) => {
-        const friendlyMessages = {
-            "Firebase: Error (auth/email-already-in-use).": "This email is already registered. Please login.",
-            "Firebase: Error (auth/wrong-password).": "Incorrect password. Please try again.",
-            "Firebase: Error (auth/user-not-found).": "No account found with this email. Please sign up.",
-            "Firebase: Error (auth/popup-closed-by-user).": "The sign-in window was closed. Please try again."
-        };
-        errorDiv.textContent = friendlyMessages[message] || message;
-        errorDiv.classList.remove('hidden');
-    };
-    
-    const hideError = (errorDiv) => {
-        errorDiv.textContent = '';
-        errorDiv.classList.add('hidden');
-    };
-
-    // --- Step 4: Event Listeners ---
-    showSignupLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideError(loginErrorDiv);
-        loginContainer.classList.add('hidden');
-        signupContainer.classList.remove('hidden');
-    });
-
-    showLoginLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        hideError(signupErrorDiv);
-        signupContainer.classList.add('hidden');
-        loginContainer.classList.remove('hidden');
-    });
-
+    // --- Email/Password Signup ---
     signupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        hideError(signupErrorDiv);
-        showLoading(signupSubmitBtn);
-
         const name = getElement('signup-name').value;
         const email = getElement('signup-email').value;
         const password = getElement('signup-password').value;
@@ -87,53 +70,68 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            const userRef = doc(db, 'users', user.uid);
-            await setDoc(userRef, {
-                name, email, role: 'customer', createdAt: serverTimestamp(), walletBalance: 0
+            await setDoc(doc(db, 'users', user.uid), {
+                name, email, role: 'customer', createdAt: serverTimestamp()
             });
-            window.location.href = '/account';
+            redirectToDashboard();
         } catch (error) {
-            showError(signupErrorDiv, error.message);
-        } finally {
-            hideLoading(signupSubmitBtn, 'Create Account');
+            signupError.textContent = error.message;
+            signupError.classList.remove('hidden');
         }
     });
-
+    
+    // --- Email/Password Login ---
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        hideError(loginErrorDiv);
-        showLoading(loginSubmitBtn);
-        
         const email = getElement('login-email').value;
         const password = getElement('login-password').value;
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            window.location.href = '/account';
+            redirectToDashboard();
         } catch (error) {
-            showError(loginErrorDiv, error.message);
-        } finally {
-            hideLoading(loginSubmitBtn, 'Login');
+            loginError.textContent = error.message;
+            loginError.classList.remove('hidden');
         }
     });
-    
-    googleLoginBtn.addEventListener('click', async () => {
-        hideError(loginErrorDiv);
+
+    // --- Google Signin & Signup ---
+    googleBtn.addEventListener('click', async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
+            
             const userRef = doc(db, 'users', user.uid);
             const docSnap = await getDoc(userRef);
 
+            // If user does not exist in Firestore, create a new document (Signup)
             if (!docSnap.exists()) {
                 await setDoc(userRef, {
-                    name: user.displayName, email: user.email, role: 'customer',
-                    createdAt: serverTimestamp(), walletBalance: 0
+                    name: user.displayName,
+                    email: user.email,
+                    role: 'customer',
+                    createdAt: serverTimestamp()
                 });
             }
-            window.location.href = '/account';
+            redirectToDashboard();
         } catch (error) {
-            showError(loginErrorDiv, error.message);
+            loginError.textContent = error.message;
+            loginError.classList.remove('hidden');
         }
     });
+
+    /**
+     * Redirects user to the correct dashboard after login.
+     * Checks for a 'redirect' query parameter first.
+     */
+    function redirectToDashboard() {
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect');
+        
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+        } else {
+            window.location.href = activeTheme.redirect;
+        }
+    }
 });
