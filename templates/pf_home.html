@@ -91,6 +91,181 @@
     </div>
 </section>
 
+
+        <!-- Profitfluence Footer (Copy this into your page where footer should appear) -->
+<footer class="pf-footer" role="contentinfo" aria-label="Profitfluence Footer" data-aos="fade-up">
+  <div class="pf-container">
+    <div class="pf-brand-col">
+      <a class="pf-brand" href="#" aria-label="Profitfluence Home">
+        <div class="pf-logo">
+          <i class="fa-solid fa-chart-line pf-logo-icon" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="pf-brand-name">Profitfluence</div>
+          <div class="pf-brand-slogan">Performance-driven Influencer Platform</div>
+        </div>
+      </a>
+      <p class="pf-desc">ইনফ্লুয়েন্সার ও ব্র্যান্ডকে যুক্ত করে রিওয়্যার্ড-ভিত্তিক ক্যাম্পেইন, ট্র্যাকিং এবং নিরাপদ পেমেন্ট সলিউশন।</p>
+      <div class="pf-socials" aria-hidden="false">
+        <a href="#" class="pf-social" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="pf-social" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="pf-social" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+        <a href="#" class="pf-social" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+
+    <div class="pf-links-col">
+      <h4 class="pf-title">দ্রুত লিংক</h4>
+      <ul class="pf-links">
+        <li><a href="#">হোম</a></li>
+        <li><a href="#">কীভাবে কাজ করে</a></li>
+        <li><a href="#">ব্র্যান্ড জন্য</a></li>
+        <li><a href="#">ইনফ্লুয়েন্সারের জন্য</a></li>
+        <li><a href="#">প্রাইসিং</a></li>
+      </ul>
+    </div>
+
+    <div class="pf-resources-col">
+      <h4 class="pf-title">সহায়তা & রিসোর্স</h4>
+      <ul class="pf-links">
+        <li><a href="#">ব্লগ</a></li>
+        <li><a href="#">গাইড</a></li>
+        <li><a href="#">প্রাইভেসি পলিসি</a></li>
+        <li><a href="#">টার্মস অফ সার্ভিস</a></li>
+        <li><a href="#">সাপোর্ট</a></li>
+      </ul>
+    </div>
+
+    <div class="pf-contact-col">
+      <h4 class="pf-title">যোগাযোগ</h4>
+      <address class="pf-contact">
+        <div><i class="fa-solid fa-phone"></i> +880 1781-146747</div>
+        <div><i class="fa-regular fa-envelope"></i> support@profitfluence.example</div>
+        <div><i class="fa-solid fa-location-dot"></i> Tarakandi, Sribordi, Sherpur, Mymensingh, Bangladesh</div>
+      </address>
+      <form class="pf-newsletter" action="#" aria-label="Newsletter subscription">
+        <label for="pf-news-email" class="sr-only">Email address</label>
+        <input id="pf-news-email" name="email" type="email" placeholder="ইমেইল দিন" required>
+        <button type="submit" class="pf-btn">জয়েন</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pf-bottom">
+    <p>© <span id="pf-year"></span> Profitfluence · All rights reserved · <span class="pf-dot">|</span> <a href="#">Privacy</a></p>
+  </div>
+</footer>
+
+<!-- Styles for Profitfluence Footer -->
+<style>
+
+  .pf-footer {
+    --primary-color: #7d285d;
+    --accent-color: #ffc107;
+    --muted: rgba(255,255,255,0.7);
+    --bg: #0a0a0a;
+    --card: #0f0f0f;
+    --radius: 12px;
+    --gap: 18px;
+    --max-width: 1200px;
+  
+    background: linear-gradient(180deg, rgba(125,40,93,0.12), transparent 40%), var(--bg);
+    color: var(--text-color, #fff);
+    padding: 48px 20px 24px;
+    font-family: 'Anek Bangla', sans-serif;
+  }
+
+  .pf-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--gap);
+    align-items: start;
+  }
+
+  /* Brand column */
+  .pf-brand { display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit; }
+  .pf-logo {
+    width:64px; height:64px; border-radius:14px;
+    background: linear-gradient(135deg, rgba(125,40,93,0.25), rgba(255,193,7,0.08));
+    display:flex; align-items:center; justify-content:center; box-shadow: 0 6px 18px rgba(125,40,93,0.12);
+  }
+  .pf-logo-icon { font-size:22px; color:var(--accent-color); transform: translateY(-1px); }
+  .pf-brand-name { font-weight:700; font-family: 'Raleway', sans-serif; font-size:18px; letter-spacing:0.2px; }
+  .pf-brand-slogan { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  .pf-desc { color:var(--muted); margin:12px 0 16px; line-height:1.5; max-width:320px; font-size:14px; }
+
+  .pf-socials { display:flex; gap:8px; }
+  .pf-social { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; background:rgba(255,255,255,0.02); text-decoration:none; color:var(--muted); font-size:14px; transition:transform .18s ease, background .18s; }
+  .pf-social:hover { transform: translateY(-4px); color:var(--accent-color); background: rgba(125,40,93,0.14); }
+
+  /* Links columns */
+  .pf-title { color:#fff; font-weight:700; margin-bottom:12px; font-family: 'Raleway', sans-serif; font-size:15px; }
+  .pf-links { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+  .pf-links a { color:var(--muted); text-decoration:none; font-size:14px; transition: color .15s; }
+  .pf-links a:hover { color:var(--accent-color); text-decoration:underline; }
+
+  /* Contact column */
+  .pf-contact { color:var(--muted); font-style:normal; display:flex; flex-direction:column; gap:8px; font-size:14px; }
+  .pf-contact i { margin-right:8px; color:var(--accent-color); width:18px; text-align:center; }
+
+  /* Newsletter */
+  .pf-newsletter { margin-top:12px; display:flex; gap:8px; align-items:center; }
+  .pf-newsletter input[type="email"] { background:transparent; border:1px solid rgba(255,255,255,0.06); padding:10px 12px; border-radius:8px; color:var(--text-color); min-width:170px; outline:none; }
+  .pf-newsletter input::placeholder { color:rgba(255,255,255,0.4); }
+  .pf-btn { background: linear-gradient(90deg,var(--primary-color), #a4357f); padding:10px 14px; border-radius:9px; border: none; color:#fff; cursor:pointer; font-weight:600; box-shadow: 0 6px 18px rgba(125,40,93,0.12); }
+  .pf-btn:hover { transform: translateY(-3px); }
+
+  /* bottom bar */
+  .pf-bottom { margin-top:28px; border-top:1px solid rgba(255,255,255,0.04); padding-top:16px; text-align:center; color:var(--muted); font-size:13px; }
+  .pf-bottom a { color:var(--muted); text-decoration:none; margin-left:8px; }
+  .pf-dot { margin: 0 8px; color: rgba(255,255,255,0.08); }
+
+  /* Responsive */
+  @media (max-width: 992px) {
+    .pf-container { grid-template-columns: repeat(2, 1fr); }
+    .pf-desc { max-width: none; }
+  }
+
+  @media (max-width: 560px) {
+    .pf-container { grid-template-columns: 1fr; gap:14px; }
+    .pf-brand { align-items:flex-start; }
+    .pf-logo { width:56px; height:56px; }
+    .pf-newsletter { flex-direction:row; gap:6px; }
+  }
+
+  /* Small accessibility helper */
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+</style>
+
+<!-- Tiny JS: set year + optional basic newsletter prevention (example) -->
+<script>
+  (function(){
+    // set copyright year
+    const yEl = document.getElementById('pf-year');
+    if (yEl) yEl.textContent = new Date().getFullYear();
+
+    // simple newsletter demo: prevent actual submit and show tiny toast (replace with real endpoint)
+    const form = document.querySelector('.pf-newsletter');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = form.querySelector('input[type="email"]').value;
+        if (!email) { alert('ইমেইল দিন'); return; }
+        // demo success — replace with fetch() to your backend
+        alert('Thanks — তুমি সাবস্ক্রাইব হয়েছেন: ' + email);
+        form.reset();
+      });
+    }
+  })();
+</script>
+
+<!-- Note: AOS init (if you use AOS elsewhere) -->
+<script>
+  if (window.AOS) { AOS.init({ duration: 700, once: true }); }
+</script>
 <!-- ... (Rest of the HTML and script tags) ... -->
     </main>
     
