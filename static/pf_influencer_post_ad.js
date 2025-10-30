@@ -1,4 +1,4 @@
-// static/pf_influencer_post_ad.js
+
 
 // --- Imports ---
 import { auth, db } from './firebaseConfig.js';
