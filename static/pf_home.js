@@ -115,15 +115,20 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.classList.add('hidden');
 
         try {
-            const isJobSearch = criteria.filterFor === 'job';
-            const collectionName = isJobSearch ? 'posts' : 'users';
-            let q = collection(db, collectionName);
+const isJobSearch = criteria.filterFor === 'job';
+// FIX: Both jobs and services are posts
+const collectionName = 'posts'; 
+let q = collection(db, collectionName);
 
-            if (isJobSearch) {
-                q = query(q, where('status', '==', 'open-for-proposals'));
-            } else {
-                q = query(q, where('role', '==', 'influencer'));
-            }
+if (isJobSearch) {
+    // Brand Jobs
+    q = query(q, where('postType', '==', 'brand_job'), where('status', '==', 'open-for-proposals'));
+} else { 
+    // Influencer Services (Assumes a 'postType: influencer_service' field exists)
+    q = query(q, where('postType', '==', 'influencer_service'));
+    // Note: You might need to adjust the filter definitions to match 'posts' fields instead of 'influencerProfile' fields.
+}
+// ... rest of the filtering logic
 
             for (const key in criteria) {
                 if (key !== 'filterFor') {
