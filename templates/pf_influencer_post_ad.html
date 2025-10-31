@@ -14,7 +14,7 @@
         .ring-mulberry:focus { --tw-ring-color: #7d285d; } .border-mulberry { border-color: #7d285d; }
         input, select, textarea { background-color: #1F2937; border-color: #4B5563; }
         input:focus, select:focus, textarea:focus { border-color: #7d285d; ring: 1; ring-color: #7d285d; }
-        .checkbox-label { display: flex; align-items: center; padding: 0.75rem; border: 1px solid #4B5563; border-radius: 0.375rem; cursor: pointer; }
+        .checkbox-label { display: flex; align-items: center; padding: 0.75rem; border: 1px solid #4B5563; border-radius: 0.375rem; cursor: pointer; transition: all 0.2s; }
         .checkbox-label:has(input:checked) { background-color: #7d285d; border-color: #7d285d; color: white; }
     </style>
 </head>
@@ -31,10 +31,14 @@
     <main class="container mx-auto px-6 py-12 max-w-3xl">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-extrabold text-white">Create a Service Package</h1>
-            <p class="text-gray-400 mt-2">Offer a ready-made package for brands to purchase directly.</p>
+            <p class="text-gray-400 mt-2">Offer a ready-made package for brands to purchase directly. (Awaiting Admin Approval)</p>
         </header>
 
         <form id="service-post-form" class="bg-gray-900/50 border border-gray-800 p-8 rounded-xl shadow-lg space-y-6">
+            
+            <!-- Hidden Fields for Author Info -->
+            <input type="hidden" id="authorId" value="">
+            <input type="hidden" id="authorName" value="">
             
             <div>
                 <label for="title" class="block text-sm font-medium text-gray-300">Service Title</label>
@@ -50,17 +54,36 @@
                 <div>
                     <label for="category" class="block text-sm font-medium text-gray-300">Category</label>
                     <select id="category" class="mt-1 w-full p-2 rounded-md" required>
-                        <option>Fashion & Beauty</option><option>Tech & Gadgets</option><option>Food & Cooking</option><option>Gaming</option><option>Travel</option>
+                        <option value="fashion">Fashion & Beauty</option>
+                        <option value="tech">Tech & Gadgets</option>
+                        <option value="food">Food & Cooking</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="travel">Travel</option>
+                        <option value="lifestyle">Lifestyle</option>
                     </select>
                 </div>
                 <div>
                     <label for="budget" class="block text-sm font-medium text-gray-300">Package Price (Budget)</label>
-                    <input type="number" id="budget" class="mt-1 w-full p-2 rounded-md" placeholder="e.g., 5000" required>
+                    <input type="number" id="budget" class="mt-1 w-full p-2 rounded-md" placeholder="e.g., 5000" required min="100">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                    <label for="deliveryTime" class="block text-sm font-medium text-gray-300">Delivery Time (Days)</label>
+                    <input type="number" id="deliveryTime" class="mt-1 w-full p-2 rounded-md" placeholder="e.g., 5" required min="1">
+                </div>
+                <div>
+                    <label for="mood" class="block text-sm font-medium text-gray-300">Collaboration Mood</label>
+                    <select id="mood" class="mt-1 w-full p-2 rounded-md" required>
+                        <option value="ready">Ready Package</option>
+                        <option value="creative">Creative Freedom</option>
+                    </select>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Platform(s)</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Platform(s) Offered</label>
                 <div id="platforms" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <label class="checkbox-label"><input type="checkbox" value="instagram" class="h-4 w-4 hidden"><span class="ml-2">Instagram</span></label>
                     <label class="checkbox-label"><input type="checkbox" value="facebook" class="h-4 w-4 hidden"><span class="ml-2">Facebook</span></label>
@@ -70,7 +93,7 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-2">Content Type(s)</label>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Content Type(s) Included</label>
                 <div id="contentTypes" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <label class="checkbox-label"><input type="checkbox" value="story" class="h-4 w-4 hidden"><span class="ml-2">Story</span></label>
                     <label class="checkbox-label"><input type="checkbox" value="post" class="h-4 w-4 hidden"><span class="ml-2">Post</span></label>
@@ -85,14 +108,15 @@
                     <img id="image-preview" src="https://via.placeholder.com/150" alt="Preview" class="w-24 h-24 object-cover rounded-md">
                     <div class="flex-grow">
                         <input type="file" id="cover-image" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-mulberry file:text-white hover:file:bg-mulberry-dark cursor-pointer">
-                        <p id="upload-status" class="text-xs text-gray-500 mt-2">Recommended: 16:9 ratio</p>
+                        <p id="upload-status" class="text-xs text-gray-500 mt-2">Recommended: 16:9 ratio. Max 5MB.</p>
+                        <input type="hidden" id="coverImageUrl">
                     </div>
                 </div>
             </div>
             
             <div class="pt-4">
-                <button type="submit" id="submit-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-3 px-6 rounded-md transition flex items-center justify-center disabled:opacity-50">
-                    <span id="btn-text">Post Service Package</span>
+                <button type="submit" id="submit-btn" class="w-full bg-mulberry hover:bg-mulberry-dark text-white font-bold py-3 px-6 rounded-md transition flex items-center justify-center disabled:opacity-50" disabled>
+                    <span id="btn-text">Log in to Post Service</span>
                     <div id="btn-spinner" class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-3 hidden"></div>
                 </button>
             </div>
@@ -102,4 +126,4 @@
     <script type="module" src="/static/firebaseConfig.js"></script>
     <script type="module" src="/static/pf_influencer_post_ad.js"></script>
 </body>
-              </html>
+                                                         </html>
