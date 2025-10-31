@@ -1,4 +1,3 @@
-// static/pf_influencer_post_ad.js
 
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
