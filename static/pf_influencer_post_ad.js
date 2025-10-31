@@ -1,134 +1,161 @@
-import { auth, db } from './firebaseConfig.js';
+// static/pf_influencer_post_ad.js
+
+import { auth, db, storage } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, getDoc, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
-document.addEventListener('DOMContentLoaded', () => {
-    // --- Configuration ---
-    const IMGBB_API_KEY = '5e7311818264c98ebf4a79dbb58b55aa'; // <-- আপনার ImgBB API KEY এখানে দিন
+const form = document.getElementById('service-post-form');
+const submitBtn = document.getElementById('submit-btn');
+const btnText = document.getElementById('btn-text');
+const btnSpinner = document.getElementById('btn-spinner');
+const coverImageInput = document.getElementById('cover-image');
+const imagePreview = document.getElementById('image-preview');
+const coverImageUrlInput = document.getElementById('coverImageUrl');
+const uploadStatus = document.getElementById('upload-status');
 
-    // --- DOM References ---
-    const getElement = (id) => document.getElementById(id);
-    const servicePostForm = getElement('service-post-form');
-    const submitBtn = getElement('submit-btn');
-    const imageUploadInput = getElement('cover-image');
-    const imagePreview = getElement('image-preview');
-    const uploadStatus = getElement('upload-status');
-    
-    let currentUser = null;
-    let influencerProfile = null;
+let currentUser = null;
+let currentProfile = null; // Store user/influencer profile data
 
-    // --- Authentication and Authorization Check ---
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            try {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists() && docSnap.data().role === 'influencer') {
-                    influencerProfile = docSnap.data().influencerApplication; // Or influencerProfile
-                } else {
-                    throw new Error('You are not an approved influencer.');
-                }
-            } catch (error) {
-                document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-red-500">${error.message}</h1></div>`;
-            }
+// --- 1. Authentication and Authorization Check ---
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        const userDocRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userDocRef);
+        
+        if (userSnap.exists() && userSnap.data().role === 'influencer' && userSnap.data().isApprovedInfluencer === true) {
+            currentProfile = userSnap.data();
+            
+            // Populate hidden fields
+            document.getElementById('authorId').value = user.uid;
+            document.getElementById('authorName').value = currentProfile.name || 'Influencer User';
+            
+            submitBtn.disabled = false;
+            btnText.textContent = 'Post Service Package';
         } else {
-            window.location.href = `/login?redirect=/pf/dashboard/i/ad`;
+            // Not an approved influencer or missing profile
+            alert("Access Denied. You must be an approved influencer to post a service.");
+            window.location.href = '/pf/dashboard'; 
         }
-    });
+    } else {
+        // Not logged in
+        window.location.href = `/login?redirect=/pf/dashboard/i/ad`;
+    }
+});
 
-    /**
-     * Uploads an image to ImgBB and returns the URL.
-     * @param {File} file - The image file.
-     * @returns {Promise<string>} - The URL of the uploaded image.
-     */
-    async function uploadImage(file) {
-        if (!file) throw new Error("Please select a cover image.");
-        
-        uploadStatus.textContent = 'Uploading image...';
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-            method: 'POST',
-            body: formData,
-        });
-        
-        const result = await response.json();
-        if (!result.success) throw new Error(`Image upload failed: ${result.error.message}`);
-        
-        uploadStatus.textContent = 'Image upload successful!';
-        return result.data.url;
+
+// --- 2. Image Upload Handling ---
+coverImageInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) { // Max 5MB
+        uploadStatus.textContent = 'Error: File size must be under 5MB.';
+        coverImageInput.value = '';
+        return;
     }
 
-    // --- Image Preview Logic ---
-    imageUploadInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => { imagePreview.src = reader.result; };
-            reader.readAsDataURL(file);
-        }
-    });
+    try {
+        uploadStatus.textContent = 'Uploading...';
+        
+        // 1. Show spinner and disable button temporarily
+        submitBtn.disabled = true;
 
-    // --- Form Submission Logic ---
-    servicePostForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!currentUser || !influencerProfile) {
-            alert('Authentication error. Cannot post service.');
+        // 2. Upload to Firebase Storage
+        const storageRef = ref(storage, `posts/influencer/${currentUser.uid}/${Date.now()}_cover`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // 3. Update UI and hidden field
+        imagePreview.src = downloadURL;
+        coverImageUrlInput.value = downloadURL;
+        uploadStatus.textContent = 'Upload successful!';
+        
+        submitBtn.disabled = false;
+
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        uploadStatus.textContent = 'Upload failed. Check console.';
+        submitBtn.disabled = true; // Keep disabled until resolved or re-login
+    }
+});
+
+
+// --- 3. Form Submission ---
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentUser || submitBtn.disabled) return;
+
+    submitBtn.disabled = true;
+    btnText.textContent = 'Submitting...';
+    btnSpinner.classList.remove('hidden');
+
+    try {
+        // Gather data
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const category = document.getElementById('category').value;
+        const budget = Number(document.getElementById('budget').value);
+        const deliveryTime = Number(document.getElementById('deliveryTime').value);
+        const mood = document.getElementById('mood').value;
+        const coverImage = coverImageUrlInput.value;
+        
+        const platforms = Array.from(document.querySelectorAll('#platforms input:checked')).map(cb => cb.value);
+        const contentTypes = Array.from(document.querySelectorAll('#contentTypes input:checked')).map(cb => cb.value);
+
+        if (platforms.length === 0 || contentTypes.length === 0) {
+            alert("Please select at least one platform and one content type.");
             return;
         }
 
-        // Show loading state
-        submitBtn.disabled = true;
-        const btnText = getElement('btn-text');
-        const btnSpinner = getElement('btn-spinner');
-        btnText.classList.add('hidden');
-        btnSpinner.classList.remove('hidden');
-
-        try {
-            // 1. Upload the image first
-            const coverImageUrl = await uploadImage(imageUploadInput.files[0]);
-
-            // 2. Gather all form data
-            const selectedPlatforms = Array.from(document.querySelectorAll('#platforms input:checked')).map(cb => cb.value);
-            const selectedContentTypes = Array.from(document.querySelectorAll('#contentTypes input:checked')).map(cb => cb.value);
-
-            if (selectedPlatforms.length === 0 || selectedContentTypes.length === 0) {
-                throw new Error("Please select at least one Platform and one Content Type.");
+        // Create the post data object
+        const postData = {
+            title,
+            description,
+            budget,
+            category,
+            mood,
+            deliveryTime,
+            platforms,
+            contentTypes,
+            coverImage: coverImage,
+            
+            // Essential Metadata
+            authorId: currentUser.uid,
+            authorName: currentProfile.name,
+            authorRole: 'influencer', // Essential for filtering
+            postType: 'influencer_service', // Essential for pf_home.js
+            createdAt: serverTimestamp(),
+            
+            // Status: Requires Admin Approval before appearing on /pf
+            status: 'pending-admin-approval', 
+            isApproved: false, 
+            
+            // Influencer Profile Snapshot for quick reference (optional but good practice)
+            influencerSnapshot: {
+                pageName: currentProfile.influencerProfile?.pageName || currentProfile.name,
+                followers: currentProfile.influencerProfile?.followers || 0,
+                category: currentProfile.influencerProfile?.category || category,
             }
-            
-            const postData = {
-                authorId: currentUser.uid,
-                authorName: influencerProfile.page.pageName,
-                authorPic: influencerProfile.page.pageProfilePicUrl,
-                type: 'service', // Differentiates from a 'job' post
-                title: getElement('title').value,
-                description: getElement('description').value,
-                category: getElement('category').value,
-                budget: Number(getElement('budget').value),
-                platforms: selectedPlatforms,
-                contentTypes: selectedContentTypes,
-                coverImage: coverImageUrl,
-                status: 'active', // 'active', 'paused'
-                createdAt: serverTimestamp(),
-            };
+        };
 
-            // 3. Save the post to Firestore 'posts' collection
-            const postsCollection = collection(db, 'posts');
-            await addDoc(postsCollection, postData);
-            
-            alert('Your service package has been posted successfully!');
-            window.location.href = '/pf/dashboard/i'; // Redirect to influencer dashboard
+        // Save to Firestore 'posts' collection
+        const newPostRef = doc(collection(db, 'posts'));
+        await setDoc(newPostRef, postData);
 
-        } catch (error) {
-            console.error('Failed to post service:', error);
-            alert(`Error: ${error.message}`);
-        } finally {
-            // Hide loading state
-            submitBtn.disabled = false;
-            btnText.classList.remove('hidden');
-            btnSpinner.classList.add('hidden');
-        }
-    });
+        alert("Service Package submitted successfully! It is now pending admin approval.");
+        form.reset();
+        imagePreview.src = "https://via.placeholder.com/150";
+        window.location.href = '/pf/dashboard/i'; // Redirect to influencer dashboard
+
+    } catch (error) {
+        console.error("Submission failed:", error);
+        alert("Failed to post service. Error: " + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = 'Post Service Package';
+        btnSpinner.classList.add('hidden');
+    }
 });
