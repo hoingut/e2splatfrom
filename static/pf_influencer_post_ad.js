@@ -29,6 +29,11 @@ function getBase64(file) {
         reader.onerror = error => reject(error);
     });
 }
+// static/pf_influencer_post_ad.js (Authorization Lgic Update)
+
+// ... (Existing Imports and Constants) ...
+
+// ... (Helper function getBase64 remains the same) ...
 
 // --- 1. Authentication and Authorization Check ---
 onAuthStateChanged(auth, async (user) => {
@@ -51,9 +56,9 @@ onAuthStateChanged(auth, async (user) => {
         currentProfile = userData;
         console.log("[AUTH] User Data Loaded:", userData);
         
-        // Ensure user is an APPROVED influencer
+        // --- *** CRITICAL FIX HERE *** ---
         const isInfluencer = userData.role === 'influencer';
-        const isApproved = userData.isApprovedInfluencer === true; // Must be BOOLEAN true
+        const isApproved = userData.applicationStatus === 'approved'; // CHECKING applicationStatus
 
         if (isInfluencer && isApproved) {
             console.log("[AUTH] ACCESS GRANTED. User is an approved influencer.");
@@ -74,7 +79,7 @@ onAuthStateChanged(auth, async (user) => {
             if (!isInfluencer) {
                 msg += "Your role is not set to 'influencer'.";
             } else if (!isApproved) {
-                msg += "You are not yet approved by the admin.";
+                msg += "Your application is pending or rejected by the admin.";
             } else {
                 msg += "Please contact support.";
             }
@@ -90,6 +95,8 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = `/login?redirect=/pf/dashboard/i/ad`;
     }
 });
+
+// ... (Rest of the ImgBB upload and Form Submission logic remains the same) ...
 
 
 // --- 2. ImgBB Image Upload Handling ---
