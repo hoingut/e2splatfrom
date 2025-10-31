@@ -7,6 +7,7 @@ import { doc, getDoc, setDoc, collection, serverTimestamp } from "https://www.gs
 // !!! --- CRITICAL: REPLACE WITH YOUR ACTUAL IMGBB API KEY --- !!!
 const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY'; 
 
+// --- DOM Element References ---
 const form = document.getElementById('service-post-form');
 const submitBtn = document.getElementById('submit-btn');
 const btnText = document.getElementById('btn-text');
@@ -33,29 +34,59 @@ function getBase64(file) {
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
+        console.log(`[AUTH] User logged in: ${user.uid}. Checking profile...`);
         const userDocRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userDocRef);
         
+        // ** DEBUG STEP 1: Check required fields in Firestore **
+        if (!userSnap.exists()) {
+            console.error("[AUTH ERROR] User document does not exist in Firestore.");
+            submitBtn.disabled = true;
+            btnText.textContent = 'ERROR: Profile Missing';
+            alert("Error: Your profile document is missing. Cannot proceed.");
+            return;
+        }
+
+        const userData = userSnap.data();
+        currentProfile = userData;
+        console.log("[AUTH] User Data Loaded:", userData);
+        
         // Ensure user is an APPROVED influencer
-        if (userSnap.exists() && userSnap.data().role === 'influencer' && userSnap.data().isApprovedInfluencer === true) {
-            currentProfile = userSnap.data();
+        const isInfluencer = userData.role === 'influencer';
+        const isApproved = userData.isApprovedInfluencer === true; // Must be BOOLEAN true
+
+        if (isInfluencer && isApproved) {
+            console.log("[AUTH] ACCESS GRANTED. User is an approved influencer.");
             
             // Populate hidden fields
             document.getElementById('authorId').value = user.uid;
-            document.getElementById('authorName').value = currentProfile.name || 'Influencer User';
+            document.getElementById('authorName').value = userData.name || 'Influencer User';
             
             submitBtn.disabled = false;
             btnText.textContent = 'Post Service Package';
         } else {
-            // Not an approved influencer or missing profile
-            alert("Access Denied. You must be an approved influencer to post a service.");
-            // Wait a moment before redirecting to allow user to read the message
+            console.warn(`[AUTH ERROR] Access Denied. Role: ${userData.role}, Approved: ${isApproved}`);
+            
+            submitBtn.disabled = true;
+            btnText.textContent = 'Access Denied';
+            
+            let msg = "Access Denied. ";
+            if (!isInfluencer) {
+                msg += "Your role is not set to 'influencer'.";
+            } else if (!isApproved) {
+                msg += "You are not yet approved by the admin.";
+            } else {
+                msg += "Please contact support.";
+            }
+
+            alert(msg);
             setTimeout(() => {
                 window.location.href = '/pf/dashboard'; 
             }, 1500);
         }
     } else {
         // Not logged in
+        console.log("[AUTH] User not logged in. Redirecting to login.");
         window.location.href = `/login?redirect=/pf/dashboard/i/ad`;
     }
 });
@@ -78,14 +109,14 @@ coverImageInput.addEventListener('change', async (e) => {
     }
 
     try {
+        console.log("[UPLOAD] Starting image upload to ImgBB...");
         uploadStatus.textContent = 'Uploading to ImgBB...';
         submitBtn.disabled = true;
 
-        // Convert file to Base64 format
         const base64Image = await getBase64(file);
 
         const formData = new FormData();
-        formData.append("image", base64Image); // ImgBB accepts 'image' field with base64 data
+        formData.append("image", base64Image); 
 
         // Send request to ImgBB API
         const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
@@ -94,6 +125,7 @@ coverImageInput.addEventListener('change', async (e) => {
         });
 
         const result = await response.json();
+        console.log("[UPLOAD] ImgBB Response:", result);
 
         if (result.success) {
             const downloadURL = result.data.url;
@@ -107,10 +139,13 @@ coverImageInput.addEventListener('change', async (e) => {
         }
 
     } catch (error) {
-        console.error("Image upload failed:", error);
+        console.error("[UPLOAD FAILED]", error);
         uploadStatus.textContent = `Upload failed: ${error.message}`;
     } finally {
-        submitBtn.disabled = false;
+        // Re-enable button only if the main user check passed
+        if (submitBtn.textContent === 'Post Service Package') {
+            submitBtn.disabled = false;
+        }
     }
 });
 
@@ -119,7 +154,10 @@ coverImageInput.addEventListener('change', async (e) => {
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    if (!currentUser || submitBtn.disabled) return;
+    if (!currentUser || submitBtn.disabled) {
+        alert("Please wait for authentication or fix upload errors.");
+        return;
+    }
 
     submitBtn.disabled = true;
     btnText.textContent = 'Submitting...';
@@ -139,59 +177,57 @@ form.addEventListener('submit', async (e) => {
         const contentTypes = Array.from(document.querySelectorAll('#contentTypes input:checked')).map(cb => cb.value);
 
         if (platforms.length === 0 || contentTypes.length === 0) {
-            alert("Please select at least one platform and one content type.");
-            // Re-enable button briefly before returning
-            submitBtn.disabled = false;
-            btnText.textContent = 'Post Service Package';
-            btnSpinner.classList.add('hidden');
-            return;
+            throw new Error("Please select at least one platform and one content type.");
         }
 
-        // Create the post data object
         const postData = {
-            title,
-            description,
-            budget,
-            category,
-            mood,
-            deliveryTime,
-            platforms,
-            contentTypes,
-            coverImage: coverImage,
+            title, description, budget, category, mood, deliveryTime, platforms, contentTypes,
+            coverImage: coverImage || 'https://via.placeholder.com/1200x675', // Fallback image
             
-            // Essential Metadata
+            // Essential Metadata for Filtering and Rules
             authorId: currentUser.uid,
             authorName: currentProfile.name,
             authorRole: 'influencer', 
             postType: 'influencer_service', // CRITICAL for pf_home.js
             createdAt: serverTimestamp(),
             
-            // Status: Requires Admin Approval
+            // Status
             status: 'pending-admin-approval', 
             isApproved: false, 
             
-            // Influencer Profile Snapshot for quick reference
+            // Snapshot
             influencerSnapshot: {
                 pageName: currentProfile.influencerProfile?.pageName || currentProfile.name,
                 followers: currentProfile.influencerProfile?.followers || 0,
                 category: currentProfile.influencerProfile?.category || category,
-                // Include profile picture URL for easy display on proposals
                 pageProfilePicUrl: currentProfile.influencerProfile?.pageProfilePicUrl || 'https://via.placeholder.com/50'
             }
         };
+        
+        console.log("[SUBMIT] Final Post Data:", postData);
 
         // Save to Firestore 'posts' collection
         const newPostRef = doc(collection(db, 'posts'));
         await setDoc(newPostRef, postData);
+        console.log("[SUBMIT] Post created successfully:", newPostRef.id);
 
         alert("Service Package submitted successfully! It is now pending admin approval.");
         form.reset();
         imagePreview.src = "https://via.placeholder.com/150";
-        window.location.href = '/pf/dashboard/i'; // Redirect to influencer dashboard
+        window.location.href = '/pf/dashboard/i'; 
 
     } catch (error) {
-        console.error("Submission failed:", error);
-        alert("Failed to post service. Error: " + error.message);
+        console.error("[SUBMIT FAILED]", error);
+        
+        let displayMessage = "Failed to post service.";
+        
+        if (error.code === 'permission-denied') {
+            displayMessage = "CRITICAL: Firebase Rules Denied Access. You are authenticated, but the rule is preventing write access to /posts. Check your Security Rules!";
+        } else {
+            displayMessage = "Submission Error: " + error.message;
+        }
+        
+        alert(displayMessage);
     } finally {
         submitBtn.disabled = false;
         btnText.textContent = 'Post Service Package';
