@@ -16,6 +16,18 @@ def inject_global_variables():
 def home():
     return render_template('index.html')
 
+
+# app.py
+
+# ... (existing routes) ...
+
+@app.route('/pf/influpost')
+def pf_influencer_services_feed():
+    """Renders the feed showing all approved Influencer Service Posts."""
+    return render_template('pf_influpost.html', title="Influencer Service Market")
+
+# ... (rest of app.py) ...
+
 # app.py
 @app.route('/admin/post-approvals')
 def admin_post_approvals():
