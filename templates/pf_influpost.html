@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Service Market - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; } .text-mulberry { color: #7d285d; }
+        .bg-dark-card { background-color: #111827; }
+        .border-dark { border-color: #374151; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <a href="/pf/dashboard" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white">Ready Influencer Services</h1>
+            <p class="mt-2 text-lg text-gray-400 max-w-2xl mx-auto">
+                Discover pre-packaged services offered by our verified influencers for quick collaboration.
+            </p>
+        </header>
+
+        <!-- Post List Section -->
+        <section id="post-list-section">
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="text-center py-16">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
+                <p class="mt-4 text-gray-400">Loading Influencer Services...</p>
+            </div>
+            
+            <!-- Grid for Posts -->
+            <div id="post-list-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- JS will inject service cards here -->
+            </div>
+            
+            <!-- No Results Message -->
+            <div id="no-results" class="hidden text-center py-16 text-gray-500">
+                <i class="fas fa-box-open text-5xl"></i>
+                <p class="mt-4 font-semibold">No services found currently.</p>
+            </div>
+        </section>
+    </main>
+    
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_influpost.js"></script>
+</body>
+          </html>
