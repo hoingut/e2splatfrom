@@ -1,1 +1,101 @@
-.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Details - PROFITFLUENCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background-color: #000; color: #E5E7EB; font-family: 'Raleway', sans-serif; }
+        .bg-mulberry { background-color: #7d285d; } .hover\:bg-mulberry-dark:hover { background-color: #6a214f; }
+        .bg-dark-card { background-color: #111827; } .border-dark { border-color: #374151; }
+        .prose-dark { color: #D1D5DB; }
+        .prose-dark a { color: #7d285d; }
+        .prose-dark strong { color: #FFF; }
+        /* Loader styles for submit button */
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #7d285d; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: none; margin-left: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/pf" class="text-2xl font-black tracking-wider uppercase">PROFITFLUENCE</a>
+            <a href="/pf" id="back-link" class="text-sm font-semibold hover:text-mulberry"><i class="fas fa-arrow-left mr-2"></i>Back to Jobs</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <!-- Loading State -->
+        <div id="loading-container" class="text-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mulberry mx-auto"></div>
+            <p class="mt-4">Loading Work Details...</p>
+        </div>
+
+        <!-- Main Content (Initially Hidden) -->
+        <div id="work-details-content" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Main Job Details -->
+                <div class="lg:col-span-2 bg-dark-card border border-dark p-8 rounded-xl">
+                    <!-- Image -->
+                    <img id="work-image" src="https://via.placeholder.com/800x450" alt="Work Image" class="w-full h-auto object-cover rounded-lg mb-6">
+                    
+                    <h1 id="work-title" class="text-3xl font-bold mb-4"></h1>
+                    
+                    <div class="mb-4 space-y-2">
+                         <div class="text-gray-400 text-sm">Platforms: <span id="work-platforms" class="font-semibold text-white"></span></div>
+                         <div class="text-gray-400 text-sm">Content Types: <span id="work-content-types" class="font-semibold text-white"></span></div>
+                         <div class="text-gray-400 text-sm">Delivery Time: <span id="work-delivery-time" class="font-semibold text-white"></span> Days</div>
+                    </div>
+
+                    <h2 class="text-xl font-semibold mt-6 mb-3 border-b border-gray-700 pb-1">Service Description</h2>
+                    <div id="work-description" class="prose prose-dark max-w-none"></div>
+                </div>
+
+                <!-- Right Column: Summary and Action Area -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Influencer Info -->
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl text-center">
+                        <img id="influencer-pic" src="https://via.placeholder.com/80" alt="Influencer Profile" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover">
+                        <h3 id="influencer-name" class="font-semibold text-lg"></h3>
+                        <p class="text-sm text-gray-400">Followers: <span id="influencer-followers"></span></p>
+                        <a href="#" id="influencer-profile-link" class="text-xs text-mulberry hover:underline mt-1 block">View Full Profile</a>
+                    </div>
+
+                    <!-- Job Summary -->
+                    <div class="bg-dark-card border border-dark p-6 rounded-xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Package Price</span>
+                            <span id="work-budget" class="font-bold text-xl text-green-500"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Category</span>
+                            <span id="work-category" class="font-semibold bg-gray-700 px-2 py-1 rounded text-xs"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Mood</span>
+                            <span id="work-mood" class="font-semibold capitalize bg-gray-700 px-2 py-1 rounded text-xs"></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div id="action-area" class="bg-dark-card border border-dark p-6 rounded-xl">
+                        <!-- Content will be populated by JS based on user role -->
+                        <div class="text-center text-gray-500">Log in as a Brand/User to order this service.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="/static/firebaseConfig.js"></script>
+    <script type="module" src="/static/pf_work_details.js"></script>
+</body>
+                    </html>
