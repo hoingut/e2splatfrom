@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'final-submission',
                 note, 
                 proofUrl: screenshotUrl, 
-                timestamp: serverTimestamp() 
+               timestamp: new Date().toISOString()  
             };
             
             // Update status and add submission log
