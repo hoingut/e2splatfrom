@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="text-xs text-gray-400">Price</span>
                         <p class="font-bold text-lg text-green-500">৳${(post.budget || 0).toLocaleString()}</p>
                     </div>
-                    <a href="/pf/work/${post.id}" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-5 rounded-full transition text-sm">View & Order</a>
+                    <a href="/pf/work/v2/${post.id}" class="bg-mulberry hover:bg-mulberry-dark text-white font-semibold py-2 px-5 rounded-full transition text-sm">View & Order</a>
                 </div>
             </div>`;
     }
