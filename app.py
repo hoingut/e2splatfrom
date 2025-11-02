@@ -17,6 +17,10 @@ def home():
     return render_template('index.html')
 
 
+@app.route('/pf/work/v2/<work_id>')
+def pf_work_details(work_id):
+    """Renders the details of a specific work/job post."""
+    return render_template('v2.html', title="Work Details")
 # app.py
 
 # ... (existing routes) ...
