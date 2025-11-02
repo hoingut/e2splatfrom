@@ -1,237 +1,203 @@
-// static/pf_work_details.js (Simplified for 'allow read, write: if request.auth != null;')
+// static/pf_work_details.js
 
+// --- Step 1: Import all necessary functions and services from Firebase ---
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { doc, getDoc, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-const workId = window.location.pathname.split('/').pop();
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Step 2: DOM Element References ---
+    const getElement = (id) => document.getElementById(id);
+    const loadingContainer = getElement('loading-container');
+    const contentContainer = getElement('work-details-content');
+    const actionArea = getElement('action-area');
 
-// DOM References
-const loadingContainer = document.getElementById('loading-container');
-const workDetailsContent = document.getElementById('work-details-content');
-const actionArea = document.getElementById('action-area');
-const backLink = document.getElementById('back-link');
+    // --- State Management ---
+    let currentUser = null;
+    let currentUserRole = null;
+    let workData = null;
+    const workId = window.location.pathname.split('/').pop();
 
-let currentPost = null;
-let currentUser = null;
-let isInfluencerViewingOwnPost = false; // Flag for self-check
-
-// --- Helper Functions ---
-
-function showLoader(btn) {
-    btn.disabled = true;
-    btn.querySelector('.loader').style.display = 'inline-block';
-}
-
-// Function to render the Hire/Order Form for Brands (or any logged-in user)
-function renderBrandActionArea(post) {
-    actionArea.innerHTML = `
-        <h3 class="text-lg font-semibold mb-4 text-white">Order Influencer Service</h3>
-        
-        <div class="bg-yellow-50/10 border border-yellow-400/30 p-3 rounded-md text-sm text-yellow-200 mb-4">
-            <p><strong>Total Payment Due: ৳${post.budget.toLocaleString()}</strong></p>
-            <p class="mt-1">Please send the full amount to the official bKash/Nagad number below.</p>
-        </div>
-        
-        <div class="mb-4">
-            <p class="text-gray-400 mb-2">Official Payment Number (bKash/Nagad Personal):</p>
-            <p class="font-mono text-xl text-mulberry bg-gray-800 p-2 rounded">01700000000</p>
-        </div>
-
-        <form id="hire-influencer-form" class="space-y-4">
-            <div>
-                <label for="trxId" class="block text-sm text-gray-400">Transaction ID (TrxID)</label>
-                <input type="text" id="trxId" class="mt-1 w-full p-2 rounded-md bg-gray-800 border-dark" required>
-            </div>
-            <div>
-                <label for="senderNumber" class="block text-sm text-gray-400">Your Sender Number</label>
-                <input type="tel" id="senderNumber" class="mt-1 w-full p-2 rounded-md bg-gray-800 border-dark" required>
-            </div>
-            
-            <button type="submit" id="submit-hire-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-md transition flex items-center justify-center">
-                Confirm Payment & Hire <span class="loader"></span>
-            </button>
-            <p id="form-error" class="text-red-500 text-sm mt-2 hidden"></p>
-        </form>
-    `;
-
-    document.getElementById('hire-influencer-form').addEventListener('submit', handleHireSubmission);
-}
-
-// Function to handle the submission of the Hire Form
-async function handleHireSubmission(e) {
-    e.preventDefault();
-    const submitBtn = document.getElementById('submit-hire-btn');
-    const formError = document.getElementById('form-error');
-    formError.classList.add('hidden');
-    
-    if (!currentUser) {
-        // Should not happen if the UI is correctly rendered, but safety check
-        alert("Authentication error. Please log in again.");
-        return;
-    }
-    
-    showLoader(submitBtn);
-
-    const trxId = document.getElementById('trxId').value.trim();
-    const senderNumber = document.getElementById('senderNumber').value.trim();
-    
-    try {
-        if (currentPost.authorId === currentUser.uid) {
-            throw new Error("You cannot hire yourself.");
-        }
-
-        // --- Brand/User Profile Fetch (for better data logging) ---
-        const brandDocSnap = await getDoc(doc(db, 'users', currentUser.uid));
-        const brandName = brandDocSnap.exists() ? brandDocSnap.data().name || currentUser.email : currentUser.email;
-
-        // 1. Create the 'work' document (Work Contract)
-        const workData = {
-            // General Info
-            postId: workId,
-            title: currentPost.title,
-            budget: currentPost.budget,
-            category: currentPost.category,
-            createdAt: serverTimestamp(),
-            
-            // Brand (Buyer) Info
-            brandId: currentUser.uid,
-            brandName: brandName,
-            
-            // Influencer (Seller) Info
-            influencerId: currentPost.authorId,
-            influencerName: currentPost.authorName,
-            
-            // Payment Info (Needs Admin Verification)
-            payment: {
-                amount: currentPost.budget,
-                trxId: trxId,
-                senderNumber: senderNumber,
-                status: 'pending-verification'
-            },
-            
-            // Status: Waiting for Admin check before moving to 'in-progress'.
-            status: 'pending-payment-verification',
-            
-            // Work deliverables snapshot (for influencer inbox)
-            platforms: currentPost.platforms,
-            contentTypes: currentPost.contentTypes,
-            deliveryTime: currentPost.deliveryTime,
-        };
-        
-        console.log("[SUBMIT] Work Contract Data:", workData);
-
-        // This requires WRITE permission on the 'works' collection
-        const newWorkRef = doc(collection(db, 'works'));
-        await setDoc(newWorkRef, workData);
-
-        alert("Order placed successfully! Waiting for payment confirmation from Admin.");
-        actionArea.innerHTML = `<div class="bg-blue-900/50 p-4 rounded-md text-center text-blue-300">
-                                    <i class="fas fa-check-circle text-xl mb-2 block"></i>
-                                    <p class="font-semibold">Order Placed.</p>
-                                    <p class="text-sm">Your payment details have been recorded. The Admin will verify the transaction soon. The influencer will be notified once approved.</p>
-                                </div>`;
-
-    } catch (error) {
-        console.error("Hire submission failed:", error);
-        
-        let displayMessage = "Submission failed. Check console for details.";
-        if (error.code === 'permission-denied') {
-             displayMessage = "ERROR: Firebase Rules Denied Write Access to 'works' collection. The user is logged in, but the simplified rule might be cached incorrectly. Try clearing cache or re-publishing the rule.";
-        }
-        
-        formError.textContent = error.message.includes('hire yourself') ? error.message : displayMessage;
-        formError.classList.remove('hidden');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Confirm Payment & Hire';
-    } finally {
-        submitBtn.querySelector('.loader').style.display = 'none';
-    }
-}
-
-
-// Function to render the default view (Job Details)
-function renderWorkDetails(post) {
-    currentPost = post;
-    
-    // Set basic details
-    document.getElementById('work-title').textContent = post.title;
-    document.getElementById('work-image').src = post.coverImage || 'https://via.placeholder.com/800x450';
-    document.getElementById('work-description').innerHTML = post.description.replace(/\n/g, '<br>');
-    document.getElementById('work-budget').textContent = `৳${post.budget.toLocaleString()}`;
-    document.getElementById('work-category').textContent = post.category;
-    document.getElementById('work-mood').textContent = post.mood;
-    document.getElementById('work-platforms').textContent = post.platforms ? post.platforms.join(', ') : 'N/A';
-    document.getElementById('work-content-types').textContent = post.contentTypes ? post.contentTypes.join(', ') : 'N/A';
-    document.getElementById('work-delivery-time').textContent = post.deliveryTime || 'N/A';
-    
-    // Set Influencer Snapshot Details
-    const snapshot = post.influencerSnapshot;
-    document.getElementById('influencer-name').textContent = post.authorName || snapshot.pageName;
-    document.getElementById('influencer-followers').textContent = snapshot.followers ? snapshot.followers.toLocaleString() : 'N/A';
-    document.getElementById('influencer-pic').src = snapshot.pageProfilePicUrl || 'https://via.placeholder.com/80';
-    document.getElementById('influencer-profile-link').href = `/pf/influencer/${post.authorId}`;
-
-
-    // Set Action Area based on Auth Status
-    if (!currentUser) { // Guest
-        actionArea.innerHTML = `<div class="p-4 bg-gray-800 rounded-md text-center">
-            <p class="text-gray-400">Please <a href="/login?redirect=/pf/work/${workId}" class="text-mulberry hover:underline font-semibold">Log in</a> to place an order.</p>
-        </div>`;
-    } else if (currentPost.authorId === currentUser.uid) { // Influencer viewing their own post
-        actionArea.innerHTML = `<div class="p-4 bg-mulberry/20 border border-mulberry rounded-md text-center">
-            <p class="font-semibold text-white">This is YOUR service package.</p>
-            <p class="text-sm text-gray-400 mt-2">Check your <a href="/pf/influencer/inbox" class="text-mulberry hover:underline">Inbox</a> for incoming orders.</p>
-        </div>`;
-    } else {
-        // Logged-in user/Brand
-        renderBrandActionArea(post);
-    }
-    
-    loadingContainer.style.display = 'none';
-    workDetailsContent.classList.remove('hidden');
-}
-
-// --- Initialization ---
-
-async function init() {
-    backLink.href = `/pf/influpost`; // Link back to the influencer service market
-
-    // 1. Get User/Auth Status and load data sequentially
+    // --- Step 3: Authentication and Page Load Initialization ---
     onAuthStateChanged(auth, async (user) => {
+        currentUser = user;
         if (user) {
-            currentUser = user;
-        } 
-        
-        // 2. Fetch Post Details
-        const postRef = doc(db, 'posts', workId);
-        try {
-            // CRITICAL: Must check READ access here first.
-            const docSnap = await getDoc(postRef); 
-            if (docSnap.exists()) {
-                const post = docSnap.data();
-                
-                // We only show approved services here
-                if (post.postType === 'influencer_service' && post.isApproved === true) {
-                    renderWorkDetails(post);
-                } else {
-                    throw new Error("Post not found or not approved.");
-                }
-            } else {
-                throw new Error("Post not found.");
+            try {
+                const userRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userRef);
+                currentUserRole = docSnap.exists() ? docSnap.data().role : 'customer';
+            } catch (error) {
+                console.error("Error fetching user role:", error);
+                currentUserRole = 'customer';
             }
-        } catch (error) {
-            console.error("Error loading post:", error);
-            
-            let displayError = "Error 404: The requested service package was not found.";
-            if (error.code === 'permission-denied') {
-                 displayError = "ERROR: You do not have permission to read this post. If you are logged out, please log in.";
-            }
-
-            loadingContainer.innerHTML = `<div class="text-red-500 text-center py-20"><h1 class="text-3xl">${displayError}</h1><p class="mt-2 text-gray-400">${error.message}</p></div>`;
-            workDetailsContent.classList.add('hidden');
+        } else {
+            currentUserRole = null; // Guest user
         }
+        await loadWorkDetails();
     });
-}
 
-init();
+    /**
+     * Main function to fetch and display the work/job details.
+     */
+    async function loadWorkDetails() {
+        if (!workId) {
+            displayError("Work ID not found in the URL.");
+            return;
+        }
+        try {
+            const workRef = doc(db, 'posts', workId);
+            const docSnap = await getDoc(workRef);
+
+            if (!docSnap.exists()) {
+                throw new Error("This work post does not exist or has been removed.");
+            }
+            workData = docSnap.data();
+            
+            populateStaticDetails(workData);
+            populateActionArea();
+
+            loadingContainer.classList.add('hidden');
+            contentContainer.classList.remove('hidden');
+        } catch (error) {
+            console.error("Error loading work details:", error);
+            displayError(error.message);
+        }
+    }
+
+    /**
+     * Populates all details of the job post into the respective HTML elements.
+     */
+    function populateStaticDetails(data) {
+        // Cover Image
+        const coverImage = getElement('work-cover-image');
+        if (data.coverImage) {
+            coverImage.src = data.coverImage;
+            coverImage.classList.remove('hidden');
+        }
+
+        // Main Details
+        getElement('work-title').textContent = data.title;
+        getElement('work-description').innerHTML = `<p>${(data.description || 'No description provided.').replace(/\n/g, '<br>')}</p>`;
+
+        // Brand Info
+        getElement('brand-logo').src = data.brandLogo || 'https://via.placeholder.com/80';
+        getElement('brand-name').textContent = data.brandName;
+        getElement('post-date').textContent = data.createdAt?.toDate().toLocaleDateString() || 'N/A';
+        
+        // Summary
+        getElement('work-budget').textContent = `৳${(data.budget || 0).toLocaleString()}`;
+        getElement('work-category').textContent = data.category;
+        const statusEl = getElement('work-status');
+        statusEl.textContent = (data.status || 'unknown').replace('-', ' ');
+        const statusColors = {'open-for-proposals': 'text-green-400', 'in-progress': 'text-yellow-400', 'completed': 'text-blue-400'};
+        statusEl.className = `font-semibold capitalize ${statusColors[data.status] || 'text-gray-400'}`;
+
+        // Requirements
+        const requirementsEl = getElement('work-requirements');
+        let requirementsHTML = `
+            <div><p class="text-gray-400">Platforms:</p><p class="font-semibold capitalize">${(data.platforms || []).join(', ')}</p></div>
+            <div><p class="text-gray-400">Content Types:</p><p class="font-semibold capitalize">${(data.contentTypes || []).join(', ')}</p></div>
+            <div><p class="text-gray-400">Mood:</p><p class="font-semibold capitalize">${data.mood || 'Any'}</p></div>
+        `;
+        if (data.requirements?.minReach > 0) {
+            requirementsHTML += `<div><p class="text-gray-400">Min. Followers:</p><p class="font-semibold">${(data.requirements.minReach).toLocaleString()}</p></div>`;
+        }
+        if (data.requirements?.minViews > 0) {
+            requirementsHTML += `<div><p class="text-gray-400">Min. Avg Views:</p><p class="font-semibold">${(data.requirements.minViews).toLocaleString()}</p></div>`;
+        }
+        requirementsEl.innerHTML = requirementsHTML;
+    }
+
+    /**
+     * Populates the action area with relevant buttons based on user role and work status.
+     */
+    function populateActionArea() {
+        if (currentUser && workData.authorId === currentUser.uid) {
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">My Post</h3><p class="text-sm text-gray-400 mb-3">You are the author of this post.</p><a href="/pf/brand/inbox" class="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-md mb-2">Manage Proposals</a><button id="delete-post-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-md">Delete Post</button>`;
+            getElement('delete-post-btn').addEventListener('click', deletePost);
+        } 
+        else if (currentUserRole === 'influencer' && workData.status === 'open-for-proposals') {
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">Apply for this Job</h3><textarea id="cover-letter" class="w-full p-2 bg-gray-800 border border-gray-600 rounded-md" rows="4" placeholder="Write a short proposal..."></textarea><button id="apply-btn" class="w-full mt-3 bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Submit Proposal</button>`;
+            getElement('apply-btn').addEventListener('click', submitProposal);
+        }
+        else if (currentUserRole === 'influencer' && workData.status !== 'open-for-proposals') {
+            actionArea.innerHTML = `<p class="text-center text-yellow-400 font-semibold">This job is no longer accepting new applications.</p>`;
+        }
+        else if (!currentUser) {
+            actionArea.innerHTML = `<h3 class="font-semibold text-lg mb-2">Join to Apply</h3><p class="text-sm text-gray-400 mb-3">Log in or sign up as an influencer to apply.</p><a href="/login?redirect=${window.location.pathname}" class="w-full block text-center bg-mulberry hover:bg-mulberry-dark text-white font-bold py-2 rounded-md">Login or Sign Up</a>`;
+        }
+        else {
+            actionArea.innerHTML = `<p class="text-center text-gray-500">This is a preview of the job post. Only influencers can apply.</p>`;
+        }
+    }
+
+    /**
+     * Handles the submission of a proposal by an influencer.
+     */
+    async function submitProposal() {
+        const coverLetterInput = getElement('cover-letter');
+        const coverLetter = coverLetterInput.value.trim();
+        if (!coverLetter) { alert("Please write a proposal."); return; }
+
+        const applyBtn = getElement('apply-btn');
+        applyBtn.disabled = true;
+        applyBtn.textContent = 'Submitting...';
+
+        try {
+            const proposalsRef = collection(db, 'proposals');
+            const q = query(proposalsRef, where("postId", "==", workId), where("influencerId", "==", currentUser.uid));
+            const existingProposal = await getDocs(q);
+
+            if (!existingProposal.empty) throw new Error("You have already applied for this job.");
+
+            const proposalData = {
+                postId: workId,
+                postTitle: workData.title,
+                influencerId: currentUser.uid,
+                brandId: workData.authorId,
+                coverLetter: coverLetter,
+                status: 'pending',
+                createdAt: serverTimestamp()
+            };
+            await addDoc(proposalsRef, proposalData);
+            
+            alert('Your proposal has been submitted successfully!');
+            actionArea.innerHTML = `<p class="text-center text-green-400 font-semibold">Application Submitted!</p>`;
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+            applyBtn.disabled = false;
+            applyBtn.textContent = 'Submit Proposal';
+        }
+    }
+    
+    /**
+     * Handles the deletion of a post by its author.
+     */
+    async function deletePost() {
+        if (!confirm("Are you sure you want to permanently delete this job post?")) return;
+
+        const deleteBtn = getElement('delete-post-btn');
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = 'Deleting...';
+
+        try {
+            const workRef = doc(db, 'posts', workId);
+            await deleteDoc(workRef);
+            alert("Job post deleted successfully.");
+            window.location.href = '/pf/dashboard';
+        } catch (error) {
+            console.error("Error deleting post:", error);
+            alert("Failed to delete the post.");
+            deleteBtn.disabled = false;
+            deleteBtn.textContent = 'Delete Post';
+        }
+    }
+
+    /**
+     * Displays a full-page error message.
+     */
+    function displayError(message) {
+        loadingContainer.classList.add('hidden');
+        contentContainer.innerHTML = `<div class="text-center p-10"><h2 class="text-2xl font-bold text-red-500">Oops!</h2><p class="mt-2 text-gray-300">${message}</p><a href="/pf" class="mt-6 inline-block bg-mulberry text-white py-2 px-6 rounded">Back to Home</a></div>`;
+    }
+});
