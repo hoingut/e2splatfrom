@@ -333,8 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
 // ... (All other sections, listeners, and functions from the previous file remain the same) ...
 
-});
-
     // =================================================================
     // SECTION C: ACTION HANDLERS (Brand Review/Update)
     // =================================================================
