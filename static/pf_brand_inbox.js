@@ -189,24 +189,151 @@ document.addEventListener('DOMContentLoaded', () => {
              return `<p class="text-yellow-400 text-sm">Waiting for Admin to verify payment (TrxID: ${work.payment.trxId}).</p>`;
         }
         return `<p class="text-gray-500 text-sm">No further action required at this stage.</p>`;
-    }
+    }// static/pf_brand_inbox.js (Updated Logic)
+
+// ... (Existing Imports and Setup) ...
+
+// ... (Existing fetchAllBrandData and renderJobPostList remain the same) ...
+
+    // --- Work Contract Details (Purchased Services) and Review Logic remains the same ---
+
+    // =================================================================
+    // SECTION B: RENDERING & UI UPDATES (Cont.)
+    // =================================================================
     
-    function renderJobManagementDetails(jobId) {
+    /**
+     * Renders details and proposals for the Brand's own Job Post.
+     */
+    async function renderJobManagementDetails(jobId) {
         const job = currentBrandPosts.find(j => j.id === jobId);
         if (!job) return;
+
+        detailsContent.innerHTML = `<h2 class="text-2xl font-bold mb-4">${job.title} Management</h2>
+                                    <p class="text-gray-400">Loading proposals...</p>`;
         
-        detailsContent.innerHTML = `
-            <h2 class="text-2xl font-bold mb-4">${job.title} Management</h2>
-            <p class="text-gray-400">${job.description || 'No description provided.'}</p>
-            <div class="mt-4 p-4 bg-gray-800 rounded-lg">
-                <p class="font-semibold text-white">Job Status: ${getStatusBadge(job.status || 'open-for-proposals')}</p>
-                <p class="text-sm text-gray-400 mt-1">Budget: ৳${job.budget.toLocaleString()}</p>
+        try {
+            // Fetch Proposals for this specific Job ID
+            const proposalsRef = collection(db, 'proposals');
+            const proposalQuery = query(proposalsRef, 
+                where("postId", "==", jobId), // Proposals must reference the job post ID
+                orderBy("createdAt", "desc")
+            );
+            const proposalSnapshot = await getDocs(proposalQuery);
+            const proposals = proposalSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // --- Render Job Details ---
+            let html = `
+                <div class="mt-4 p-4 bg-gray-800 rounded-lg mb-6">
+                    <p class="font-semibold text-white">Job Status: ${getStatusBadge(job.status || 'open-for-proposals')}</p>
+                    <p class="text-sm text-gray-400 mt-1">Budget: ৳${job.budget.toLocaleString()} | Category: ${job.category}</p>
+                </div>
+                
+                <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Incoming Proposals (${proposals.length})</h3>
+                <div id="proposals-list" class="space-y-4 mt-3">
+                    ${proposals.length > 0 ? proposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No proposals received yet.</p>'}
+                </div>
+            `;
+            detailsContent.innerHTML = html;
+
+            // Attach listeners to proposal buttons
+            document.querySelectorAll('[data-action="accept-proposal"]').forEach(btn => {
+                btn.addEventListener('click', () => handleProposalAction(btn.dataset.proposalId, 'accept'));
+            });
+            document.querySelectorAll('[data-action="reject-proposal"]').forEach(btn => {
+                btn.addEventListener('click', () => handleProposalAction(btn.dataset.proposalId, 'reject'));
+            });
+
+        } catch (error) {
+            console.error("Error fetching proposals:", error);
+            detailsContent.innerHTML = `<p class="text-red-500 mt-3">Failed to load proposals: ${error.message}</p>`;
+        }
+    }
+    
+    // Helper to render an individual proposal card
+    function createProposalCard(proposal, job) {
+        // Assuming proposal document contains influencerName, influencerId, proposedBudget, and note
+        return `
+            <div class="bg-gray-800 p-4 rounded-lg flex justify-between items-start border border-gray-700">
+                <div class="flex-grow">
+                    <p class="font-semibold text-lg text-white">${proposal.influencerName}</p>
+                    <p class="text-sm text-gray-400">Proposed Budget: <span class="text-yellow-400">৳${(proposal.proposedBudget || job.budget).toLocaleString()}</span></p>
+                    <p class="text-xs text-gray-500 mt-2">Note: ${proposal.note || 'N/A'}</p>
+                </div>
+                <div class="flex flex-col space-y-2 ml-4">
+                    <a href="/pf/influencer/${proposal.influencerId}" target="_blank" class="text-xs text-mulberry hover:underline">View Profile</a>
+                    <button data-proposal-id="${proposal.id}" data-action="accept-proposal" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">Accept</button>
+                    <button data-proposal-id="${proposal.id}" data-action="reject-proposal" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">Reject</button>
+                </div>
             </div>
-            
-            <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Proposals Received</h3>
-            <p class="text-gray-500 mt-3">Fetching proposals for this job is not yet implemented.</p>
         `;
     }
+
+    // =================================================================
+    // SECTION C: PROPOSAL ACTION HANDLERS
+    // =================================================================
+    
+    /**
+     * Handles accepting or rejecting an influencer proposal.
+     */
+    async function handleProposalAction(proposalId, action) {
+        if (!confirm(`Are you sure you want to ${action.toUpperCase()} this proposal?`)) return;
+
+        try {
+            const proposalRef = doc(db, 'proposals', proposalId);
+            const proposalSnap = await getDoc(proposalRef);
+            if (!proposalSnap.exists()) throw new Error("Proposal not found.");
+            const proposal = proposalSnap.data();
+
+            // 1. Update Proposal Status
+            await updateDoc(proposalRef, { status: action === 'accept' ? 'accepted' : 'rejected' });
+            
+            if (action === 'accept') {
+                // 2. CRITICAL: Create a NEW WORK CONTRACT in the 'works' collection
+                const newWorkRef = doc(collection(db, 'works'));
+                
+                const workContractData = {
+                    postId: proposal.postId,
+                    title: proposal.jobTitle || 'Custom Collaboration',
+                    budget: proposal.proposedBudget || proposal.jobBudget,
+                    createdAt: serverTimestamp(),
+                    
+                    // Participants
+                    brandId: currentUser.uid,
+                    brandName: proposal.brandName || currentUser.displayName || currentUser.email,
+                    influencerId: proposal.influencerId,
+                    influencerName: proposal.influencerName,
+                    
+                    // Initial Status (Brand must pay upfront)
+                    payment: { status: 'required' }, // Mark payment as required from the brand
+                    status: 'pending-brand-payment', // New intermediate status
+                    
+                    // Details
+                    contentTypes: proposal.contentTypes,
+                    platforms: proposal.platforms,
+                    // Note: You might want to automatically generate payment instructions here
+                };
+
+                await setDoc(newWorkRef, workContractData);
+                
+                alert("Proposal Accepted! A work contract has been generated. You must now make the payment (outside this interface) to activate the contract.");
+                
+            } else {
+                alert("Proposal rejected.");
+            }
+
+            // Refresh the view
+            await fetchAllBrandData();
+            renderJobManagementDetails(proposal.postId);
+
+        } catch (error) {
+            console.error("Proposal action failed:", error);
+            alert(`Action failed: ${error.message}. Check security rules for 'proposals' and 'works' collections.`);
+        }
+    }
+    
+// ... (All other sections, listeners, and functions from the previous file remain the same) ...
+
+});
 
     // =================================================================
     // SECTION C: ACTION HANDLERS (Brand Review/Update)
