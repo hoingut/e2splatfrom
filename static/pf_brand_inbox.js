@@ -212,14 +212,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // SECTION C: ACTION HANDLERS (Brand Review/Update)
     // =================================================================
     
+    // static/pf_brand_inbox.js (handleWorkReview function)
+
+// ... (Imports and setup remain the same) ...
+
     async function handleWorkReview(workId, action) {
         const workRef = doc(db, 'works', workId);
+        let work = currentWorkContracts.find(w => w.id === workId); // Get work details
         let newStatus = '';
         let confirmMsg = '';
 
         if (action === 'complete') {
-            newStatus = 'completed';
-            confirmMsg = 'Are you sure you want to COMPLETE this work and release payment to the influencer?';
+            newStatus = 'completed'; // <--- THIS TRIGGERS CLOUD FUNCTION
+            confirmMsg = `Are you sure you want to COMPLETE this work? Funds (90% of ৳${work.budget.toLocaleString()}) will be released to the influencer.`;
         } else if (action === 'reject') {
             newStatus = 'in-progress'; 
             confirmMsg = 'Are you sure you want to REJECT this work and request revision? Status will revert to In Progress.';
@@ -230,22 +235,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm(confirmMsg)) return;
 
         try {
+            // 1. Update Work Status
+            // This update is the ONLY connection needed to the Cloud Function.
             await updateDoc(workRef, {
                 status: newStatus,
                 brandReviewedAt: serverTimestamp(),
             });
             
-            alert(`Work status updated to ${newStatus.toUpperCase()}.`);
-            
+            // 2. Alert User about Backend Processing
+            alert(`Work status updated to ${newStatus.toUpperCase()}. Funds release request sent to the backend processor.`);
+
             // Re-fetch all data and reset UI
             await fetchAllBrandData(); 
-            detailsContent.innerHTML = `<div class="text-center py-4 text-green-500"><i class="fas fa-check-circle text-2xl"></i><p>Status Updated!</p></div>`;
+            detailsContent.innerHTML = `<div class="text-center py-4 text-green-500"><i class="fas fa-check-circle text-2xl"></i><p>Status Updated! Funds are being processed securely.</p></div>`;
 
         } catch (error) {
             console.error("Error finalizing work:", error);
-            alert("Failed to finalize work. Check security rules for 'works' update.");
+            alert("Failed to finalize work. Check console and security rules.");
         }
     }
+
+// ... (Rest of the file)
 
     // =================================================================
     // SECTION D: EVENT LISTENERS
