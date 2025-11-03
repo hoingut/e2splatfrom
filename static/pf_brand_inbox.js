@@ -204,22 +204,43 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Renders details and proposals for the Brand's own Job Post.
      */
+    // static/pf_brand_inbox.js (Full file context assumed)
+
+// ... (Existing Imports and Setup) ...
+// ... (Existing functions like getStatusBadge, renderWorkContractDetails, etc.) ...
+
+    // =================================================================
+    // SECTION B: RENDERING & UI UPDATES (Cont.)
+    // =================================================================
+
+    /**
+     * Renders details and proposals for the Brand's own Job Post.
+     */
     async function renderJobManagementDetails(jobId) {
         const job = currentBrandPosts.find(j => j.id === jobId);
         if (!job) return;
 
+        console.log(`[JOB MGT] Loading management details for Job ID: ${jobId}`);
+        
+        // Initial Loading State
         detailsContent.innerHTML = `<h2 class="text-2xl font-bold mb-4">${job.title} Management</h2>
-                                    <p class="text-gray-400">Loading proposals...</p>`;
+                                    <p class="text-center text-gray-500 py-4">Loading proposals...</p>`;
         
         try {
             // Fetch Proposals for this specific Job ID
             const proposalsRef = collection(db, 'proposals');
+            
+            // Query 1: Filter by Post ID (JobId)
             const proposalQuery = query(proposalsRef, 
-                where("postId", "==", jobId), // Proposals must reference the job post ID
+                where("postId", "==", jobId), 
                 orderBy("createdAt", "desc")
             );
+            
+            console.log(`[JOB MGT] Querying proposals where postId == ${jobId}`);
             const proposalSnapshot = await getDocs(proposalQuery);
             const proposals = proposalSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            console.log(`[JOB MGT] Successfully loaded ${proposals.length} proposals.`);
 
             // --- Render Job Details ---
             let html = `
@@ -230,34 +251,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Incoming Proposals (${proposals.length})</h3>
                 <div id="proposals-list" class="space-y-4 mt-3">
-                    ${proposals.length > 0 ? proposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No proposals received yet.</p>'}
+                    ${proposals.length > 0 ? proposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No proposals received yet for this job.</p>'}
                 </div>
             `;
             detailsContent.innerHTML = html;
 
-            // Attach listeners to proposal buttons
-            document.querySelectorAll('[data-action="accept-proposal"]').forEach(btn => {
-                btn.addEventListener('click', () => handleProposalAction(btn.dataset.proposalId, 'accept'));
-            });
-            document.querySelectorAll('[data-action="reject-proposal"]').forEach(btn => {
-                btn.addEventListener('click', () => handleProposalAction(btn.dataset.proposalId, 'reject'));
-            });
+            // Attach listeners (handled by body delegation in SECTION D)
 
         } catch (error) {
-            console.error("Error fetching proposals:", error);
-            detailsContent.innerHTML = `<p class="text-red-500 mt-3">Failed to load proposals: ${error.message}</p>`;
+            console.error("[JOB MGT ERROR] Failed to fetch proposals:", error);
+            
+            let errorMessage = "Failed to load proposals.";
+            if (error.code === 'permission-denied') {
+                errorMessage = "ERROR: Permission Denied. Cannot read proposals collection. Check Security Rules for 'proposals'.";
+            } else if (error.message.includes("requires an index")) {
+                errorMessage = `ERROR: Firestore Indexing required for this filter combination. Check console (F12) for the creation link.`;
+            }
+
+            detailsContent.innerHTML = `
+                <div class="text-red-500 bg-red-900/20 p-4 rounded-lg mt-3">
+                    <p class="font-bold">${errorMessage}</p>
+                    <p class="text-sm text-gray-400 mt-2">Details: ${error.message}</p>
+                </div>`;
         }
     }
     
-    // Helper to render an individual proposal card
+    // Helper to render an individual proposal card (from previous code, ensures continuity)
     function createProposalCard(proposal, job) {
-        // Assuming proposal document contains influencerName, influencerId, proposedBudget, and note
+        // We assume the proposal already has the required fields (influencerName, proposedBudget, etc.)
+        // This is simplified, ensure your influencer proposal submission saves these fields.
+        
+        // Use job budget as fallback for proposedBudget if not specified in proposal
+        const displayBudget = (proposal.proposedBudget || job.budget).toLocaleString();
+        
         return `
             <div class="bg-gray-800 p-4 rounded-lg flex justify-between items-start border border-gray-700">
                 <div class="flex-grow">
-                    <p class="font-semibold text-lg text-white">${proposal.influencerName}</p>
-                    <p class="text-sm text-gray-400">Proposed Budget: <span class="text-yellow-400">৳${(proposal.proposedBudget || job.budget).toLocaleString()}</span></p>
+                    <p class="font-semibold text-lg text-white">${proposal.influencerName || 'Influencer'}</p>
+                    <p class="text-sm text-gray-400">Proposed Budget: <span class="text-yellow-400">৳${displayBudget}</span></p>
                     <p class="text-xs text-gray-500 mt-2">Note: ${proposal.note || 'N/A'}</p>
+                    <p class="text-xs text-gray-500">Status: ${proposal.status.toUpperCase()}</p>
                 </div>
                 <div class="flex flex-col space-y-2 ml-4">
                     <a href="/pf/influencer/${proposal.influencerId}" target="_blank" class="text-xs text-mulberry hover:underline">View Profile</a>
@@ -267,6 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     }
+
+// ... (All other functions, sections, and listeners from the previous file remain the same) ...
 
     // =================================================================
     // SECTION C: PROPOSAL ACTION HANDLERS
