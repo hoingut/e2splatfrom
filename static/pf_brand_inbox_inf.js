@@ -1,5 +1,4 @@
-// static/pf_brand_inbox_inf.js
-// Dedicated script for Proposal Management (Brand's Job Posts only)
+
 
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
