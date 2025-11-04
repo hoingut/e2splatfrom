@@ -16,7 +16,18 @@ def inject_global_variables():
 def home():
     return render_template('index.html')
 
+# app.py
+# app.py
 
+# ... (existing routes) ...
+
+@app.route('/pf/brand/inbox/inf')
+def pf_brand_proposal_inbox():
+    """Renders the Brand Inbox dedicated to managing ONLY incoming influencer proposals."""
+    # Use the new dedicated template
+    return render_template('pf_brand_inbox_inf.html', title="Proposal Inbox (Jobs)")
+
+# ... (rest of app.py) ...
 @app.route('/pf/work/v2/<work_id>')
 def v2(work_id):
     """Renders the details of a specific work/job post."""
