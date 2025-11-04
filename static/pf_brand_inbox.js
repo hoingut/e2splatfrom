@@ -1,4 +1,4 @@
-// static/pf_brand_inbox.js
+// static/pf_brand_inbox.js (Final Executable Version)
 
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
@@ -16,12 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const jobPostsList = getElement('job-posts-list');
     const detailsPanel = getElement('details-panel');
     const detailsContent = getElement('details-content');
-    const logoutBtn = getElement('logout-btn');
     
     // --- State Management ---
     let currentUser = null;
-    let currentBrandPosts = []; // Stores the Brand's own job posts (from 'posts' collection)
-    let currentWorkContracts = []; // Stores the Services the Brand has ordered (from 'works' collection)
+    let currentBrandPosts = [];
+    let currentWorkContracts = []; 
 
     // =================================================================
     // SECTION A: INITIALIZATION & DATA FETCHING
@@ -45,17 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
         jobPostsList.innerHTML = `<p class="text-center text-gray-500 text-sm">Loading...</p>`;
         
         try {
-            // 1. Fetch Brand's own job posts (where they are the author)
+            // 1. Fetch Job Posts (Brand is author)
             const postsRef = collection(db, 'posts');
             const jobQuery = query(postsRef, 
                 where("authorId", "==", currentUser.uid),
-                where("postType", "==", "brand_job"), // Filter only their job posts
+                where("postType", "==", "brand_job"), 
                 orderBy("createdAt", "desc")
             );
             const jobSnapshot = await getDocs(jobQuery);
             currentBrandPosts = jobSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'job' }));
 
-            // 2. Fetch Work Contracts the Brand has purchased (where they are the brandId)
+            // 2. Fetch Work Contracts (Brand is brandId)
             const worksRef = collection(db, 'works');
             const workQuery = query(worksRef, 
                 where("brandId", "==", currentUser.uid),
@@ -65,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentWorkContracts = workSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'work' }));
 
             // Combine and Render
-            const combinedList = [...currentWorkContracts, ...currentBrandPosts]; // Works first, then Jobs
+            const combinedList = [...currentWorkContracts, ...currentBrandPosts];
             renderJobPostList(combinedList);
 
         } catch (error) {
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const statuses = {
             'pending-payment-verification': { text: 'PAYMENT PENDING', color: 'bg-yellow-800 text-yellow-300' },
             'in-progress': { text: 'IN PROGRESS', color: 'bg-blue-800 text-white' },
-            'submitted-for-review': { text: 'NEEDS YOUR REVIEW', color: 'bg-indigo-600 text-white' }, // CRITICAL STATUS
+            'submitted-for-review': { text: 'NEEDS YOUR REVIEW', color: 'bg-indigo-600 text-white' }, 
             'completed': { text: 'CLOSED / PAID', color: 'bg-green-700 text-white' },
             'rejected': { text: 'REJECTED', color: 'bg-red-700 text-white' },
             'brand_job': { text: 'JOB POST', color: 'bg-gray-700 text-gray-300' }
@@ -111,9 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         }).join('');
-
-        // Attach event listener for clicking list items
-    
+        
+        // **IMPORTANT:** No event listeners here. Delegation handles clicks on '.job-item'.
     }
     
     // --- Work Contract Details (Purchased Services) ---
@@ -174,54 +172,25 @@ document.addEventListener('DOMContentLoaded', () => {
              return `<p class="text-yellow-400 text-sm">Waiting for Admin to verify payment (TrxID: ${work.payment.trxId}).</p>`;
         }
         return `<p class="text-gray-500 text-sm">No further action required at this stage.</p>`;
-    }// static/pf_brand_inbox.js (Updated Logic)
+    }
 
-// ... (Existing Imports and Setup) ...
-
-// ... (Existing fetchAllBrandData and renderJobPostList remain the same) ...
-
-    // --- Work Contract Details (Purchased Services) and Review Logic remains the same ---
-
-    // =================================================================
-    // SECTION B: RENDERING & UI UPDATES (Cont.)
-    // =================================================================
-    
-    /**
-     * Renders details and proposals for the Brand's own Job Post.
-     */
-    // static/pf_brand_inbox.js (Full file context assumed)
-
-// ... (Existing Imports and Setup) ...
-// ... (Existing functions like getStatusBadge, renderWorkContractDetails, etc.) ...
-
-    // =================================================================
-    // SECTION B: RENDERING & UI UPDATES (Cont.)
-    // =================================================================
-
-    /**
-     * Renders details and proposals for the Brand's own Job Post.
-     */
+    // --- Job Management Details (Proposals) ---
     async function renderJobManagementDetails(jobId) {
         const job = currentBrandPosts.find(j => j.id === jobId);
         if (!job) return;
 
         console.log(`[JOB MGT] Loading management details for Job ID: ${jobId}`);
         
-        // Initial Loading State
         detailsContent.innerHTML = `<h2 class="text-2xl font-bold mb-4">${job.title} Management</h2>
                                     <p class="text-center text-gray-500 py-4">Loading proposals...</p>`;
         
         try {
             // Fetch Proposals for this specific Job ID
             const proposalsRef = collection(db, 'proposals');
-            
-            // Query 1: Filter by Post ID (JobId)
             const proposalQuery = query(proposalsRef, 
                 where("postId", "==", jobId), 
                 orderBy("createdAt", "desc")
             );
-            
-            console.log(`[JOB MGT] Querying proposals where postId == ${jobId}`);
             const proposalSnapshot = await getDocs(proposalQuery);
             const proposals = proposalSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -241,8 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             detailsContent.innerHTML = html;
 
-            // Attach listeners (handled by body delegation in SECTION D)
-
         } catch (error) {
             console.error("[JOB MGT ERROR] Failed to fetch proposals:", error);
             
@@ -261,12 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Helper to render an individual proposal card (from previous code, ensures continuity)
     function createProposalCard(proposal, job) {
-        // We assume the proposal already has the required fields (influencerName, proposedBudget, etc.)
-        // This is simplified, ensure your influencer proposal submission saves these fields.
-        
-        // Use job budget as fallback for proposedBudget if not specified in proposal
         const displayBudget = (proposal.proposedBudget || job.budget).toLocaleString();
         
         return `
@@ -275,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="font-semibold text-lg text-white">${proposal.influencerName || 'Influencer'}</p>
                     <p class="text-sm text-gray-400">Proposed Budget: <span class="text-yellow-400">৳${displayBudget}</span></p>
                     <p class="text-xs text-gray-500 mt-2">Note: ${proposal.note || 'N/A'}</p>
-                    <p class="text-xs text-gray-500">Status: ${proposal.status.toUpperCase()}</p>
+                    <p class="text-xs text-gray-500">Status: ${proposal.status.toUpperCase() || 'PENDING'}</p>
                 </div>
                 <div class="flex flex-col space-y-2 ml-4">
                     <a href="/pf/influencer/${proposal.influencerId}" target="_blank" class="text-xs text-mulberry hover:underline">View Profile</a>
@@ -286,16 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-// ... (All other functions, sections, and listeners from the previous file remain the same) ...
-
     // =================================================================
-    // SECTION C: PROPOSAL ACTION HANDLERS
+    // SECTION C: ACTION HANDLERS (Review and Proposal)
     // =================================================================
     
-    /**
-     * Handles accepting or rejecting an influencer proposal.
-     */
+    // Proposal Accept/Reject Handler
     async function handleProposalAction(proposalId, action) {
+        // Implementation from previous response (handling proposal status update and work contract creation)
         if (!confirm(`Are you sure you want to ${action.toUpperCase()} this proposal?`)) return;
 
         try {
@@ -303,6 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const proposalSnap = await getDoc(proposalRef);
             if (!proposalSnap.exists()) throw new Error("Proposal not found.");
             const proposal = proposalSnap.data();
+            const jobId = proposal.postId; // Get the original job ID
 
             // 1. Update Proposal Status
             await updateDoc(proposalRef, { status: action === 'accept' ? 'accepted' : 'rejected' });
@@ -324,52 +284,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     influencerName: proposal.influencerName,
                     
                     // Initial Status (Brand must pay upfront)
-                    payment: { status: 'required' }, // Mark payment as required from the brand
+                    payment: { status: 'required' }, 
                     status: 'pending-brand-payment', // New intermediate status
                     
                     // Details
                     contentTypes: proposal.contentTypes,
                     platforms: proposal.platforms,
-                    // Note: You might want to automatically generate payment instructions here
                 };
 
                 await setDoc(newWorkRef, workContractData);
                 
-                alert("Proposal Accepted! A work contract has been generated. You must now make the payment (outside this interface) to activate the contract.");
-                
+                alert("Proposal Accepted! A work contract has been generated. The next step is payment.");
             } else {
                 alert("Proposal rejected.");
             }
 
             // Refresh the view
             await fetchAllBrandData();
-            renderJobManagementDetails(proposal.postId);
+            renderJobManagementDetails(jobId); // Re-render the job details page
 
         } catch (error) {
             console.error("Proposal action failed:", error);
             alert(`Action failed: ${error.message}. Check security rules for 'proposals' and 'works' collections.`);
         }
     }
-    
-// ... (All other sections, listeners, and functions from the previous file remain the same) ...
 
-    // =================================================================
-    // SECTION C: ACTION HANDLERS (Brand Review/Update)
-    // =================================================================
-    
-    // static/pf_brand_inbox.js (handleWorkReview function)
 
-// ... (Imports and setup remain the same) ...
-
+    // Work Review Handler (Completing/Rejecting Influencer's work submission)
     async function handleWorkReview(workId, action) {
         const workRef = doc(db, 'works', workId);
-        let work = currentWorkContracts.find(w => w.id === workId); // Get work details
+        let work = currentWorkContracts.find(w => w.id === workId);
         let newStatus = '';
         let confirmMsg = '';
 
         if (action === 'complete') {
-            newStatus = 'completed'; // <--- THIS TRIGGERS CLOUD FUNCTION
-            confirmMsg = `Are you sure you want to COMPLETE this work? Funds (90% of ৳${work.budget.toLocaleString()}) will be released to the influencer.`;
+            newStatus = 'completed';
+            confirmMsg = `Are you sure you want to COMPLETE this work? Funds will be released securely.`;
         } else if (action === 'reject') {
             newStatus = 'in-progress'; 
             confirmMsg = 'Are you sure you want to REJECT this work and request revision? Status will revert to In Progress.';
@@ -380,17 +330,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!confirm(confirmMsg)) return;
 
         try {
-            // 1. Update Work Status
-            // This update is the ONLY connection needed to the Cloud Function.
             await updateDoc(workRef, {
                 status: newStatus,
                 brandReviewedAt: serverTimestamp(),
             });
             
-            // 2. Alert User about Backend Processing
-            alert(`Work status updated to ${newStatus.toUpperCase()}. Funds release request sent to the backend processor.`);
+            alert(`Work status updated to ${newStatus.toUpperCase()}. Funds processing initiated.`);
 
-            // Re-fetch all data and reset UI
             await fetchAllBrandData(); 
             detailsContent.innerHTML = `<div class="text-center py-4 text-green-500"><i class="fas fa-check-circle text-2xl"></i><p>Status Updated! Funds are being processed securely.</p></div>`;
 
@@ -400,28 +346,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-// ... (Rest of the file)
 
     // =================================================================
-    // SECTION D: EVENT LISTENERS
+    // SECTION D: EVENT LISTENERS (DELEGATION FIX)
     // =================================================================
-    
-    // Delegation for Review Actions
-// static/pf_brand_inbox.js (Final update)
-
-// ... (Existing Imports and Setup) ...
-
-// ... (Existing functions) ...
-
-// =================================================================
-// SECTION D: EVENT LISTENERS (UPDATE)
-// =================================================================
     
     // Delegation for Review Actions and List Item Clicks
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         
-        // 1. Check for Job/Work Item Click
+        // 1. Check for Job/Work Item Click (Left Column)
         const jobItem = target.closest('.job-item');
         if (jobItem) {
             // Clear active state and set selection
@@ -430,6 +364,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const id = jobItem.dataset.id;
             const type = jobItem.dataset.type;
+            
+            console.log(`[CLICK] Item clicked: ${type} - ${id}`); // DEBUG LOG
             
             // Execute the corresponding rendering function
             if (type === 'job') {
@@ -440,14 +376,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // Stop other handlers from running
         }
         
-        // 2. Check for Review Actions
+        // 2. Check for Review Actions (Right Panel: Complete/Reject)
         const reviewTarget = target.closest('button[data-review-action]');
         if (reviewTarget) {
             handleWorkReview(reviewTarget.dataset.workId, reviewTarget.dataset.reviewAction);
             return;
         }
 
-        // 3. Check for Logout
+        // 3. Check for Proposal Actions (Right Panel: Accept/Reject Proposal)
+        const proposalTarget = target.closest('button[data-action="accept-proposal"], button[data-action="reject-proposal"]');
+        if (proposalTarget) {
+            handleProposalAction(proposalTarget.dataset.proposalId, proposalTarget.dataset.action.split('-')[0]);
+            return;
+        }
+
+        // 4. Check for Logout
         const logoutBtn = getElement('logout-btn');
         if (logoutBtn && (target.id === 'logout-btn' || target.closest('#logout-btn'))) {
             signOut(auth).then(() => {
@@ -456,13 +399,5 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
     });
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = '/pf';
-            });
-        });
-    }
 
 });
