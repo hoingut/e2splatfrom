@@ -1,11 +1,12 @@
-
+// static/pf_brand_inbox_inf.js
+// Dedicated script for Proposal Management (Brand's Job Posts only)
 
 import { auth, db } from './firebaseConfig.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { 
     doc, getDoc, collection, query, where, getDocs, 
     updateDoc, serverTimestamp, setDoc, orderBy 
-} from "https://www.gstatic.com/firebasejs/9.9.1/firebase-firestore.js"; // Using v9.9.1 or higher for stability
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // Using v9.6.1 as requested
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -19,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Management ---
     let currentUser = null;
     let currentBrandPosts = []; 
-    // We only need currentBrandPosts as this inbox focuses only on Job Posts
 
     // =================================================================
     // SECTION A: INITIALIZATION & DATA FETCHING
@@ -28,6 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
+            
+            // --- DEBUG: Check DB object before calling collection() ---
+            console.log("[DEBUG] Firestore DB Object Status:", db ? "Ready" : "Undefined/Error");
+            // --------------------------------------------------------
+            
+            if (!db) {
+                 console.error("CRITICAL ERROR: Firestore 'db' object is undefined. Check firebaseConfig.js export.");
+                 loadingContainer.innerHTML = `<p class="text-red-500 py-8">CRITICAL ERROR: Database connection failed. Check console.</p>`;
+                 return;
+            }
+            
             inboxContent.classList.remove('hidden');
             loadingContainer.classList.add('hidden');
             await fetchAllJobPosts(); 
@@ -38,32 +49,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Fetches ONLY the Brand's own Job Posts (posts collection).
-     * Added OR condition logic (Implicit brand_job detection)
      */
     async function fetchAllJobPosts() {
         jobPostsList.innerHTML = `<p class="text-center text-gray-500 text-sm">Loading...</p>`;
         
         try {
-            const postsRef = collection(db, 'posts');
+            // FIX: This line should be fine IF db is correctly exported from firebaseConfig.js
+            const postsRef = collection(db, 'posts'); 
             
-            // Query: Fetch all posts authored by the current user
-            // This implicitly includes brand jobs, but relies on a status check or manual postType insertion.
+            // Query: Fetch all posts authored by the current user (relying on client-side filter for postType absence)
             const jobQuery = query(postsRef, 
                 where("authorId", "==", currentUser.uid),
-                // REMOVED 'where("postType", "==", "brand_job")' to handle missing postType field in DB
                 orderBy("createdAt", "desc")
             );
             const jobSnapshot = await getDocs(jobQuery);
             
-            // Filter client-side if necessary (e.g., filter out influencer service posts if any were posted by mistake)
+            // Filter client-side: Assume posts without 'postType' are brand jobs
             currentBrandPosts = jobSnapshot.docs
                 .map(doc => ({ id: doc.id, ...doc.data(), type: 'job' }))
-                .filter(post => post.postType === 'brand_job' || !post.postType); // Assume posts without postType are brand jobs
+                .filter(post => post.postType === 'brand_job' || !post.postType); 
 
             renderJobPostList(currentBrandPosts);
 
         } catch (error) {
             console.error("Error fetching job posts:", error);
+            // Re-throw the original error code for visibility
+            if (error.code === 'invalid-argument') {
+                 console.error("FIX REQUIRED: The 'db' object passed to collection() is incorrect.");
+            }
             jobPostsList.innerHTML = `<p class="text-red-500 text-sm">Failed to load job posts: ${error.message}</p>`;
         }
     }
@@ -76,19 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const statuses = {
             'pending-admin-approval': { text: 'PENDING APPROVAL', color: 'bg-yellow-800 text-yellow-300' },
             'open-for-proposals': { text: 'ACTIVE', color: 'bg-green-600 text-white' },
-            'verified': { text: 'VERIFIED', color: 'bg-green-600 text-white' }, // Handling existing 'verified' status
+            'verified': { text: 'VERIFIED', color: 'bg-green-600 text-white' }, 
             'job': { text: 'JOB POST', color: 'bg-gray-700 text-gray-300' }
         };
         const badge = statuses[status] || statuses['job'];
         return `<span class="px-3 py-1 text-xs font-semibold rounded-full ${badge.color}">${badge.text}</span>`;
     }
-
-    function getProposalStatusClass(status) {
-        if (status === 'accepted') return 'proposal-status-accepted';
-        if (status === 'rejected') return 'proposal-status-rejected';
-        return 'proposal-status-pending';
-    }
-
 
     function renderJobPostList(items) {
         if (items.length === 0) {
@@ -124,9 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Fetch Proposals: Only load PENDING ones that require brand action
             const proposalsRef = collection(db, 'proposals');
+            
             const proposalQuery = query(proposalsRef, 
                 where("postId", "==", jobId), 
-                where("status", "==", "pending"), // CRITICAL: Filter for UNPROCESSED
+                where("status", "==", "pending"), 
                 orderBy("createdAt", "desc")
             );
             const proposalSnapshot = await getDocs(proposalQuery);
@@ -145,8 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${proposals.length > 0 ? proposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No new proposals requiring action.</p>'}
                 </div>
             `;
-            
-            // NOTE: We do NOT load processed proposals here to keep the inbox focused.
             detailsContent.innerHTML = html;
 
         } catch (error) {
@@ -154,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let errorMessage = "Failed to load proposals.";
             if (error.code === 'permission-denied') {
-                errorMessage = "ERROR: Permission Denied. Cannot read proposals collection. Check Security Rules (must allow brandId read).";
+                errorMessage = "ERROR: Permission Denied. Check Security Rules.";
             } else if (error.message.includes("requires an index")) {
                 errorMessage = `ERROR: Firestore Indexing required for postId + status filter. Check console (F12) for the creation link.`;
             }
@@ -261,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const id = jobItem.dataset.id;
             
-            // Only render Job Management Details in this specific inbox
             renderJobManagementDetails(id); 
             return;
         }
