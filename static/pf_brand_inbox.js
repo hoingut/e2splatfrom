@@ -113,22 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         // Attach event listener for clicking list items
-        document.querySelectorAll('.job-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                // Clear active state
-                document.querySelectorAll('.job-item').forEach(i => i.classList.remove('selected'));
-                e.currentTarget.classList.add('selected');
-                
-                const id = e.currentTarget.dataset.id;
-                const type = e.currentTarget.dataset.type;
-                
-                if (type === 'job') {
-                    renderJobManagementDetails(id); 
-                } else if (type === 'work') {
-                    renderWorkContractDetails(id);
-                }
-            });
-        });
+    
     }
     
     // --- Work Contract Details (Purchased Services) ---
@@ -422,10 +407,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     
     // Delegation for Review Actions
-    detailsContent.addEventListener('click', (e) => {
-        const target = e.target.closest('button[data-review-action]');
-        if (target) {
-            handleWorkReview(target.dataset.workId, target.dataset.reviewAction);
+// static/pf_brand_inbox.js (Final update)
+
+// ... (Existing Imports and Setup) ...
+
+// ... (Existing functions) ...
+
+// =================================================================
+// SECTION D: EVENT LISTENERS (UPDATE)
+// =================================================================
+    
+    // Delegation for Review Actions and List Item Clicks
+    document.body.addEventListener('click', (e) => {
+        const target = e.target;
+        
+        // 1. Check for Job/Work Item Click
+        const jobItem = target.closest('.job-item');
+        if (jobItem) {
+            // Clear active state and set selection
+            document.querySelectorAll('.job-item').forEach(i => i.classList.remove('selected'));
+            jobItem.classList.add('selected');
+            
+            const id = jobItem.dataset.id;
+            const type = jobItem.dataset.type;
+            
+            // Execute the corresponding rendering function
+            if (type === 'job') {
+                renderJobManagementDetails(id); 
+            } else if (type === 'work') {
+                renderWorkContractDetails(id);
+            }
+            return; // Stop other handlers from running
+        }
+        
+        // 2. Check for Review Actions
+        const reviewTarget = target.closest('button[data-review-action]');
+        if (reviewTarget) {
+            handleWorkReview(reviewTarget.dataset.workId, reviewTarget.dataset.reviewAction);
+            return;
+        }
+
+        // 3. Check for Logout
+        const logoutBtn = getElement('logout-btn');
+        if (logoutBtn && (target.id === 'logout-btn' || target.closest('#logout-btn'))) {
+            signOut(auth).then(() => {
+                window.location.href = '/pf';
+            });
+            return;
         }
     });
 
