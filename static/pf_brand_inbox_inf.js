@@ -6,7 +6,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { 
     doc, getDoc, collection, query, where, getDocs, 
     updateDoc, serverTimestamp, setDoc, orderBy 
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/9.9.1/firebase-firestore.js"; // Using v9.9.1 or higher for stability
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -39,19 +39,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Fetches ONLY the Brand's own Job Posts (posts collection).
+     * Added OR condition logic (Implicit brand_job detection)
      */
     async function fetchAllJobPosts() {
         jobPostsList.innerHTML = `<p class="text-center text-gray-500 text-sm">Loading...</p>`;
         
         try {
             const postsRef = collection(db, 'posts');
+            
+            // Query: Fetch all posts authored by the current user
+            // This implicitly includes brand jobs, but relies on a status check or manual postType insertion.
             const jobQuery = query(postsRef, 
                 where("authorId", "==", currentUser.uid),
-                where("postType", "==", "brand_job"), 
+                // REMOVED 'where("postType", "==", "brand_job")' to handle missing postType field in DB
                 orderBy("createdAt", "desc")
             );
             const jobSnapshot = await getDocs(jobQuery);
-            currentBrandPosts = jobSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'job' }));
+            
+            // Filter client-side if necessary (e.g., filter out influencer service posts if any were posted by mistake)
+            currentBrandPosts = jobSnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data(), type: 'job' }))
+                .filter(post => post.postType === 'brand_job' || !post.postType); // Assume posts without postType are brand jobs
 
             renderJobPostList(currentBrandPosts);
 
@@ -69,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const statuses = {
             'pending-admin-approval': { text: 'PENDING APPROVAL', color: 'bg-yellow-800 text-yellow-300' },
             'open-for-proposals': { text: 'ACTIVE', color: 'bg-green-600 text-white' },
+            'verified': { text: 'VERIFIED', color: 'bg-green-600 text-white' }, // Handling existing 'verified' status
             'job': { text: 'JOB POST', color: 'bg-gray-700 text-gray-300' }
         };
         const badge = statuses[status] || statuses['job'];
@@ -91,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         jobPostsList.innerHTML = items.map(item => {
             const statusType = item.status || 'job';
-            const subText = item.status === 'open-for-proposals' ? `Active` : `Status: ${statusType}`;
+            const subText = item.status === 'open-for-proposals' || item.status === 'verified' ? `Active` : `Status: ${statusType}`;
             
             return `
                 <div data-id="${item.id}" data-type="job" class="job-item p-3 rounded-lg cursor-pointer transition hover:bg-gray-800 border-b border-dark last:border-b-0">
@@ -114,45 +123,41 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p class="text-center text-gray-500 py-4">Loading proposals...</p>`;
         
         try {
-            // Fetch Proposals: Filter by JobId (No status filter initially, load all related proposals)
+            // Fetch Proposals: Only load PENDING ones that require brand action
             const proposalsRef = collection(db, 'proposals');
             const proposalQuery = query(proposalsRef, 
                 where("postId", "==", jobId), 
+                where("status", "==", "pending"), // CRITICAL: Filter for UNPROCESSED
                 orderBy("createdAt", "desc")
             );
             const proposalSnapshot = await getDocs(proposalQuery);
             const proposals = proposalSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            console.log(`[JOB MGT] Loaded ${proposals.length} total proposals.`);
+            console.log(`[JOB MGT] Successfully loaded ${proposals.length} pending proposals.`);
 
-            // Filter for Pending Proposals to show them first
-            const pendingProposals = proposals.filter(p => p.status === 'pending' || !p.status); 
-            const processedProposals = proposals.filter(p => p.status !== 'pending' && p.status);
-
-
+            // --- Render Job Details ---
             let html = `
                 <div class="mt-4 p-4 bg-gray-800 rounded-lg mb-6">
                     <p class="font-semibold text-white">Budget: ৳${job.budget.toLocaleString()} | Status: ${getStatusBadge(job.status || 'open-for-proposals')}</p>
                 </div>
                 
-                <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Pending Proposals (${pendingProposals.length})</h3>
-                <div id="proposals-list-pending" class="space-y-4 mt-3">
-                    ${pendingProposals.length > 0 ? pendingProposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No new proposals requiring action.</p>'}
-                </div>
-
-                <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Processed Proposals (${processedProposals.length})</h3>
-                <div id="proposals-list-processed" class="space-y-4 mt-3">
-                    ${processedProposals.length > 0 ? processedProposals.map(p => createProposalCard(p, job, true)).join('') : '<p class="text-gray-500">No processed proposals.</p>'}
+                <h3 class="text-xl font-semibold mt-6 border-b border-dark pb-2">Pending Proposals (${proposals.length})</h3>
+                <div id="proposals-list" class="space-y-4 mt-3">
+                    ${proposals.length > 0 ? proposals.map(p => createProposalCard(p, job)).join('') : '<p class="text-gray-500">No new proposals requiring action.</p>'}
                 </div>
             `;
+            
+            // NOTE: We do NOT load processed proposals here to keep the inbox focused.
             detailsContent.innerHTML = html;
 
         } catch (error) {
             console.error("[JOB MGT ERROR] Failed to fetch proposals:", error);
             
             let errorMessage = "Failed to load proposals.";
-            if (error.message.includes("requires an index")) {
-                 errorMessage = `ERROR: Indexing required. Check console (F12) for link.`;
+            if (error.code === 'permission-denied') {
+                errorMessage = "ERROR: Permission Denied. Cannot read proposals collection. Check Security Rules (must allow brandId read).";
+            } else if (error.message.includes("requires an index")) {
+                errorMessage = `ERROR: Firestore Indexing required for postId + status filter. Check console (F12) for the creation link.`;
             }
 
             detailsContent.innerHTML = `
@@ -163,28 +168,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function createProposalCard(proposal, job, isProcessed = false) {
+    function createProposalCard(proposal, job) {
         const displayBudget = (proposal.proposedBudget || job.budget).toLocaleString();
-        const statusClass = getProposalStatusClass(proposal.status);
-        const disabledAttr = isProcessed ? 'disabled' : '';
-
+        
         return `
             <div class="bg-gray-800 p-4 rounded-lg flex justify-between items-start border border-gray-700">
                 <div class="flex-grow">
                     <p class="font-semibold text-lg text-white">${proposal.influencerName || 'Influencer'}</p>
                     <p class="text-sm text-gray-400">Proposed Budget: <span class="text-yellow-400">৳${displayBudget}</span></p>
                     <p class="text-xs text-gray-500 mt-2">Note: ${proposal.note || 'N/A'}</p>
-                    <p class="text-xs ${statusClass} font-semibold mt-1">Status: ${proposal.status.toUpperCase() || 'PENDING'}</p>
                 </div>
                 <div class="flex flex-col space-y-2 ml-4">
                     <a href="/pf/influencer/${proposal.influencerId}" target="_blank" class="text-xs text-mulberry hover:underline">View Profile</a>
-                    
-                    ${!isProcessed ? `
-                        <button data-proposal-id="${proposal.id}" data-action="accept-proposal" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">Accept</button>
-                        <button data-proposal-id="${proposal.id}" data-action="reject-proposal" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">Reject</button>
-                    ` : `
-                        <button disabled class="bg-gray-700 text-gray-400 px-3 py-1 rounded text-xs">Processed</button>
-                    `}
+                    <button data-proposal-id="${proposal.id}" data-action="accept-proposal" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">Accept</button>
+                    <button data-proposal-id="${proposal.id}" data-action="reject-proposal" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">Reject</button>
                 </div>
             </div>
         `;
@@ -216,20 +213,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: proposal.jobTitle || 'Job Contract',
                     budget: proposal.proposedBudget || proposal.jobBudget,
                     createdAt: serverTimestamp(),
+                    
+                    // Participants
                     brandId: currentUser.uid,
                     brandName: proposal.brandName || currentUser.displayName || currentUser.email,
                     influencerId: proposal.influencerId,
                     influencerName: proposal.influencerName,
-                    payment: { status: 'required', amount: workContractData.budget }, 
+                    
+                    // Status: Payment required from brand
+                    payment: { status: 'required', amount: proposal.proposedBudget || proposal.jobBudget }, 
                     status: 'pending-brand-payment', 
-                    // Add other details needed for the work contract
+                    
+                    // Details
                     contentTypes: proposal.contentTypes || [],
                     platforms: proposal.platforms || [],
                 };
 
                 await setDoc(newWorkRef, workContractData);
                 
-                alert("Proposal Accepted! Contract generated. Brand must pay to activate.");
+                alert("Proposal Accepted! Contract generated. You must now make the payment (outside this interface) to activate the contract.");
             } else {
                 alert("Proposal rejected.");
             }
@@ -254,13 +256,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 1. Check for Job Item Click (Left Column)
         const jobItem = target.closest('.job-item');
-        if (jobItem && jobPostsList.contains(jobItem)) { // Ensure click is within the job list
+        if (jobItem && jobPostsList.contains(jobItem)) { 
             document.querySelectorAll('.job-item').forEach(i => i.classList.remove('selected'));
             jobItem.classList.add('selected');
             
             const id = jobItem.dataset.id;
             
-            // This inbox only handles 'job' type
+            // Only render Job Management Details in this specific inbox
             renderJobManagementDetails(id); 
             return;
         }
