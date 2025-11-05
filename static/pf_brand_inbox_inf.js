@@ -198,58 +198,78 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleProposalAction(proposalId, action) {
         if (!confirm(`Are you sure you want to ${action.toUpperCase()} this proposal?`)) return;
 
-        try {
-            const proposalRef = doc(db, 'proposals', proposalId);
-            const proposalSnap = await getDoc(proposalRef);
-            if (!proposalSnap.exists()) throw new Error("Proposal not found.");
-            const proposal = proposalSnap.data();
-            const jobId = proposal.postId; 
+// static/pf_brand_inbox_inf.js (handleProposalAction function update)
 
-            // 1. Update Proposal Status
-            await updateDoc(proposalRef, { status: action === 'accept' ? 'accepted' : 'rejected' });
-            
-            if (action === 'accept') {
-                // 2. Create a NEW WORK CONTRACT (pending brand payment)
-                const newWorkRef = doc(collection(db, 'works'));
-                
-                const workContractData = {
-                    postId: proposal.postId,
-                    title: proposal.jobTitle || 'Job Contract',
-                    budget: proposal.proposedBudget || proposal.jobBudget,
-                    createdAt: serverTimestamp(),
-                    
-                    // Participants
-                    brandId: currentUser.uid,
-                    brandName: proposal.brandName || currentUser.displayName || currentUser.email,
-                    influencerId: proposal.influencerId,
-                    influencerName: proposal.influencerName,
-                    
-                    // Status: Payment required from brand
-                    payment: { status: 'required', amount: proposal.proposedBudget || proposal.jobBudget }, 
-                    status: 'pending-brand-payment', 
-                    
-                    // Details
-                    contentTypes: proposal.contentTypes || [],
-                    platforms: proposal.platforms || [],
-                };
+    try {
+        const proposalRef = doc(db, 'proposals', proposalId);
+        const proposalSnap = await getDoc(proposalRef);
+        if (!proposalSnap.exists()) throw new Error("Proposal not found.");
+        const proposal = proposalSnap.data();
+        const jobId = proposal.postId; 
+        
+        // --- CRITICAL FIX: Load Job Details to get the fallback Budget ---
+        const job = currentBrandPosts.find(j => j.id === jobId);
+        if (!job) throw new Error("Original Job Post details could not be found in state.");
 
-                await setDoc(newWorkRef, workContractData);
-                
-                alert("Proposal Accepted! Contract generated. You must now make the payment (outside this interface) to activate the contract.");
-            } else {
-                alert("Proposal rejected.");
-            }
-
-            // Refresh the view
-            await fetchAllJobPosts(); 
-            renderJobManagementDetails(jobId); 
-
-        } catch (error) {
-            console.error("Proposal action failed:", error);
-            alert(`Action failed: ${error.message}. Check console.`);
+        // Determine the Final Budget (Use Proposal Budget, then Job Budget, then 0 as absolute fallback)
+        const finalBudget = Number(proposal.proposedBudget) || Number(job.budget) || 0;
+        
+        if (finalBudget === 0) {
+             throw new Error("Cannot accept proposal: Budget amount is zero or missing.");
         }
-    }
+        // -------------------------------------------------------------------
 
+
+        // 1. Update Proposal Status
+        await updateDoc(proposalRef, { status: action === 'accept' ? 'accepted' : 'rejected' });
+        
+        if (action === 'accept') {
+            // 2. Create a NEW WORK CONTRACT (pending brand payment)
+            const newWorkRef = doc(collection(db, 'works'));
+            
+            const workContractData = {
+                postId: proposal.postId,
+                title: proposal.jobTitle || job.title || 'Job Contract', // Use job title as primary title
+                budget: finalBudget, // Use the safely determined budget
+                createdAt: serverTimestamp(),
+                
+                // Participants
+                brandId: currentUser.uid,
+                brandName: proposal.brandName || currentUser.displayName || currentUser.email,
+                influencerId: proposal.influencerId,
+                influencerName: proposal.influencerName,
+                
+                // Status: Payment required from brand
+                payment: { status: 'required', amount: finalBudget }, 
+                status: 'pending-brand-payment', 
+                
+                // Details
+                contentTypes: proposal.contentTypes || job.contentTypes || [], // Use job defaults if proposal is missing
+                platforms: proposal.platforms || job.platforms || [],
+            };
+
+            await setDoc(newWorkRef, workContractData);
+            
+            alert("Proposal Accepted! Contract generated. You must pay to begin.");
+        } else {
+            alert("Proposal rejected.");
+        }
+
+        // Refresh the view
+        await fetchAllJobPosts(); 
+        renderJobManagementDetails(jobId); 
+
+    } catch (error) {
+        console.error("Proposal action failed:", error);
+        
+        let msg = `Action failed: ${error.message}`;
+        if (error.message.includes('Budget') || error.message.includes('Job Post')) {
+             msg = `Acceptance failed: Budget data is missing. Ensure the Job Post is loaded correctly.`;
+        }
+
+        alert(msg);
+    }
+}
 
     // =================================================================
     // SECTION D: EVENT LISTENERS (DELEGATION FIX)
