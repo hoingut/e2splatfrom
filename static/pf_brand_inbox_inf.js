@@ -226,30 +226,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (action === 'accept') {
             // 2. Create a NEW WORK CONTRACT (pending brand payment)
             const newWorkRef = doc(collection(db, 'works'));
-            
-            const workContractData = {
+                        const workContractData = {
                 postId: proposal.postId,
-                title: proposal.jobTitle || job.title || 'Job Contract', // Use job title as primary title
-                budget: finalBudget, // Use the safely determined budget
+                title: proposal.jobTitle || job.title || 'Job Contract',
+                budget: finalBudget, 
                 createdAt: serverTimestamp(),
                 
                 // Participants
                 brandId: currentUser.uid,
                 brandName: proposal.brandName || currentUser.displayName || currentUser.email,
                 influencerId: proposal.influencerId,
-                influencerName: proposal.influencerName,
+                // --- CRITICAL FIX FOR UNDEFINED NAME ---
+                influencerName: proposal.influencerName || 'Influencer User', 
+                // -------------------------------------
                 
                 // Status: Payment required from brand
                 payment: { status: 'required', amount: finalBudget }, 
                 status: 'pending-brand-payment', 
                 
                 // Details
-                contentTypes: proposal.contentTypes || job.contentTypes || [], // Use job defaults if proposal is missing
+                contentTypes: proposal.contentTypes || job.contentTypes || [], 
                 platforms: proposal.platforms || job.platforms || [],
             };
 
             await setDoc(newWorkRef, workContractData);
-            
+// ...
             alert("Proposal Accepted! Contract generated. You must pay to begin.");
         } else {
             alert("Proposal rejected.");
